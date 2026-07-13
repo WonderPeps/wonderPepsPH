@@ -303,7 +303,8 @@ function addToCart(productId) {
   }
 
   renderCart();
-  openCart();
+  showAddedToBag(product.name);
+animateBag();
 }
 
 function removeFromCart(productId) {
@@ -714,5 +715,35 @@ await Promise.all([
 
   renderCart();
 }
+function showAddedToBag(productName) {
+    let toast = document.getElementById("cartToast");
 
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "cartToast";
+        document.body.appendChild(toast);
+    }
+
+    toast.textContent = `🩷 ${productName} added to your bag!`;
+
+    toast.classList.add("show");
+
+    clearTimeout(toast.timeout);
+
+    toast.timeout = setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2200);
+}
+
+function animateBag() {
+    const bagButton = document.querySelector(".cart-button");
+
+    if (!bagButton) return;
+
+    bagButton.classList.remove("bag-bounce");
+
+    void bagButton.offsetWidth;
+
+    bagButton.classList.add("bag-bounce");
+}
 initializeStorefront();
