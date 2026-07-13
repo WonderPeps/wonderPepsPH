@@ -14,14 +14,45 @@
       <span id="brandFallback" class="brand-mark">♡</span>
       <span id="brandName">Wonder Peps <small>PH</small></span>
     </a>
-    <nav>
-      <a href="#shop">Shop</a>
-      <button id="cartButton" class="cart-button" type="button">
-        Bag <span id="cartCount">0</span>
-      </button>
-    </nav>
-  </header>
+<nav>
+  <a href="#shop">Shop</a>
 
+  <button
+    id="cartButton"
+    class="cart-button"
+    type="button"
+  >
+    Bag <span id="cartCount">0</span>
+  </button>
+
+  <button
+    id="menuButton"
+    class="icon-button menu-button"
+    type="button"
+    aria-label="Open menu"
+  >
+    ☰
+  </button>
+</nav>
+  </header>
+<aside id="menuDrawer" class="drawer menu-drawer" aria-hidden="true">
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <h2>Menu</h2>
+
+      <button
+        id="closeMenu"
+        class="icon-button"
+        type="button"
+        aria-label="Close menu"
+      >
+        ×
+      </button>
+    </div>
+
+    <nav id="storeMenuItems" class="store-menu-items"></nav>
+  </div>
+</aside>
   <main>
     <section id="home" class="hero">
       <div>
