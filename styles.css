@@ -421,3 +421,63 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
     grid-template-columns: 1fr;
   }
 }
+/* =========================================
+   FIX STRETCHED PRODUCT CATALOG
+========================================= */
+
+.product-card {
+  min-width: 0;
+}
+
+.product-card > .product-image {
+  aspect-ratio: 4 / 3;
+  height: auto;
+  max-height: 230px;
+  overflow: hidden;
+}
+
+.product-card > img.product-image {
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.product-body {
+  min-height: 260px;
+}
+
+.product-body h3 {
+  display: -webkit-box;
+  min-height: 2.7em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.product-body p {
+  display: -webkit-box;
+  min-height: 4.3em;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+@media (max-width: 620px) {
+  .product-card > .product-image {
+    aspect-ratio: 1 / 1;
+    max-height: none;
+  }
+
+  .product-body {
+    min-height: 230px;
+  }
+
+  .product-body h3 {
+    min-height: 2.5em;
+  }
+
+  .product-body p {
+    min-height: 3.8em;
+    -webkit-line-clamp: 3;
+  }
+}
