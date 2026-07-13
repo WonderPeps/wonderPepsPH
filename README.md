@@ -1,40 +1,27 @@
-# Wonder Peps PH — Stage 1
+# Wonder Peps PH — No-Code Admin Edition
 
-This is a real, deployable starter storefront.
+This version lets you edit the shop without touching code.
 
-## Included
-- Mobile-friendly pastel pink storefront
-- Initial product listings
-- Search
-- Add to cart
-- Guest checkout form
-- GCash, Maya, bank transfer, and COD selection
-- Unique order reference
-- Admin page for adding, editing, and deleting products
-- Local order list
+## You can change from admin.html
+- shop name
+- logo image link
+- homepage title and subtitle
+- Facebook and TikTok links
+- shipping labels
+- product names
+- prices
+- stock
+- descriptions
+- product image links
+- add/edit/delete products
 
-## Important
-Stage 1 saves products, cart, and orders in the visitor's browser using localStorage.
-That means orders are not yet shared between devices.
+## Important limitation
+Changes are saved in the same browser/device using localStorage.
+They are not shared to other devices yet.
 
-Stage 2 will connect the project to Supabase for:
-- online product database
-- online orders
+The next upgrade is Supabase for:
 - secure admin login
-- product image storage
-
-## Publish on Vercel
-Upload all files in this folder to your GitHub repository, then import that repository into Vercel.
-No build settings are required because this is a static website.
-
-
-## Current prices
-- Tirzepatide 15 mg — ₱1,500
-- Tirzepatide 30 mg — ₱2,000
-- Tirzepatide 60 mg — ₱2,500
-- Glutaone 1200 mg — ₱650
-
-## Shipping options
-- ₱90 nearby area
-- ₱120 standard
-- ₱150 farther area
+- online products
+- online orders
+- online image storage
+- editing from any device
