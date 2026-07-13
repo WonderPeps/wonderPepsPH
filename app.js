@@ -640,16 +640,77 @@ checkoutDialog.addEventListener("click", (event) => {
     checkoutDialog.close();
   }
 });
+/* ------------------------
+   STOREFRONT MENU
+------------------------ */
 
+async function loadStoreMenuItems() {
+  const { data, error } = await supabaseClient
+    .from("menu_items")
+    .select("*")
+    .eq("is_visible", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Could not load menu items:", error.message);
+    storeMenuItems.innerHTML =
+      `<p class="empty">Menu could not be loaded.</p>`;
+    return;
+  }
+
+  const items = data || [];
+
+  if (!items.length) {
+    storeMenuItems.innerHTML =
+      `<p class="empty">No menu items available.</p>`;
+    return;
+  }
+
+  storeMenuItems.innerHTML = items
+    .map((item) => {
+      const target = item.open_new_tab ? `target="_blank" rel="noopener"` : "";
+
+      return `
+        <a href="${escapeHtml(item.url)}" ${target}>
+          ${escapeHtml(item.label)}
+        </a>
+      `;
+    })
+    .join("");
+}
+
+function openMenuDrawer() {
+  menuDrawer.classList.add("open");
+  menuDrawer.setAttribute("aria-hidden", "false");
+}
+
+function closeMenuDrawer() {
+  menuDrawer.classList.remove("open");
+  menuDrawer.setAttribute("aria-hidden", "true");
+}
+
+menuButton.addEventListener("click", openMenuDrawer);
+closeMenu.addEventListener("click", closeMenuDrawer);
+
+menuDrawer.addEventListener("click", (event) => {
+  if (event.target === menuDrawer) {
+    closeMenuDrawer();
+  }
+});
+
+storeMenuItems.addEventListener("click", () => {
+  closeMenuDrawer();
+});
 /* -------------------------
    START STOREFRONT
 ------------------------- */
 
 async function initializeStorefront() {
-  await Promise.all([
-    loadShopSettings(),
-    loadProducts()
-  ]);
+await Promise.all([
+  loadShopSettings(),
+  loadProducts(),
+  loadStoreMenuItems()
+]);
 
   renderCart();
 }
