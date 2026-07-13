@@ -13,6 +13,29 @@
   </header>
 
   <main class="admin-shell">
+  <section id="loginSection" class="admin-card">
+  <h2>Admin login</h2>
+
+  <form id="loginForm" class="admin-form">
+    <label>
+      Email
+      <input name="email" type="email" required />
+    </label>
+
+    <label>
+      Password
+      <input name="password" type="password" required />
+    </label>
+
+    <button class="primary-button full" type="submit">
+      Log in
+    </button>
+  </form>
+
+  <p id="loginMessage" class="tiny-note"></p>
+</section>
+
+<div id="adminContent" hidden>
     <div class="notice">
       This no-code admin works on the same browser/device. Supabase will be the next upgrade for online syncing and secure login.
     </div>
@@ -69,6 +92,7 @@
       <h2>Orders on this device</h2>
       <div id="ordersList"></div>
     </section>
+</div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
