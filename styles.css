@@ -701,12 +701,12 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
   position: fixed;
   z-index: 10001;
   color: #dc4f88;
-  font-size: 22px;
+  font-size: 42px;
   line-height: 1;
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.8);
   opacity: 0;
-  filter: drop-shadow(0 5px 10px rgba(220, 79, 136, 0.3));
+  filter: drop-shadow(0 8px 18px rgba(220,79,136,.45));
 }
 
 .flying-heart.fly {
@@ -716,12 +716,18 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 @keyframes flyHeartToBag {
   0% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.7) rotate(-12deg);
+    transform:
+      translate(-50%, -50%)
+      scale(0.9)
+      rotate(-12deg);
   }
 
-  15% {
+  12% {
     opacity: 1;
-    transform: translate(-50%, -60%) scale(1.15) rotate(8deg);
+    transform:
+      translate(-50%, -70%)
+      scale(1.45)
+      rotate(8deg);
   }
 
   55% {
@@ -729,10 +735,21 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
     transform:
       translate(
         calc(-50% + (var(--fly-x) * 0.55)),
-        calc(-50% + (var(--fly-y) * 0.42) - 70px)
+        calc(-50% + (var(--fly-y) * 0.42) - 90px)
       )
-      scale(1)
+      scale(1.25)
       rotate(-8deg);
+  }
+
+  82% {
+    opacity: 1;
+    transform:
+      translate(
+        calc(-50% + (var(--fly-x) * 0.88)),
+        calc(-50% + (var(--fly-y) * 0.82) - 20px)
+      )
+      scale(0.8)
+      rotate(12deg);
   }
 
   100% {
@@ -742,7 +759,7 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
         calc(-50% + var(--fly-x)),
         calc(-50% + var(--fly-y))
       )
-      scale(0.35)
-      rotate(18deg);
+      scale(0.15)
+      rotate(20deg);
   }
 }
