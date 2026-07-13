@@ -573,3 +573,36 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
         position:static;
     }
 }
+/* Fix menu item action buttons */
+#adminMenuItems .admin-product {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+
+#adminMenuItems .admin-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+#adminMenuItems .admin-actions button {
+  white-space: nowrap;
+}
+
+#adminMenuItems .admin-product > div:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+  #adminMenuItems .admin-product {
+    grid-template-columns: 1fr;
+  }
+
+  #adminMenuItems .admin-actions {
+    justify-content: flex-start;
+  }
+}
