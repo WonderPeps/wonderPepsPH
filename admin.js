@@ -293,8 +293,8 @@ function editMenuItem(id) {
   menuForm.elements.label.value = item.label || "";
   menuForm.elements.url.value = item.url || "";
   menuForm.elements.section.value = item.section || "SITE";
-  menuForm.elements.visible.checked = item.is_visible;
-  menuForm.elements.newTab.checked = item.open_new_tab;
+  menuForm.elements.isVisible.checked = item.is_visible;
+  menuForm.elements.openNewTab.checked = item.open_new_tab;
 
   menuFormTitle.textContent = "Edit menu item";
   cancelMenuEdit.hidden = false;
