@@ -47,13 +47,9 @@ async function verifyAdmin() {
     return;
   }
 
-  const { data, error } = await supabaseClient
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data, error } = await supabaseClient.rpc("is_admin");
 
-  if (error || !data) {
+if (error || data !== true) {
     await supabaseClient.auth.signOut();
     await showLogin("This account does not have administrator access.");
     return;
