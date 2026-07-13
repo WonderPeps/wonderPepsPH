@@ -696,3 +696,53 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
     padding-top: 18px;
     padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
+/* Heart flying from Add to Bag button to Bag icon */
+.flying-heart {
+  position: fixed;
+  z-index: 10001;
+  color: #dc4f88;
+  font-size: 22px;
+  line-height: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.8);
+  opacity: 0;
+  filter: drop-shadow(0 5px 10px rgba(220, 79, 136, 0.3));
+}
+
+.flying-heart.fly {
+  animation: flyHeartToBag 0.8s cubic-bezier(0.2, 0.75, 0.3, 1) forwards;
+}
+
+@keyframes flyHeartToBag {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7) rotate(-12deg);
+  }
+
+  15% {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(1.15) rotate(8deg);
+  }
+
+  55% {
+    opacity: 1;
+    transform:
+      translate(
+        calc(-50% + (var(--fly-x) * 0.55)),
+        calc(-50% + (var(--fly-y) * 0.42) - 70px)
+      )
+      scale(1)
+      rotate(-8deg);
+  }
+
+  100% {
+    opacity: 0;
+    transform:
+      translate(
+        calc(-50% + var(--fly-x)),
+        calc(-50% + var(--fly-y))
+      )
+      scale(0.35)
+      rotate(18deg);
+  }
+}
