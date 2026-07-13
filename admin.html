@@ -110,7 +110,13 @@
 
   <form id="menuForm" class="admin-form">
     <input type="hidden" name="id" />
-
+<label>
+    Section
+    <select name="section">
+        <option value="SITE">Site</option>
+        <option value="SHOP">Shop</option>
+    </select>
+</label>
     <label>
       Menu label
       <input
@@ -130,14 +136,12 @@
     </label>
 
     <label>
-      Menu section
-      <input
-        name="section"
-        placeholder="Example: SITE"
-        value="SITE"
-        required
-      />
-    </label>
+    Menu section
+    <select name="section">
+        <option value="SITE">Site</option>
+        <option value="SHOP">Shop</option>
+    </select>
+</label>
 
     <label>
       <input name="isVisible" type="checkbox" checked />
