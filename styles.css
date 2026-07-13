@@ -710,7 +710,7 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 }
 
 .flying-heart.fly {
-  animation: flyHeartToBag 0.8s cubic-bezier(0.2, 0.75, 0.3, 1) forwards;
+    animation: flyHeartToBag 1.05s cubic-bezier(0.2,0.75,0.3,1) forwards;
 }
 
 @keyframes flyHeartToBag {
