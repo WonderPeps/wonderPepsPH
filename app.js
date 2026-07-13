@@ -1,3 +1,56 @@
+
+const DEFAULT_SETTINGS = {
+  shopName: "Wonder Peps PH",
+  logoUrl: "",
+  heroTitle: "Soft pink shopping made easy.",
+  heroSubtitle: "Browse products, add them to your bag, and send your order details in just a few taps.",
+  facebook: "",
+  tiktok: "",
+  shipping90Label: "Nearby area",
+  shipping120Label: "Standard shipping",
+  shipping150Label: "Farther area"
+};
+
+function getSettings() {
+  try {
+    return { ...DEFAULT_SETTINGS, ...(JSON.parse(localStorage.getItem("wp_settings")) || {}) };
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+function applySettings() {
+  const s = getSettings();
+  document.title = s.shopName;
+  document.querySelector("#brandName").innerHTML = s.shopName.replace(/\sPH$/i, ' <small>PH</small>');
+  document.querySelector("#heroTitle").textContent = s.heroTitle;
+  document.querySelector("#heroSubtitle").textContent = s.heroSubtitle;
+  document.querySelector("#footerBrand").textContent = `© ${s.shopName}`;
+
+  const logo = document.querySelector("#brandLogo");
+  const fallback = document.querySelector("#brandFallback");
+  if (s.logoUrl) {
+    logo.src = s.logoUrl;
+    logo.hidden = false;
+    fallback.hidden = true;
+  } else {
+    logo.hidden = true;
+    fallback.hidden = false;
+  }
+
+  const fb = document.querySelector("#facebookLink");
+  const tt = document.querySelector("#tiktokLink");
+  if (s.facebook) { fb.href = s.facebook; fb.hidden = false; } else fb.hidden = true;
+  if (s.tiktok) { tt.href = s.tiktok; tt.hidden = false; } else tt.hidden = true;
+
+  const ship = document.querySelector('select[name="shipping"]');
+  if (ship) {
+    ship.options[1].textContent = `₱90 — ${s.shipping90Label}`;
+    ship.options[2].textContent = `₱120 — ${s.shipping120Label}`;
+    ship.options[3].textContent = `₱150 — ${s.shipping150Label}`;
+  }
+}
+
 const DEFAULT_PRODUCTS = [
   { id: "tirz-15", name: "Tirzepatide 15 mg", price: 1500, stock: 10, category: "Peptide", emoji: "♡", description: "Product listing ready for your price, photo, and details." },
   { id: "tirz-30", name: "Tirzepatide 30 mg", price: 2000, stock: 10, category: "Peptide", emoji: "♡", description: "Product listing ready for your price, photo, and details." },
@@ -171,5 +224,6 @@ document.querySelector("#checkoutForm").addEventListener("submit", e => {
 });
 document.querySelector("#closeSuccess").onclick = () => document.querySelector("#successDialog").close();
 
+applySettings();
 renderProducts();
 renderCart();
