@@ -305,6 +305,7 @@ function addToCart(productId) {
   renderCart();
   showAddedToBag(product.name);
 animateBag();
+  flyHeartToBag(event.currentTarget);
 }
 
 function removeFromCart(productId) {
@@ -745,5 +746,35 @@ function animateBag() {
     void bagButton.offsetWidth;
 
     bagButton.classList.add("bag-bounce");
+}
+function flyHeartToBag(sourceButton) {
+  if (!sourceButton || !cartButton) return;
+
+  const startRect = sourceButton.getBoundingClientRect();
+  const endRect = cartButton.getBoundingClientRect();
+
+  const heart = document.createElement("span");
+  heart.className = "flying-heart";
+  heart.textContent = "♥";
+
+  const startX = startRect.left + startRect.width / 2;
+  const startY = startRect.top + startRect.height / 2;
+  const endX = endRect.left + endRect.width / 2;
+  const endY = endRect.top + endRect.height / 2;
+
+  heart.style.left = `${startX}px`;
+  heart.style.top = `${startY}px`;
+
+  document.body.appendChild(heart);
+
+  requestAnimationFrame(() => {
+    heart.style.setProperty("--fly-x", `${endX - startX}px`);
+    heart.style.setProperty("--fly-y", `${endY - startY}px`);
+    heart.classList.add("fly");
+  });
+
+  setTimeout(() => {
+    heart.remove();
+  }, 900);
 }
 initializeStorefront();
