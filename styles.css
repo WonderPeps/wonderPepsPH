@@ -504,3 +504,72 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 .store-menu-items a:hover {
   background: #fdebf3;
 }
+/* ===========================
+   ADMIN SIDEBAR LAYOUT
+=========================== */
+
+.admin-layout{
+    display:grid;
+    grid-template-columns:260px 1fr;
+    gap:24px;
+    align-items:start;
+}
+
+.admin-sidebar{
+    position:sticky;
+    top:24px;
+    background:#fff;
+    border:1px solid #f3d7e4;
+    border-radius:20px;
+    padding:20px;
+    box-shadow:0 10px 30px rgba(230,150,180,.12);
+}
+
+.admin-sidebar-title{
+    margin-bottom:24px;
+}
+
+.admin-sidebar-title small{
+    display:block;
+    color:#9d7b88;
+    margin-top:4px;
+}
+
+.admin-sidebar-nav{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:24px;
+}
+
+.admin-sidebar-nav a{
+    text-decoration:none;
+    color:#4a2d38;
+    padding:12px 14px;
+    border-radius:12px;
+    transition:.2s;
+}
+
+.admin-sidebar-nav a:hover{
+    background:#fff3f8;
+}
+
+.admin-main-content{
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+}
+
+.secondary-button.full{
+    width:100%;
+}
+
+@media (max-width:900px){
+    .admin-layout{
+        grid-template-columns:1fr;
+    }
+
+    .admin-sidebar{
+        position:static;
+    }
+}
