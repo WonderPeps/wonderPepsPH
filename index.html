@@ -10,8 +10,9 @@
 <body>
   <header class="site-header">
     <a class="brand" href="#home">
-      <span class="brand-mark">♡</span>
-      <span>Wonder Peps <small>PH</small></span>
+      <img id="brandLogo" class="brand-logo" alt="Shop logo" hidden />
+      <span id="brandFallback" class="brand-mark">♡</span>
+      <span id="brandName">Wonder Peps <small>PH</small></span>
     </a>
     <nav>
       <a href="#shop">Shop</a>
@@ -25,8 +26,8 @@
     <section id="home" class="hero">
       <div>
         <p class="eyebrow">Pretty packaging, simple ordering</p>
-        <h1>Soft pink shopping made easy.</h1>
-        <p>Browse products, add them to your bag, and send your order details in just a few taps.</p>
+        <h1 id="heroTitle">Soft pink shopping made easy.</h1>
+        <p id="heroSubtitle">Browse products, add them to your bag, and send your order details in just a few taps.</p>
         <a class="primary-button" href="#shop">Shop now</a>
       </div>
       <div class="bunny-card" aria-hidden="true">
@@ -133,8 +134,12 @@
   </dialog>
 
   <footer>
-    <p>© Wonder Peps PH</p>
-    <a href="admin.html">Admin</a>
+    <p id="footerBrand">© Wonder Peps PH</p>
+    <div class="footer-links">
+      <a id="facebookLink" href="#" target="_blank" hidden>Facebook</a>
+      <a id="tiktokLink" href="#" target="_blank" hidden>TikTok</a>
+      <a href="admin.html">Admin</a>
+    </div>
   </footer>
 
   <script src="app.js"></script>
