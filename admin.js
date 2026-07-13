@@ -249,8 +249,8 @@ menuForm.addEventListener("submit", async (event) => {
     label: String(formData.get("label") || "").trim(),
     url: String(formData.get("url") || "").trim(),
     section: String(formData.get("section") || "SITE").trim(),
-    is_visible: formData.get("visible") === "on",
-    open_new_tab: formData.get("newTab") === "on"
+    is_visible: formData.get("isVisible") === "on",
+open_new_tab: formData.get("openNewTab") === "on"
   };
 
   const id = formData.get("id");
