@@ -10,7 +10,12 @@ const ordersList = document.querySelector("#ordersList");
 const formTitle = document.querySelector("#formTitle");
 const cancelEdit = document.querySelector("#cancelEdit");
 const resetButton = document.querySelector("#resetButton");
+const menuForm = document.querySelector("#menuForm");
+const menuFormTitle = document.querySelector("#menuFormTitle");
+const adminMenuItems = document.querySelector("#adminMenuItems");
+const cancelMenuEdit = document.querySelector("#cancelMenuEdit");
 
+let menuItems = [];
 let products = [];
 
 /* -------------------------
@@ -29,11 +34,12 @@ async function showAdmin() {
 
   resetButton.textContent = "Log out";
 
-  await Promise.all([
-    loadSettings(),
-    loadProducts(),
-    loadOrders()
-  ]);
+await Promise.all([
+  loadSettings(),
+  loadProducts(),
+  loadMenuItems(),
+  loadOrders()
+]);
 }
 
 async function verifyAdmin() {
@@ -151,7 +157,180 @@ settingsForm.addEventListener("submit", async (event) => {
 
   alert("Shop profile saved online.");
 });
+/* ------------------------
+   MENU ITEMS
+------------------------ */
 
+async function loadMenuItems() {
+  const { data, error } = await supabaseClient
+    .from("menu_items")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    adminMenuItems.innerHTML =
+      `<p class="empty">Could not load menu items: ${escapeHtml(error.message)}</p>`;
+    return;
+  }
+
+  menuItems = data || [];
+  renderMenuItems();
+}
+
+function renderMenuItems() {
+  if (!menuItems.length) {
+    adminMenuItems.innerHTML =
+      `<p class="empty">No menu items yet.</p>`;
+    return;
+  }
+
+  adminMenuItems.innerHTML = menuItems
+    .map(
+      (item) => `
+        <article class="admin-product">
+          <div>
+            <strong>${escapeHtml(item.label)}</strong>
+
+            <div>
+              ${escapeHtml(item.url)}
+            </div>
+
+            <small>
+              ${escapeHtml(item.section || "SITE")}
+              · ${item.is_visible ? "Visible" : "Hidden"}
+              · ${item.open_new_tab ? "New tab" : "Same tab"}
+            </small>
+          </div>
+
+          <div class="admin-actions">
+            <button
+              class="secondary-button"
+              type="button"
+              data-menu-edit="${item.id}"
+            >
+              Edit
+            </button>
+
+            <button
+              class="secondary-button danger"
+              type="button"
+              data-menu-delete="${item.id}"
+            >
+              Delete
+            </button>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+
+  adminMenuItems
+    .querySelectorAll("[data-menu-edit]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        editMenuItem(button.dataset.menuEdit);
+      });
+    });
+
+  adminMenuItems
+    .querySelectorAll("[data-menu-delete]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        deleteMenuItem(button.dataset.menuDelete);
+      });
+    });
+}
+menuForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const formData = new FormData(menuForm);
+
+  const updates = {
+    label: String(formData.get("label") || "").trim(),
+    url: String(formData.get("url") || "").trim(),
+    section: String(formData.get("section") || "SITE").trim(),
+    is_visible: formData.get("visible") === "on",
+    open_new_tab: formData.get("newTab") === "on"
+  };
+
+  const id = formData.get("id");
+
+  let error;
+
+  if (id) {
+    ({ error } = await supabaseClient
+      .from("menu_items")
+      .update(updates)
+      .eq("id", id));
+  } else {
+    ({ error } = await supabaseClient
+      .from("menu_items")
+      .insert({
+        ...updates,
+        sort_order: menuItems.length
+          ? Math.max(...menuItems.map(m => Number(m.sort_order || 0))) + 10
+          : 10
+      }));
+  }
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  menuForm.reset();
+  menuForm.elements.id.value = "";
+  menuFormTitle.textContent = "Add menu item";
+  cancelMenuEdit.hidden = true;
+
+  await loadMenuItems();
+});
+function editMenuItem(id) {
+  const item = menuItems.find((m) => m.id === id);
+  if (!item) return;
+
+  menuForm.elements.id.value = item.id;
+  menuForm.elements.label.value = item.label || "";
+  menuForm.elements.url.value = item.url || "";
+  menuForm.elements.section.value = item.section || "SITE";
+  menuForm.elements.visible.checked = item.is_visible;
+  menuForm.elements.newTab.checked = item.open_new_tab;
+
+  menuFormTitle.textContent = "Edit menu item";
+  cancelMenuEdit.hidden = false;
+
+  menuForm.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+cancelMenuEdit.addEventListener("click", () => {
+  menuForm.reset();
+  menuForm.elements.id.value = "";
+  menuFormTitle.textContent = "Add menu item";
+  cancelMenuEdit.hidden = true;
+});
+
+async function deleteMenuItem(id) {
+  const item = menuItems.find((m) => m.id === id);
+
+  if (!item) return;
+
+  if (!confirm(`Delete "${item.label}"?`)) return;
+
+  const { error } = await supabaseClient
+    .from("menu_items")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await loadMenuItems();
+}
 /* -------------------------
    PRODUCTS
 ------------------------- */
