@@ -672,3 +672,27 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
     width: calc(100% - 32px);
   }
 }
+/* Fix cart scrolling on mobile */
+
+#cartDrawer .drawer-panel {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+#cartItems {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 16px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+#cartDrawer .cart-summary {
+    flex-shrink: 0;
+    background: #fff;
+    margin-top: 0;
+    padding-top: 18px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
