@@ -81,7 +81,74 @@
           <button id="cancelEdit" class="secondary-button full" type="button" hidden>Cancel editing</button>
         </form>
       </section>
+<section class="admin-card" style="margin-top:24px">
+  <h2 id="menuFormTitle">Add menu item</h2>
 
+  <form id="menuForm" class="admin-form">
+    <input type="hidden" name="id" />
+
+    <label>
+      Menu label
+      <input
+        name="label"
+        placeholder="Example: Community"
+        required
+      />
+    </label>
+
+    <label>
+      Link or page
+      <input
+        name="url"
+        placeholder="Example: faq.html or https://m.me/..."
+        required
+      />
+    </label>
+
+    <label>
+      Menu section
+      <input
+        name="section"
+        placeholder="Example: SITE"
+        value="SITE"
+        required
+      />
+    </label>
+
+    <label>
+      <input name="isVisible" type="checkbox" checked />
+      Show in menu
+    </label>
+
+    <label>
+      <input name="openNewTab" type="checkbox" />
+      Open in a new tab
+    </label>
+
+    <button class="primary-button full" type="submit">
+      Save menu item
+    </button>
+
+    <button
+      id="cancelMenuEdit"
+      class="secondary-button full"
+      type="button"
+      hidden
+    >
+      Cancel editing
+    </button>
+  </form>
+</section>
+
+<section class="admin-card" style="margin-top:24px">
+  <h2>Menu items</h2>
+
+  <p class="tiny-note">
+    You will be able to add, edit, hide, delete, and arrange these items.
+  </p>
+
+  <div id="adminMenuItems" class="admin-products"></div>
+</section>
       <section class="admin-card">
         <h2>Products</h2>
         <div id="adminProducts" class="admin-products"></div>
