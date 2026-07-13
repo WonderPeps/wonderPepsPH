@@ -36,6 +36,30 @@
 </section>
 
 <div id="adminContent" hidden>
+  <div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar-title">
+      Wonder Peps PH
+      <small>Admin Panel</small>
+    </div>
+
+    <nav class="admin-sidebar-nav">
+      <a href="#shopSettingsSection">Shop Settings</a>
+      <a href="#productsSection">Products</a>
+      <a href="#menuSection">Menu</a>
+      <a href="#ordersSection">Orders</a>
+    </nav>
+
+    <button
+      id="sidebarLogoutButton"
+      class="secondary-button danger full"
+      type="button"
+    >
+      Log out
+    </button>
+  </aside>
+
+  <div class="admin-main-content">
     <div class="notice">
       This no-code admin works on the same browser/device. Supabase will be the next upgrade for online syncing and secure login.
     </div>
@@ -159,7 +183,11 @@
       <h2>Orders on this device</h2>
       <div id="ordersList"></div>
     </section>
-</div>
+
+</div>   <!-- closes admin-main-content -->
+</div>   <!-- closes admin-layout -->
+</div>   <!-- closes adminContent -->
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
