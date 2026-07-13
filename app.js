@@ -753,28 +753,74 @@ function flyHeartToBag(sourceButton) {
   const startRect = sourceButton.getBoundingClientRect();
   const endRect = cartButton.getBoundingClientRect();
 
-  const heart = document.createElement("span");
-  heart.className = "flying-heart";
-  heart.textContent = "♥";
-
   const startX = startRect.left + startRect.width / 2;
   const startY = startRect.top + startRect.height / 2;
   const endX = endRect.left + endRect.width / 2;
   const endY = endRect.top + endRect.height / 2;
 
-  heart.style.left = `${startX}px`;
-  heart.style.top = `${startY}px`;
+  // 3 flying hearts
+  for (let i = 0; i < 3; i++) {
+    const heart = document.createElement("span");
+    heart.className = "flying-heart";
+    heart.textContent = "♥";
 
-  document.body.appendChild(heart);
+    heart.style.left = `${startX + (Math.random() * 24 - 12)}px`;
+    heart.style.top = `${startY + (Math.random() * 24 - 12)}px`;
 
-  requestAnimationFrame(() => {
-    heart.style.setProperty("--fly-x", `${endX - startX}px`);
-    heart.style.setProperty("--fly-y", `${endY - startY}px`);
-    heart.classList.add("fly");
-  });
+    document.body.appendChild(heart);
 
-  setTimeout(() => {
-    heart.remove();
-  }, 900);
+    requestAnimationFrame(() => {
+      heart.style.setProperty("--fly-x", `${endX - startX}px`);
+      heart.style.setProperty("--fly-y", `${endY - startY}px`);
+      heart.style.animationDelay = `${i * 0.08}s`;
+      heart.classList.add("fly");
+    });
+
+    setTimeout(() => {
+      heart.remove();
+    }, 1100);
+  }
+
+  createBagSparkles(endX, endY);
+}
+
+function createBagSparkles(x, y) {
+  for (let i = 0; i < 10; i++) {
+    const sparkle = document.createElement("span");
+
+    sparkle.textContent = "✨";
+    sparkle.style.position = "fixed";
+    sparkle.style.left = `${x}px`;
+    sparkle.style.top = `${y}px`;
+    sparkle.style.fontSize = `${14 + Math.random() * 12}px`;
+    sparkle.style.pointerEvents = "none";
+    sparkle.style.zIndex = "10002";
+
+    document.body.appendChild(sparkle);
+
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 25 + Math.random() * 35;
+
+    sparkle.animate(
+      [
+        {
+          transform: "translate(-50%,-50%) scale(0)",
+          opacity: 1
+        },
+        {
+          transform: `translate(${Math.cos(angle) * distance}px, ${
+            Math.sin(angle) * distance
+          }px) scale(1.4)`,
+          opacity: 0
+        }
+      ],
+      {
+        duration: 600,
+        easing: "ease-out"
+      }
+    );
+
+    setTimeout(() => sparkle.remove(), 600);
+  }
 }
 initializeStorefront();
