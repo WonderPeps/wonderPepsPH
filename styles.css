@@ -481,3 +481,26 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
     -webkit-line-clamp: 3;
   }
 }
+/* Storefront menu links */
+.store-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.store-menu-items a {
+  display: block;
+  padding: 14px 16px;
+  border: 1px solid #f0d7e1;
+  border-radius: 14px;
+  background: #fff8fb;
+  color: #4a2d38;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.store-menu-items a:hover {
+  background: #fdebf3;
+}
