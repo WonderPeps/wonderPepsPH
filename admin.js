@@ -1077,6 +1077,64 @@ async function loadOrders() {
   renderOrders(data || []);
 }
 
+async function verifyAdminAccess() {
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    return false;
+  }
+
+  const { data, error } = await supabaseClient.rpc("is_admin");
+
+  return !error && data === true;
+}
+
+async function viewOrderReceipt(order) {
+  const isAdmin = await verifyAdminAccess();
+
+  if (!isAdmin) {
+    alert("Admin access is required to view receipts.");
+    return;
+  }
+
+  if (!order?.receipt_image) {
+    alert("No receipt uploaded for this order.");
+    return;
+  }
+
+  const { data, error } = await supabaseClient.storage
+    .from("payment-receipts")
+    .createSignedUrl(order.receipt_image, 60);
+
+  if (error) {
+    alert(`Could not open receipt: ${error.message}`);
+    return;
+  }
+
+  window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+}
+
+async function updateOrderPaymentStatus(id, paymentStatus) {
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      payment_status: paymentStatus,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert(`Could not update payment status: ${error.message}`);
+    return;
+  }
+
+  await loadOrders();
+  alert(`Payment marked as ${paymentStatus}.`);
+}
+
 function renderOrders(orders) {
   if (!orders.length) {
     ordersList.innerHTML =
@@ -1099,8 +1157,18 @@ function renderOrders(orders) {
 
           <p>
             ${formatCurrency(order.total)}
-            · ${escapeHtml(order.payment_method)}
+            · ${escapeHtml(order.payment_method || "—")}
           </p>
+
+          <p>
+            Payment status: <strong>${escapeHtml(order.payment_status || "Pending")}</strong>
+          </p>
+
+          <p>
+            Amount paid: ${formatCurrency(order.amount_paid || 0)}
+          </p>
+
+          ${order.reference_number ? `<p>Reference: ${escapeHtml(order.reference_number)}</p>` : ""}
 
           <label>
             Status
@@ -1108,6 +1176,20 @@ function renderOrders(orders) {
               ${orderStatusOptions(order.status)}
             </select>
           </label>
+
+          <div class="order-actions">
+            ${order.receipt_image ? `
+              <button class="secondary-button" type="button" data-order-view-receipt="${order.id}">
+                View Receipt
+              </button>
+            ` : ""}
+            <button class="secondary-button" type="button" data-order-approve="${order.id}">
+              Approve Payment
+            </button>
+            <button class="secondary-button danger" type="button" data-order-reject="${order.id}">
+              Reject Payment
+            </button>
+          </div>
 
           <small>
             ${new Date(order.created_at).toLocaleString()}
@@ -1125,6 +1207,33 @@ function renderOrders(orders) {
           select.dataset.orderStatus,
           select.value
         );
+      });
+    });
+
+  ordersList
+    .querySelectorAll("[data-order-view-receipt]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const order = orders.find((item) => String(item.id) === String(button.dataset.orderViewReceipt));
+        if (order) {
+          await viewOrderReceipt(order);
+        }
+      });
+    });
+
+  ordersList
+    .querySelectorAll("[data-order-approve]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        await updateOrderPaymentStatus(button.dataset.orderApprove, "Approved");
+      });
+    });
+
+  ordersList
+    .querySelectorAll("[data-order-reject]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        await updateOrderPaymentStatus(button.dataset.orderReject, "Rejected");
       });
     });
 }
