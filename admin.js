@@ -21,10 +21,20 @@ const paymentMethodForm = document.querySelector("#paymentMethodForm");
 const paymentMethodModalTitle = document.querySelector("#paymentMethodModalTitle");
 const closePaymentMethodModal = document.querySelector("#closePaymentMethodModal");
 const cancelPaymentMethod = document.querySelector("#cancelPaymentMethod");
+const paymentMethodQrInput = document.querySelector("#paymentQrFile");
+const paymentMethodQrReplaceBtn = document.querySelector("#paymentQrReplaceBtn");
+const paymentMethodQrRemoveBtn = document.querySelector("#paymentQrRemoveBtn");
+const paymentMethodQrPreviewBox = document.querySelector("#paymentQrPreviewBox");
+const paymentMethodQrPreviewImage = document.querySelector("#paymentQrPreviewImage");
+const paymentMethodQrPreviewText = document.querySelector("#paymentQrPreviewText");
 
 let menuItems = [];
 let products = [];
 let paymentMethods = [];
+let paymentMethodQrFile = null;
+let paymentMethodQrPreviewUrl = null;
+let paymentMethodCurrentQrUrl = null;
+let paymentMethodRemoveQr = false;
 
 /* -------------------------
    LOGIN AND ADMIN CHECK
@@ -345,6 +355,142 @@ async function deleteMenuItem(id) {
    PAYMENT METHODS
 ------------------------- */
 
+function revokePaymentMethodQrPreview() {
+  if (paymentMethodQrPreviewUrl) {
+    URL.revokeObjectURL(paymentMethodQrPreviewUrl);
+    paymentMethodQrPreviewUrl = null;
+  }
+}
+
+function resetPaymentMethodQrState() {
+  revokePaymentMethodQrPreview();
+  paymentMethodQrFile = null;
+  paymentMethodCurrentQrUrl = null;
+  paymentMethodRemoveQr = false;
+
+  if (paymentMethodQrInput) {
+    paymentMethodQrInput.value = "";
+  }
+
+  if (paymentMethodQrPreviewBox) {
+    paymentMethodQrPreviewBox.hidden = true;
+  }
+
+  if (paymentMethodQrPreviewImage) {
+    paymentMethodQrPreviewImage.removeAttribute("src");
+  }
+
+  if (paymentMethodQrPreviewText) {
+    paymentMethodQrPreviewText.textContent = "";
+  }
+}
+
+function renderPaymentMethodQrPreview({ currentUrl = null, removeQr = false, file = null }) {
+  paymentMethodCurrentQrUrl = currentUrl || null;
+  paymentMethodRemoveQr = removeQr;
+
+  if (file) {
+    paymentMethodQrFile = file;
+  } else if (!removeQr) {
+    paymentMethodQrFile = null;
+  }
+
+  revokePaymentMethodQrPreview();
+
+  if (removeQr) {
+    paymentMethodQrPreviewBox.hidden = false;
+    paymentMethodQrPreviewImage.removeAttribute("src");
+    paymentMethodQrPreviewText.textContent = "QR will be removed.";
+    return;
+  }
+
+  if (file) {
+    paymentMethodQrPreviewUrl = URL.createObjectURL(file);
+    paymentMethodQrPreviewImage.src = paymentMethodQrPreviewUrl;
+    paymentMethodQrPreviewBox.hidden = false;
+    paymentMethodQrPreviewText.textContent = "Local QR preview";
+    return;
+  }
+
+  if (currentUrl) {
+    paymentMethodQrPreviewImage.src = currentUrl;
+    paymentMethodQrPreviewBox.hidden = false;
+    paymentMethodQrPreviewText.textContent = "Current QR";
+    return;
+  }
+
+  paymentMethodQrPreviewBox.hidden = true;
+  paymentMethodQrPreviewImage.removeAttribute("src");
+  paymentMethodQrPreviewText.textContent = "";
+}
+
+function validatePaymentMethodQrFile(file) {
+  if (!file) return null;
+
+  const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+  const maxSizeBytes = 5 * 1024 * 1024;
+
+  if (!allowedTypes.includes(file.type)) {
+    return "Please choose a PNG, JPG/JPEG, or WebP image.";
+  }
+
+  if (file.size > maxSizeBytes) {
+    return "Please choose an image smaller than 5 MB.";
+  }
+
+  return null;
+}
+
+function getPaymentMethodStoragePath(publicUrl) {
+  if (!publicUrl) return null;
+
+  try {
+    const url = new URL(publicUrl);
+    const prefix = "/storage/v1/object/public/payment-qr/";
+    const path = decodeURIComponent(url.pathname.replace(prefix, "").replace(/^\/+/, ""));
+    return path || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function uploadPaymentMethodQr(file, methodId) {
+  const safeName = (file.name || "qr")
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .slice(0, 80);
+  const storagePath = `payment-methods/${methodId ? `${methodId}/` : ""}${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${safeName}`;
+
+  const { error } = await supabaseClient.storage
+    .from("payment-qr")
+    .upload(storagePath, file, {
+      cacheControl: "3600",
+      upsert: false
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data: publicData } = supabaseClient.storage
+    .from("payment-qr")
+    .getPublicUrl(storagePath);
+
+  return publicData?.publicUrl || null;
+}
+
+async function deletePaymentMethodQr(publicUrl) {
+  const storagePath = getPaymentMethodStoragePath(publicUrl);
+  if (!storagePath) return;
+
+  const { error } = await supabaseClient.storage
+    .from("payment-qr")
+    .remove([storagePath]);
+
+  if (error) {
+    console.warn("Could not delete old QR image:", error.message);
+  }
+}
+
 async function loadPaymentMethods() {
   const { data, error } = await supabaseClient
     .from("payment_methods")
@@ -386,6 +532,10 @@ function renderPaymentMethods() {
             <strong>${escapeHtml(method.payment_name)}</strong>
             <p>${escapeHtml(method.short_description || "")}</p>
           </div>
+
+          ${method.qr_url
+            ? `<img class="payment-qr-preview" src="${escapeHtml(method.qr_url)}" alt="${escapeHtml(method.payment_name)} QR" />`
+            : `<div class="payment-qr-placeholder">No QR uploaded</div>`}
 
           <div class="payment-meta">
             <div>${escapeHtml(depositText)}</div>
@@ -493,6 +643,7 @@ function closePaymentMethodDialog() {
   paymentMethodModal.close();
   paymentMethodForm.reset();
   paymentMethodForm.elements.id.value = "";
+  resetPaymentMethodQrState();
 }
 
 function populatePaymentMethodForm(method) {
@@ -506,12 +657,14 @@ function populatePaymentMethodForm(method) {
   paymentMethodForm.elements.deposit_percentage.value = method.deposit_percentage ?? "";
   paymentMethodForm.elements.is_visible.checked = method.is_visible;
   paymentMethodForm.elements.sort_order.value = method.sort_order ?? 0;
+  renderPaymentMethodQrPreview({ currentUrl: method.qr_url || null, removeQr: false, file: null });
 }
 
 addPaymentMethodBtn.addEventListener("click", () => {
   paymentMethodForm.reset();
   paymentMethodForm.elements.id.value = "";
   paymentMethodModalTitle.textContent = "Add payment method";
+  resetPaymentMethodQrState();
   openPaymentMethodModal(false);
 });
 
@@ -521,6 +674,52 @@ closePaymentMethodModal.addEventListener("click", () => {
 
 cancelPaymentMethod.addEventListener("click", () => {
   closePaymentMethodDialog();
+});
+
+paymentMethodQrReplaceBtn.addEventListener("click", () => {
+  paymentMethodQrInput?.click();
+});
+
+paymentMethodQrRemoveBtn.addEventListener("click", () => {
+  if (paymentMethodQrInput) {
+    paymentMethodQrInput.value = "";
+  }
+  renderPaymentMethodQrPreview({
+    currentUrl: paymentMethodCurrentQrUrl,
+    removeQr: true,
+    file: null
+  });
+});
+
+paymentMethodQrInput?.addEventListener("change", (event) => {
+  const file = event.target.files?.[0] || null;
+
+  if (!file) {
+    renderPaymentMethodQrPreview({
+      currentUrl: paymentMethodCurrentQrUrl,
+      removeQr: false,
+      file: null
+    });
+    return;
+  }
+
+  const validationMessage = validatePaymentMethodQrFile(file);
+  if (validationMessage) {
+    alert(validationMessage);
+    event.target.value = "";
+    renderPaymentMethodQrPreview({
+      currentUrl: paymentMethodCurrentQrUrl,
+      removeQr: false,
+      file: null
+    });
+    return;
+  }
+
+  renderPaymentMethodQrPreview({
+    currentUrl: paymentMethodCurrentQrUrl,
+    removeQr: false,
+    file
+  });
 });
 
 paymentMethodForm.addEventListener("submit", async (event) => {
@@ -549,6 +748,38 @@ paymentMethodForm.addEventListener("submit", async (event) => {
         : 10,
     updated_at: new Date().toISOString()
   };
+
+  let qrUrl = null;
+  const existingMethod = id
+    ? paymentMethods.find((item) => item.id === id)
+    : null;
+
+  if (paymentMethodQrFile) {
+    const validationMessage = validatePaymentMethodQrFile(paymentMethodQrFile);
+    if (validationMessage) {
+      alert(validationMessage);
+      return;
+    }
+
+    try {
+      qrUrl = await uploadPaymentMethodQr(paymentMethodQrFile, id || null);
+      if (id && existingMethod?.qr_url) {
+        await deletePaymentMethodQr(existingMethod.qr_url);
+      }
+    } catch (uploadError) {
+      alert(`Could not upload QR image: ${uploadError.message}`);
+      return;
+    }
+  } else if (paymentMethodRemoveQr) {
+    qrUrl = null;
+    if (id && existingMethod?.qr_url) {
+      await deletePaymentMethodQr(existingMethod.qr_url);
+    }
+  } else if (id && existingMethod) {
+    qrUrl = existingMethod.qr_url || null;
+  }
+
+  payload.qr_url = qrUrl;
 
   let error;
 

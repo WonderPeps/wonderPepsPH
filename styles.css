@@ -115,6 +115,11 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 .payment-method-card .payment-tags{display:flex;flex-wrap:wrap;gap:8px}
 .payment-method-card .payment-tag{padding:6px 10px;border-radius:999px;background:var(--pink-2);color:var(--ink);font-size:.8rem}
 .payment-method-card .admin-actions{margin-top:auto;justify-content:flex-start;flex-wrap:wrap}
+.payment-method-card .payment-qr-preview{width:100%;max-height:170px;object-fit:contain;border-radius:14px;border:1px solid var(--line);background:white}
+.payment-method-card .payment-qr-placeholder{display:grid;place-items:center;min-height:110px;border:1px dashed var(--line);border-radius:14px;background:var(--pink-2);color:var(--muted);font-size:.9rem}
+.qr-action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.qr-preview-box{display:grid;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:16px;background:var(--pink-2)}
+.qr-preview-image{width:100%;max-width:220px;height:auto;border-radius:14px;border:1px solid var(--line);background:white;object-fit:contain}
 .payment-method-empty{padding:24px;border:1px dashed var(--line);border-radius:18px;text-align:center;background:var(--pink-2)}
 .dialog{border:0;border-radius:26px;padding:0;width:min(560px,calc(100% - 24px));box-shadow:var(--shadow)}
 .dialog::backdrop{background:rgba(41,24,31,.45)}
