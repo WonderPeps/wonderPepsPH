@@ -210,6 +210,70 @@
     </div>
 
 </section>
+
+<dialog id="paymentMethodModal">
+  <form id="paymentMethodForm" class="admin-form">
+    <input type="hidden" name="id" />
+    <div class="modal-header">
+      <div>
+        <h2 id="paymentMethodModalTitle">Add payment method</h2>
+        <p class="tiny-note">Create or update a payment option available at checkout.</p>
+      </div>
+      <button type="button" class="icon-button" id="closePaymentMethodModal">✕</button>
+    </div>
+
+    <label>
+      Payment name
+      <input name="payment_name" required />
+    </label>
+
+    <label>
+      Short description
+      <input name="short_description" required />
+    </label>
+
+    <label>
+      Instructions
+      <textarea name="instructions" rows="4"></textarea>
+    </label>
+
+    <label>
+      <input name="receipt_required" type="checkbox" />
+      Receipt required
+    </label>
+
+    <label>
+      <input name="reference_required" type="checkbox" />
+      Reference required
+    </label>
+
+    <label>
+      <input name="deposit_required" type="checkbox" />
+      Deposit required
+    </label>
+
+    <label>
+      Deposit percentage
+      <input name="deposit_percentage" type="number" min="0" max="100" step="1" />
+    </label>
+
+    <label>
+      Visible
+      <input name="is_visible" type="checkbox" checked />
+    </label>
+
+    <label>
+      Sort order
+      <input name="sort_order" type="number" min="0" step="1" />
+    </label>
+
+    <div class="modal-actions">
+      <button class="secondary-button" type="button" id="cancelPaymentMethod">Cancel</button>
+      <button class="primary-button" type="submit">Save payment method</button>
+    </div>
+  </form>
+</dialog>
+
     <section id="ordersSection" class="admin-card" style="margin-top:24px">
       <h2>Orders on this device</h2>
       <div id="ordersList"></div>
