@@ -90,6 +90,22 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
 .admin-form input,.admin-form textarea{
   border:1px solid var(--line);border-radius:14px;padding:12px;background:#fff
 }
+.payment-method-selector{display:grid;gap:12px;margin-top:8px}
+.payment-option-card{display:flex;flex-direction:column;gap:10px;width:100%;padding:14px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,#fff,#fff7fb);box-shadow:0 10px 24px rgba(104,56,76,.06);text-align:left;cursor:pointer}
+.payment-option-card.selected{border-color:var(--pink-3);box-shadow:0 0 0 3px rgba(217,87,139,.16)}
+.payment-option-header{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.payment-option-card strong{font-size:1rem}
+.payment-option-pill{padding:6px 10px;border-radius:999px;background:var(--pink-2);color:var(--ink);font-size:.78rem;font-weight:700;white-space:nowrap}
+.payment-option-card p{margin:0;color:var(--muted);line-height:1.45;font-size:.9rem}
+.checkout-error{min-height:1.1em;margin:0 0 10px;color:#b4234b;font-size:.9rem}
+.payment-step-card{padding:24px;display:grid;gap:16px}
+.payment-step-content{display:grid;gap:14px}
+.payment-step-summary{padding:16px;border-radius:18px;background:var(--pink-2);border:1px solid var(--line)}
+.payment-step-summary strong{display:block;margin-top:6px}
+.payment-step-qr{display:grid;place-items:center;min-height:220px;border:1px dashed var(--line);border-radius:18px;background:linear-gradient(180deg,#fff,#fff7fb)}
+.payment-step-qr img{max-width:100%;max-height:220px;object-fit:contain;border-radius:14px}
+.payment-step-qr-placeholder{padding:18px;color:var(--muted);text-align:center}
+.payment-step-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:4px}
 .tiny-note{font-size:.78rem;color:var(--muted);line-height:1.5}
 .success-card{text-align:center}
 .success-icon{font-size:3rem;color:var(--pink-3)}
