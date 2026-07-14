@@ -237,6 +237,21 @@
       <textarea name="instructions" rows="4"></textarea>
     </label>
 
+    <label for="paymentQrFile">
+      QR image (PNG, JPG, JPEG, WebP • max 5 MB)
+      <input id="paymentQrFile" name="qr_file" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" />
+    </label>
+
+    <div class="qr-action-row">
+      <button class="secondary-button" type="button" id="paymentQrReplaceBtn">Replace QR</button>
+      <button class="secondary-button danger" type="button" id="paymentQrRemoveBtn">Remove QR</button>
+    </div>
+
+    <div id="paymentQrPreviewBox" class="qr-preview-box" hidden>
+      <div class="tiny-note" id="paymentQrPreviewText">QR preview</div>
+      <img id="paymentQrPreviewImage" class="qr-preview-image" alt="Payment QR preview" />
+    </div>
+
     <label>
       <input name="receipt_required" type="checkbox" />
       Receipt required
