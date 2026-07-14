@@ -8,6 +8,20 @@ const productForm = document.querySelector("#productForm");
 const adminProducts = document.querySelector("#adminProducts");
 const ordersList = document.querySelector("#ordersList");
 const ordersTabs = document.querySelector("#ordersTabs");
+const ordersSearch = document.querySelector("#ordersSearch");
+const dashboardStats = document.querySelector("#dashboardStats");
+const dashboardRecentOrders = document.querySelector("#dashboardRecentOrders");
+const dashboardBestSellers = document.querySelector("#dashboardBestSellers");
+const productsSummary = document.querySelector("#productsSummary");
+const productsTableContainer = document.querySelector("#productsTableContainer");
+const productsPagination = document.querySelector("#productsPagination");
+const productsCategoryFilter = document.querySelector("#productsCategoryFilter");
+const productsLowStockFilter = document.querySelector("#productsLowStockFilter");
+const productsSearch = document.querySelector("#productsSearch");
+const categoriesList = document.querySelector("#categoriesList");
+const customersList = document.querySelector("#customersList");
+const orderDetailsModal = document.querySelector("#orderDetailsModal");
+const orderDetailsContent = document.querySelector("#orderDetailsContent");
 const formTitle = document.querySelector("#formTitle");
 const cancelEdit = document.querySelector("#cancelEdit");
 const resetButton = document.querySelector("#resetButton");
@@ -28,6 +42,9 @@ const paymentMethodQrRemoveBtn = document.querySelector("#paymentQrRemoveBtn");
 const paymentMethodQrPreviewBox = document.querySelector("#paymentQrPreviewBox");
 const paymentMethodQrPreviewImage = document.querySelector("#paymentQrPreviewImage");
 const paymentMethodQrPreviewText = document.querySelector("#paymentQrPreviewText");
+const categoryForm = document.querySelector("#categoryForm");
+const cancelCategoryEdit = document.querySelector("#cancelCategoryEdit");
+const sidebarLogoutButton = document.querySelector("#sidebarLogoutButton");
 
 let menuItems = [];
 let products = [];
@@ -35,6 +52,14 @@ let paymentMethods = [];
 let orders = [];
 let orderItemsByOrder = {};
 let activeOrderFilter = "all";
+let activeSettingsTab = "branding";
+let categoryRegistry = [];
+let categoryVisibilityState = {};
+let categoryOrder = [];
+let customerDetailsOrder = null;
+let productPage = 1;
+let productPageSize = 8;
+let productFilters = { search: "", category: "all", lowStock: false };
 let paymentMethodQrFile = null;
 let paymentMethodQrPreviewUrl = null;
 let paymentMethodCurrentQrUrl = null;
@@ -43,6 +68,57 @@ let paymentMethodRemoveQr = false;
 /* -------------------------
    LOGIN AND ADMIN CHECK
 ------------------------- */
+
+function setupAdminUI() {
+  sidebarLogoutButton?.addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+    await showLogin("You have been logged out.");
+  });
+
+  document.querySelectorAll("[data-settings-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setActiveSettingsTab(button.dataset.settingsTab);
+    });
+  });
+
+  ordersSearch?.addEventListener("input", () => {
+    renderOrders(getFilteredOrders());
+  });
+
+  productsSearch?.addEventListener("input", () => {
+    productFilters.search = String(productsSearch.value || "").trim().toLowerCase();
+    productPage = 1;
+    renderProducts();
+  });
+
+  productsCategoryFilter?.addEventListener("change", () => {
+    productFilters.category = productsCategoryFilter.value || "all";
+    productPage = 1;
+    renderProducts();
+  });
+
+  productsLowStockFilter?.addEventListener("change", () => {
+    productFilters.lowStock = Boolean(productsLowStockFilter.checked);
+    productPage = 1;
+    renderProducts();
+  });
+
+  orderDetailsModal?.addEventListener("click", (event) => {
+    if (event.target === orderDetailsModal) {
+      orderDetailsModal.close();
+    }
+  });
+}
+
+function setActiveSettingsTab(tab) {
+  activeSettingsTab = tab;
+  document.querySelectorAll("[data-settings-group]").forEach((field) => {
+    field.hidden = field.dataset.settingsGroup !== tab;
+  });
+  document.querySelectorAll("[data-settings-tab]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.settingsTab === tab);
+  });
+}
 
 async function showLogin(message = "") {
   loginSection.hidden = false;
@@ -55,14 +131,16 @@ async function showAdmin() {
   adminContent.hidden = false;
 
   resetButton.textContent = "Log out";
+  setupAdminUI();
+  setActiveSettingsTab(activeSettingsTab);
 
-await Promise.all([
-  loadSettings(),
-  loadProducts(),
-  loadMenuItems(),
-  loadPaymentMethods(),
-  loadOrders()
-]);
+  await Promise.all([
+    loadSettings(),
+    loadProducts(),
+    loadMenuItems(),
+    loadPaymentMethods(),
+    loadOrders()
+  ]);
 }
 
 async function verifyAdmin() {
@@ -119,6 +197,57 @@ resetButton.addEventListener("click", async () => {
    SHOP SETTINGS
 ------------------------- */
 
+function setupAdminUI() {
+  document.querySelectorAll("[data-settings-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      setActiveSettingsTab(button.dataset.settingsTab);
+    });
+  });
+
+  ordersSearch?.addEventListener("input", () => {
+    renderOrders(getFilteredOrders());
+  });
+
+  productsSearch?.addEventListener("input", () => {
+    productFilters.search = String(productsSearch.value || "").trim().toLowerCase();
+    productPage = 1;
+    renderProducts();
+  });
+
+  productsCategoryFilter?.addEventListener("change", () => {
+    productFilters.category = productsCategoryFilter.value || "all";
+    productPage = 1;
+    renderProducts();
+  });
+
+  productsLowStockFilter?.addEventListener("change", () => {
+    productFilters.lowStock = Boolean(productsLowStockFilter.checked);
+    productPage = 1;
+    renderProducts();
+  });
+
+  orderDetailsModal?.addEventListener("click", (event) => {
+    if (event.target === orderDetailsModal) {
+      orderDetailsModal.close();
+    }
+  });
+
+  document.querySelector("#addProductBtn")?.addEventListener("click", () => {
+    resetProductForm();
+    productForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+function setActiveSettingsTab(tab) {
+  activeSettingsTab = tab;
+  document.querySelectorAll("[data-settings-group]").forEach((field) => {
+    field.hidden = field.dataset.settingsGroup !== tab;
+  });
+  document.querySelectorAll("[data-settings-tab]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.settingsTab === tab);
+  });
+}
+
 async function loadSettings() {
   const { data, error } = await supabaseClient
     .from("shop_settings")
@@ -143,6 +272,9 @@ async function loadSettings() {
     data.shipping_120_label || "";
   settingsForm.elements.shipping150Label.value =
     data.shipping_150_label || "";
+  if (settingsForm.elements.footerText) {
+    settingsForm.elements.footerText.value = data.footer_text || "";
+  }
 }
 
 settingsForm.addEventListener("submit", async (event) => {
@@ -165,6 +297,8 @@ settingsForm.addEventListener("submit", async (event) => {
       String(formData.get("shipping120Label") || "").trim(),
     shipping_150_label:
       String(formData.get("shipping150Label") || "").trim(),
+    footer_text:
+      String(formData.get("footerText") || "").trim() || null,
     updated_at: new Date().toISOString()
   };
 
@@ -899,71 +1033,217 @@ async function loadProducts() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    adminProducts.innerHTML =
+    productsTableContainer.innerHTML =
       `<p>Could not load products: ${escapeHtml(error.message)}</p>`;
     return;
   }
 
   products = data || [];
+  categoryRegistry = Array.from(new Set([
+    ...categoryRegistry,
+    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
+  ]));
+  updateCategoryFilterOptions();
   renderProducts();
+  renderDashboard();
+  renderCategories();
+}
+
+function getProductSalesCount(productId) {
+  return (orderItemsByOrder ? Object.values(orderItemsByOrder).flat() : [])
+    .filter((item) => String(item.product_id) === String(productId))
+    .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+}
+
+function getFilteredProducts() {
+  const search = productFilters.search;
+  const category = productFilters.category;
+  const lowStock = productFilters.lowStock;
+
+  return products.filter((product) => {
+    const matchesSearch = !search || [product.name, product.category, product.description]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(search);
+
+    const matchesCategory = category === "all" || String(product.category || "") === category;
+    const matchesLowStock = !lowStock || Number(product.stock || 0) <= 5;
+
+    return matchesSearch && matchesCategory && matchesLowStock;
+  });
 }
 
 function renderProducts() {
+  const filteredProducts = getFilteredProducts();
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / productPageSize));
+  productPage = Math.min(productPage, totalPages);
+  const startIndex = (productPage - 1) * productPageSize;
+  const pageProducts = filteredProducts.slice(startIndex, startIndex + productPageSize);
+
   if (!products.length) {
-    adminProducts.innerHTML = `<p class="empty">No products yet.</p>`;
+    productsTableContainer.innerHTML = `<p class="empty">No products yet.</p>`;
+    productsSummary.innerHTML = "";
+    productsPagination.innerHTML = "";
     return;
   }
 
-  adminProducts.innerHTML = products
-    .map(
-      (product) => `
-        <article class="admin-product">
-          <div>
-            <strong>${escapeHtml(product.name)}</strong>
-            <div>
-              ${formatCurrency(product.price)}
-              · Stock ${Number(product.stock)}
-            </div>
-            <small>
-              ${product.is_visible ? "Visible" : "Hidden"}
-            </small>
-          </div>
+  productsSummary.innerHTML = `
+    <div class="stat-card">
+      <small>Total products</small>
+      <strong>${products.length}</strong>
+    </div>
+    <div class="stat-card">
+      <small>Low stock</small>
+      <strong>${products.filter((product) => Number(product.stock || 0) <= 5).length}</strong>
+    </div>
+    <div class="stat-card">
+      <small>Out of stock</small>
+      <strong>${products.filter((product) => Number(product.stock || 0) < 1).length}</strong>
+    </div>
+    <div class="stat-card">
+      <small>Inventory value</small>
+      <strong>${formatCurrency(products.reduce((sum, product) => sum + Number(product.price || 0) * Number(product.stock || 0), 0))}</strong>
+    </div>
+  `;
 
-          <div class="admin-actions">
-            <button
-              class="secondary-button"
-              type="button"
-              data-edit="${product.id}">
-              Edit
-            </button>
+  productsTableContainer.innerHTML = `
+    <div class="table-shell">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Visibility</th>
+            <th>Sales</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${pageProducts.map((product) => `
+            <tr>
+              <td>${product.image_url ? `<img class="table-image" src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" />` : "—"}</td>
+              <td>${escapeHtml(product.name)}</td>
+              <td>${escapeHtml(product.description || "—")}</td>
+              <td>${escapeHtml(product.category || "Uncategorized")}</td>
+              <td>${formatCurrency(product.price)}</td>
+              <td>${Number(product.stock || 0)}</td>
+              <td>${product.is_visible ? "Visible" : "Hidden"}</td>
+              <td>${getProductSalesCount(product.id)}</td>
+              <td>
+                <div class="admin-actions compact-actions">
+                  <button class="secondary-button" type="button" data-edit="${product.id}">Edit</button>
+                  <button class="secondary-button" type="button" data-duplicate="${product.id}">Duplicate</button>
+                  <button class="secondary-button" type="button" data-toggle-visible="${product.id}">${product.is_visible ? "Hide" : "Show"}</button>
+                  <button class="secondary-button danger" type="button" data-delete="${product.id}">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
 
-            <button
-              class="secondary-button danger"
-              type="button"
-              data-delete="${product.id}">
-              Delete
-            </button>
-          </div>
-        </article>
-      `
-    )
-    .join("");
+  productsPagination.innerHTML = `
+    <button class="secondary-button" type="button" ${productPage <= 1 ? "disabled" : ""} data-product-page="prev">Previous</button>
+    <span class="tiny-note">Page ${productPage} of ${totalPages}</span>
+    <button class="secondary-button" type="button" ${productPage >= totalPages ? "disabled" : ""} data-product-page="next">Next</button>
+  `;
 
-  adminProducts
-    .querySelectorAll("[data-edit]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        editProduct(button.dataset.edit);
-      });
+  productsTableContainer.querySelectorAll("[data-edit]").forEach((button) => {
+    button.addEventListener("click", () => {
+      editProduct(button.dataset.edit);
+    });
+  });
+
+  productsTableContainer.querySelectorAll("[data-duplicate]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await duplicateProduct(button.dataset.duplicate);
+    });
+  });
+
+  productsTableContainer.querySelectorAll("[data-toggle-visible]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await toggleProductVisibility(button.dataset.toggleVisible);
+    });
+  });
+
+  productsTableContainer.querySelectorAll("[data-delete]").forEach((button) => {
+    button.addEventListener("click", () => {
+      deleteProduct(button.dataset.delete);
+    });
+  });
+
+  productsPagination.querySelectorAll("[data-product-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.productPage === "prev" && productPage > 1) {
+        productPage -= 1;
+      }
+      if (button.dataset.productPage === "next" && productPage < totalPages) {
+        productPage += 1;
+      }
+      renderProducts();
+    });
+  });
+}
+
+function updateCategoryFilterOptions() {
+  const categories = Array.from(new Set([
+    ...categoryRegistry,
+    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
+  ]));
+  const currentValue = productsCategoryFilter?.value || "all";
+  if (productsCategoryFilter) {
+    productsCategoryFilter.innerHTML = `<option value="all">All categories</option>${categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join("")}`;
+    productsCategoryFilter.value = currentValue && categories.includes(currentValue) ? currentValue : "all";
+  }
+}
+
+async function toggleProductVisibility(id) {
+  const product = products.find((item) => item.id === id);
+  if (!product) return;
+
+  const { error } = await supabaseClient
+    .from("products")
+    .update({
+      is_visible: !product.is_visible,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert(`Could not update visibility: ${error.message}`);
+    return;
+  }
+
+  await loadProducts();
+}
+
+async function duplicateProduct(id) {
+  const product = products.find((item) => item.id === id);
+  if (!product) return;
+
+  const { error } = await supabaseClient
+    .from("products")
+    .insert({
+      ...product,
+      name: `${product.name} Copy`,
+      stock: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     });
 
-  adminProducts
-    .querySelectorAll("[data-delete]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        deleteProduct(button.dataset.delete);
-      });
-    });
+  if (error) {
+    alert(`Could not duplicate product: ${error.message}`);
+    return;
+  }
+
+  await loadProducts();
 }
 
 productForm.addEventListener("submit", async (event) => {
@@ -1111,8 +1391,24 @@ function getOrderReferenceLabel(order) {
 }
 
 function getFilteredOrders(list = orders) {
+  const search = String(ordersSearch?.value || "").trim().toLowerCase();
+
   return list.filter((order) => {
     const archived = Boolean(order?.archived);
+    const paymentStatus = String(order?.payment_status || "Pending").toLowerCase();
+    const searchable = [
+      getOrderReferenceLabel(order),
+      order?.customer_name,
+      order?.phone,
+      order?.reference_number
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    if (search && !searchable.includes(search)) {
+      return false;
+    }
 
     if (activeOrderFilter === "archived") {
       return archived;
@@ -1124,11 +1420,11 @@ function getFilteredOrders(list = orders) {
 
     switch (activeOrderFilter) {
       case "pending":
-        return String(order?.payment_status || "Pending").toLowerCase() === "pending";
+        return paymentStatus === "pending";
       case "approved":
-        return String(order?.payment_status || "").toLowerCase() === "approved";
+        return paymentStatus === "approved";
       case "rejected":
-        return String(order?.payment_status || "").toLowerCase() === "rejected";
+        return paymentStatus === "rejected";
       default:
         return true;
     }
@@ -1421,6 +1717,7 @@ function renderOrders(ordersToRender) {
             </label>
 
             <div class="order-actions">
+              <button class="secondary-button" type="button" data-order-view-details="${order.id}">View Details</button>
               ${order.receipt_image ? `
                 <button class="secondary-button" type="button" data-order-view-receipt="${order.id}">
                   View Receipt
@@ -1463,6 +1760,17 @@ function renderOrders(ordersToRender) {
           select.dataset.orderStatus,
           select.value
         );
+      });
+    });
+
+  ordersList
+    .querySelectorAll("[data-order-view-details]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const order = orders.find((item) => String(item.id) === String(button.dataset.orderViewDetails));
+        if (order) {
+          openOrderDetails(order);
+        }
       });
     });
 
@@ -1538,6 +1846,324 @@ async function updateOrderStatus(id, status) {
 
   await loadOrders();
   alert("Order status updated.");
+}
+
+function openOrderDetails(order) {
+  const items = orderItemsByOrder[String(order.id)] || [];
+  const totalItems = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+  const orderTotals = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
+  const currency = formatCurrency;
+
+  orderDetailsContent.innerHTML = `
+    <div class="order-detail-shell">
+      <div class="order-detail-card">
+        <div class="admin-section-header">
+          <div>
+            <h3>${escapeHtml(getOrderReferenceLabel(order))}</h3>
+            <p class="tiny-note">Order details</p>
+          </div>
+          <button class="secondary-button" type="button" data-dismiss-order-details>Close</button>
+        </div>
+        <div class="detail-grid">
+          <div>
+            <h4>Customer</h4>
+            <p>${escapeHtml(order.customer_name || "—")}</p>
+            <p>${escapeHtml(order.phone || "—")}</p>
+            <p>${escapeHtml(order.address || "—")}</p>
+          </div>
+          <div>
+            <h4>Payment</h4>
+            <p>Method: ${escapeHtml(order.payment_method || "—")}</p>
+            <p>Status: ${escapeHtml(order.payment_status || "Pending")}</p>
+            <p>Amount paid: ${currency(order.amount_paid || 0)}</p>
+            <p>Reference: ${escapeHtml(order.reference_number || "—")}</p>
+          </div>
+        </div>
+        <div class="detail-grid">
+          <div>
+            <h4>Products</h4>
+            ${items.length ? items.map((item) => `
+              <div class="order-product-row">
+                <div>
+                  <strong>${escapeHtml(item.product_name || "Product")}</strong>
+                  <div class="tiny-note">Qty ${Number(item.quantity || 0)}</div>
+                </div>
+                <div class="order-product-prices">
+                  <span>${currency(item.unit_price || 0)}</span>
+                  <span>${currency(item.line_total || 0)}</span>
+                </div>
+              </div>
+            `).join("") : `<div class="tiny-note">No products found</div>`}
+          </div>
+          <div>
+            <h4>Summary</h4>
+            <p>Items: ${totalItems}</p>
+            <p>Product total: ${currency(orderTotals)}</p>
+            <p>Shipping fee: ${currency(order.shipping_fee || 0)}</p>
+            <p>Order total: ${currency(order.total || 0)}</p>
+            <p>Shipping status: ${escapeHtml(order.status || "Pending")}</p>
+            <p>Note: ${escapeHtml(order.notes || "No note provided")}</p>
+          </div>
+        </div>
+        <div class="order-actions detail-actions">
+          ${order.receipt_image ? `<button class="secondary-button" type="button" data-order-view-receipt-modal="${order.id}">View Receipt</button>` : ""}
+          <button class="secondary-button" type="button" data-order-approve-modal="${order.id}">Approve Payment</button>
+          <button class="secondary-button danger" type="button" data-order-reject-modal="${order.id}">Reject Payment</button>
+          ${Boolean(order.archived) ? `<button class="secondary-button" type="button" data-order-restore-modal="${order.id}">Restore Order</button>` : `<button class="secondary-button" type="button" data-order-archive-modal="${order.id}">Archive Order</button>`}
+        </div>
+      </div>
+    </div>
+  `;
+
+  orderDetailsModal?.showModal();
+
+  orderDetailsContent.querySelector("[data-dismiss-order-details]")?.addEventListener("click", () => {
+    orderDetailsModal?.close();
+  });
+
+  orderDetailsContent.querySelector("[data-order-view-receipt-modal]")?.addEventListener("click", async () => {
+    await viewOrderReceipt(order);
+  });
+
+  orderDetailsContent.querySelector("[data-order-approve-modal]")?.addEventListener("click", async () => {
+    await updateOrderPaymentStatus(order.id, "Approved");
+    openOrderDetails({ ...order, payment_status: "Approved" });
+  });
+
+  orderDetailsContent.querySelector("[data-order-reject-modal]")?.addEventListener("click", async () => {
+    await updateOrderPaymentStatus(order.id, "Rejected");
+    openOrderDetails({ ...order, payment_status: "Rejected" });
+  });
+
+  orderDetailsContent.querySelector("[data-order-archive-modal]")?.addEventListener("click", async () => {
+    await archiveOrder(order.id);
+  });
+
+  orderDetailsContent.querySelector("[data-order-restore-modal]")?.addEventListener("click", async () => {
+    await restoreOrder(order.id);
+  });
+}
+
+function renderDashboard() {
+  const revenue = orders.reduce((sum, order) => sum + Number(order.total || order.amount_paid || 0), 0);
+  const pendingPayments = orders.filter((order) => String(order.payment_status || "Pending").toLowerCase() === "pending").length;
+  const shippedOrders = orders.filter((order) => ["paid", "confirmed", "shipped", "delivered"].includes(String(order.status || "").toLowerCase())).length;
+  const recentOrders = [...orders]
+    .sort((first, second) => new Date(second.created_at || 0) - new Date(first.created_at || 0))
+    .slice(0, 5);
+  const salesByProduct = Object.values((orderItemsByOrder || {}))
+    .flat()
+    .reduce((accumulator, item) => {
+      const key = String(item.product_id || item.product_name || "Unknown");
+      if (!accumulator[key]) {
+        accumulator[key] = { id: item.product_id, name: item.product_name || "Unknown", quantity: 0 };
+      }
+      accumulator[key].quantity += Number(item.quantity || 0);
+      return accumulator;
+    }, {});
+  const bestSellers = Object.values(salesByProduct)
+    .sort((first, second) => second.quantity - first.quantity)
+    .slice(0, 4);
+
+  if (dashboardStats) {
+    dashboardStats.innerHTML = `
+      <div class="stat-card">
+        <small>Total revenue</small>
+        <strong>${formatCurrency(revenue)}</strong>
+      </div>
+      <div class="stat-card">
+        <small>Pending payments</small>
+        <strong>${pendingPayments}</strong>
+      </div>
+      <div class="stat-card">
+        <small>Orders in progress</small>
+        <strong>${shippedOrders}</strong>
+      </div>
+      <div class="stat-card">
+        <small>Products live</small>
+        <strong>${products.length}</strong>
+      </div>
+    `;
+  }
+
+  if (dashboardRecentOrders) {
+    dashboardRecentOrders.innerHTML = recentOrders.length
+      ? recentOrders.map((order) => `
+          <div class="dashboard-list-item">
+            <div>
+              <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
+              <div class="tiny-note">${escapeHtml(order.customer_name || "Guest")}</div>
+            </div>
+            <div class="dashboard-list-meta">
+              <span>${formatCurrency(order.total || 0)}</span>
+              <span>${escapeHtml(order.payment_status || "Pending")}</span>
+            </div>
+          </div>
+        `).join("")
+      : `<p class="empty">No orders yet.</p>`;
+  }
+
+  if (dashboardBestSellers) {
+    dashboardBestSellers.innerHTML = bestSellers.length
+      ? bestSellers.map((product) => `
+          <div class="dashboard-list-item">
+            <div>
+              <strong>${escapeHtml(product.name)}</strong>
+              <div class="tiny-note">Best seller this week</div>
+            </div>
+            <span>${product.quantity} sold</span>
+          </div>
+        `).join("")
+      : `<p class="empty">No sales yet.</p>`;
+  }
+}
+
+function renderCustomers() {
+  const customerMap = orders.reduce((accumulator, order) => {
+    const key = String(order.customer_name || "Guest").trim() || "Guest";
+    if (!accumulator[key]) {
+      accumulator[key] = {
+        name: key,
+        orders: 0,
+        revenue: 0,
+        lastOrder: order.created_at || null
+      };
+    }
+    accumulator[key].orders += 1;
+    accumulator[key].revenue += Number(order.total || order.amount_paid || 0);
+    accumulator[key].lastOrder = order.created_at && (!accumulator[key].lastOrder || new Date(order.created_at) > new Date(accumulator[key].lastOrder))
+      ? order.created_at
+      : accumulator[key].lastOrder;
+    return accumulator;
+  }, {});
+
+  const customers = Object.values(customerMap).sort((first, second) => second.revenue - first.revenue);
+
+  if (customersList) {
+    customersList.innerHTML = customers.length
+      ? customers.map((customer) => `
+          <div class="customer-card">
+            <div>
+              <strong>${escapeHtml(customer.name)}</strong>
+              <div class="tiny-note">${customer.orders} orders</div>
+            </div>
+            <div class="dashboard-list-meta">
+              <span>${formatCurrency(customer.revenue)}</span>
+              <span>${customer.lastOrder ? new Date(customer.lastOrder).toLocaleDateString() : "—"}</span>
+            </div>
+          </div>
+        `).join("")
+      : `<p class="empty">Orders will appear here once customers place purchases.</p>`;
+  }
+}
+
+function renderCategories() {
+  const categories = Array.from(new Set([
+    ...categoryRegistry,
+    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
+  ])).sort();
+
+  if (categoriesList) {
+    categoriesList.innerHTML = categories.length
+      ? categories.map((category) => {
+          const categoryProducts = products.filter((product) => String(product.category || "").trim() === category);
+          return `
+            <div class="customer-card ">
+              <div>
+                <strong>${escapeHtml(category)}</strong>
+                <div class="tiny-note">${categoryProducts.length} products</div>
+              </div>
+              <div class="admin-actions">
+                <button class="secondary-button" type="button" data-edit-category="${escapeHtml(category)}">Edit</button>
+                <button class="secondary-button danger" type="button" data-delete-category="${escapeHtml(category)}">Delete</button>
+              </div>
+            </div>
+          `;
+        }).join("")
+      : `<p class="empty">Add a category to start organizing products.</p>`;
+  }
+
+  categoriesList?.querySelectorAll("[data-edit-category]").forEach((button) => {
+    button.addEventListener("click", () => {
+      editCategory(button.dataset.editCategory);
+    });
+  });
+
+  categoriesList?.querySelectorAll("[data-delete-category]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await deleteCategory(button.dataset.deleteCategory);
+    });
+  });
+}
+
+async function editCategory(categoryName) {
+  categoryForm.elements.id.value = categoryName;
+  categoryForm.elements.categoryName.value = categoryName;
+  cancelCategoryEdit.hidden = false;
+  categoryForm.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function resetCategoryForm() {
+  categoryForm.reset();
+  categoryForm.elements.id.value = "";
+  cancelCategoryEdit.hidden = true;
+}
+
+categoryForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(categoryForm);
+  const existingCategory = String(formData.get("id") || "").trim();
+  const categoryName = String(formData.get("categoryName") || "").trim();
+
+  if (!categoryName) {
+    alert("Please enter a category name.");
+    return;
+  }
+
+  if (existingCategory) {
+    const { error } = await supabaseClient
+      .from("products")
+      .update({ category: categoryName, updated_at: new Date().toISOString() })
+      .eq("category", existingCategory);
+
+    if (error) {
+      alert(`Could not rename category: ${error.message}`);
+      return;
+    }
+
+    categoryRegistry = categoryRegistry.filter((item) => item !== existingCategory);
+    if (!categoryRegistry.includes(categoryName)) {
+      categoryRegistry.push(categoryName);
+    }
+  } else {
+    if (!categoryRegistry.includes(categoryName)) {
+      categoryRegistry.push(categoryName);
+    }
+  }
+
+  resetCategoryForm();
+  await loadProducts();
+  alert(existingCategory ? "Category renamed." : "Category added.");
+});
+
+cancelCategoryEdit?.addEventListener("click", resetCategoryForm);
+
+async function deleteCategory(categoryName) {
+  const confirmed = confirm(`Remove category "${categoryName}" from the catalog?`);
+  if (!confirmed) return;
+
+  const { error } = await supabaseClient
+    .from("products")
+    .update({ category: null, updated_at: new Date().toISOString() })
+    .eq("category", categoryName);
+
+  if (error) {
+    alert(`Could not remove category: ${error.message}`);
+    return;
+  }
+
+  categoryRegistry = categoryRegistry.filter((item) => item !== categoryName);
+  await loadProducts();
 }
 
 function orderStatusOptions(selectedStatus) {
