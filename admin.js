@@ -33,6 +33,7 @@ let menuItems = [];
 let products = [];
 let paymentMethods = [];
 let orders = [];
+let orderItemsByOrder = {};
 let activeOrderFilter = "all";
 let paymentMethodQrFile = null;
 let paymentMethodQrPreviewUrl = null;
@@ -1066,18 +1067,41 @@ cancelEdit.addEventListener("click", resetProductForm);
 ------------------------- */
 
 async function loadOrders() {
-  const { data, error } = await supabaseClient
-    .from("orders")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const [{ data: ordersData, error: ordersError }, { data: itemsData, error: itemsError }] = await Promise.all([
+    supabaseClient
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false }),
+    supabaseClient
+      .from("order_items")
+      .select("*")
+      .order("product_name", { ascending: true })
+  ]);
 
-  if (error) {
+  if (ordersError) {
     ordersList.innerHTML =
-      `<p>Could not load orders: ${escapeHtml(error.message)}</p>`;
+      `<p>Could not load orders: ${escapeHtml(ordersError.message)}</p>`;
     return;
   }
 
-  orders = data || [];
+  if (itemsError) {
+    ordersList.innerHTML =
+      `<p>Could not load order items: ${escapeHtml(itemsError.message)}</p>`;
+    return;
+  }
+
+  orders = ordersData || [];
+  orderItemsByOrder = (itemsData || []).reduce((accumulator, item) => {
+    const orderId = String(item.order_id);
+
+    if (!accumulator[orderId]) {
+      accumulator[orderId] = [];
+    }
+
+    accumulator[orderId].push(item);
+    return accumulator;
+  }, {});
+
   renderOrderTabs();
   renderOrders(getFilteredOrders());
 }
@@ -1336,70 +1360,98 @@ function renderOrders(ordersToRender) {
 
   ordersList.innerHTML = ordersToRender
     .map(
-      (order) => `
-        <article class="order-card">
-          <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
+      (order) => {
+        const orderItems = orderItemsByOrder[String(order.id)] || [];
+        const productsLabel = `Products (${orderItems.length})`;
+        const productRows = orderItems.length
+          ? orderItems
+              .map((item) => `
+                <div class="order-product-row">
+                  <div>
+                    <strong>${escapeHtml(item.product_name || "Product")}</strong>
+                    <div class="tiny-note">Qty: ${Number(item.quantity || 0)}</div>
+                  </div>
+                  <div class="order-product-prices">
+                    <span>${formatCurrency(item.unit_price || 0)}</span>
+                    <span>${formatCurrency(item.line_total || 0)}</span>
+                  </div>
+                </div>
+              `)
+              .join("")
+          : `<div class="tiny-note">No products found</div>`;
 
-          <p>
-            ${escapeHtml(order.customer_name)}
-            · ${escapeHtml(order.phone)}
-          </p>
+        return `
+          <article class="order-card">
+            <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
 
-          <p>${escapeHtml(order.address)}</p>
+            <p>
+              ${escapeHtml(order.customer_name)}
+              · ${escapeHtml(order.phone)}
+            </p>
 
-          <p>
-            ${formatCurrency(order.total)}
-            · ${escapeHtml(order.payment_method || "—")}
-          </p>
+            <p>${escapeHtml(order.address)}</p>
 
-          <p>
-            Payment status: <strong>${escapeHtml(order.payment_status || "Pending")}</strong>
-          </p>
+            <p>
+              ${formatCurrency(order.total)}
+              · ${escapeHtml(order.payment_method || "—")}
+            </p>
 
-          <p>
-            Amount paid: ${formatCurrency(order.amount_paid || 0)}
-          </p>
+            <p>
+              Payment status: <strong>${escapeHtml(order.payment_status || "Pending")}</strong>
+            </p>
 
-          ${order.reference_number ? `<p>Reference: ${escapeHtml(order.reference_number)}</p>` : ""}
+            <p>
+              Amount paid: ${formatCurrency(order.amount_paid || 0)}
+            </p>
 
-          <label>
-            Status
-            <select data-order-status="${order.id}">
-              ${orderStatusOptions(order.status)}
-            </select>
-          </label>
+            ${order.reference_number ? `<p>Reference: ${escapeHtml(order.reference_number)}</p>` : ""}
 
-          <div class="order-actions">
-            ${order.receipt_image ? `
-              <button class="secondary-button" type="button" data-order-view-receipt="${order.id}">
-                View Receipt
+            <details class="order-products-details">
+              <summary>${escapeHtml(productsLabel)} <span class="order-details-arrow">▾</span></summary>
+              <div class="order-products-body">
+                ${productRows}
+              </div>
+            </details>
+
+            <label>
+              Status
+              <select data-order-status="${order.id}">
+                ${orderStatusOptions(order.status)}
+              </select>
+            </label>
+
+            <div class="order-actions">
+              ${order.receipt_image ? `
+                <button class="secondary-button" type="button" data-order-view-receipt="${order.id}">
+                  View Receipt
+                </button>
+              ` : ""}
+              <button class="secondary-button" type="button" data-order-approve="${order.id}">
+                Approve Payment
               </button>
-            ` : ""}
-            <button class="secondary-button" type="button" data-order-approve="${order.id}">
-              Approve Payment
-            </button>
-            <button class="secondary-button danger" type="button" data-order-reject="${order.id}">
-              Reject Payment
-            </button>
-            ${Boolean(order.archived) ? `
-              <button class="secondary-button" type="button" data-order-restore="${order.id}">
-                Restore Order
+              <button class="secondary-button danger" type="button" data-order-reject="${order.id}">
+                Reject Payment
               </button>
-              <button class="secondary-button danger" type="button" data-order-delete-permanent="${order.id}">
-                Delete Permanently
-              </button>
-            ` : `
-              <button class="secondary-button" type="button" data-order-archive="${order.id}">
-                Archive Order
-              </button>
-            `}
-          </div>
+              ${Boolean(order.archived) ? `
+                <button class="secondary-button" type="button" data-order-restore="${order.id}">
+                  Restore Order
+                </button>
+                <button class="secondary-button danger" type="button" data-order-delete-permanent="${order.id}">
+                  Delete Permanently
+                </button>
+              ` : `
+                <button class="secondary-button" type="button" data-order-archive="${order.id}">
+                  Archive Order
+                </button>
+              `}
+            </div>
 
-          <small>
-            ${new Date(order.created_at).toLocaleString()}
-          </small>
-        </article>
-      `
+            <small>
+              ${new Date(order.created_at).toLocaleString()}
+            </small>
+          </article>
+        `;
+      }
     )
     .join("");
 
