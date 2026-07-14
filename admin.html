@@ -290,7 +290,13 @@
 </dialog>
 
     <section id="ordersSection" class="admin-card" style="margin-top:24px">
-      <h2>Orders on this device</h2>
+      <div class="admin-section-header">
+        <div>
+          <h2>Orders</h2>
+          <p class="tiny-note">Filter by payment status or archive orders when they are no longer active.</p>
+        </div>
+      </div>
+      <div id="ordersTabs" class="order-tabs" role="tablist"></div>
       <div id="ordersList"></div>
     </section>
 
