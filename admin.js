@@ -7,6 +7,7 @@ const settingsForm = document.querySelector("#settingsForm");
 const productForm = document.querySelector("#productForm");
 const adminProducts = document.querySelector("#adminProducts");
 const ordersList = document.querySelector("#ordersList");
+const ordersTabs = document.querySelector("#ordersTabs");
 const formTitle = document.querySelector("#formTitle");
 const cancelEdit = document.querySelector("#cancelEdit");
 const resetButton = document.querySelector("#resetButton");
@@ -31,6 +32,8 @@ const paymentMethodQrPreviewText = document.querySelector("#paymentQrPreviewText
 let menuItems = [];
 let products = [];
 let paymentMethods = [];
+let orders = [];
+let activeOrderFilter = "all";
 let paymentMethodQrFile = null;
 let paymentMethodQrPreviewUrl = null;
 let paymentMethodCurrentQrUrl = null;
@@ -1074,7 +1077,111 @@ async function loadOrders() {
     return;
   }
 
-  renderOrders(data || []);
+  orders = data || [];
+  renderOrderTabs();
+  renderOrders(getFilteredOrders());
+}
+
+function getOrderReferenceLabel(order) {
+  return order?.order_ref || order?.order_reference || "—";
+}
+
+function getFilteredOrders(list = orders) {
+  return list.filter((order) => {
+    const archived = Boolean(order?.archived);
+
+    if (activeOrderFilter === "archived") {
+      return archived;
+    }
+
+    if (archived) {
+      return false;
+    }
+
+    switch (activeOrderFilter) {
+      case "pending":
+        return String(order?.payment_status || "Pending").toLowerCase() === "pending";
+      case "approved":
+        return String(order?.payment_status || "").toLowerCase() === "approved";
+      case "rejected":
+        return String(order?.payment_status || "").toLowerCase() === "rejected";
+      default:
+        return true;
+    }
+  });
+}
+
+function getOrderTabCount(filter) {
+  return getFilteredOrders(orders.filter((order) => {
+    const archived = Boolean(order?.archived);
+
+    if (filter === "archived") {
+      return archived;
+    }
+
+    if (archived) {
+      return false;
+    }
+
+    switch (filter) {
+      case "pending":
+        return String(order?.payment_status || "Pending").toLowerCase() === "pending";
+      case "approved":
+        return String(order?.payment_status || "").toLowerCase() === "approved";
+      case "rejected":
+        return String(order?.payment_status || "").toLowerCase() === "rejected";
+      default:
+        return true;
+    }
+  })).length;
+}
+
+function renderOrderTabs() {
+  if (!ordersTabs) {
+    return;
+  }
+
+  const tabs = [
+    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "approved", label: "Approved" },
+    { id: "rejected", label: "Rejected" },
+    { id: "archived", label: "Archived" }
+  ];
+
+  ordersTabs.innerHTML = tabs
+    .map((tab) => {
+      const isActive = activeOrderFilter === tab.id;
+      const count = getOrderTabCount(tab.id);
+
+      return `
+        <button
+          class="order-tab${isActive ? " active" : ""}"
+          type="button"
+          data-order-filter="${tab.id}"
+        >
+          <span>${escapeHtml(tab.label)}</span>
+          <span class="order-tab-count">${count}</span>
+        </button>
+      `;
+    })
+    .join("");
+
+  ordersTabs
+    .querySelectorAll("[data-order-filter]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        activeOrderFilter = button.dataset.orderFilter || "all";
+        renderOrderTabs();
+        renderOrders(getFilteredOrders());
+      });
+    });
+}
+
+function setOrderFilter(filter) {
+  activeOrderFilter = filter;
+  renderOrderTabs();
+  renderOrders(getFilteredOrders());
 }
 
 async function verifyAdminAccess() {
@@ -1135,18 +1242,103 @@ async function updateOrderPaymentStatus(id, paymentStatus) {
   alert(`Payment marked as ${paymentStatus}.`);
 }
 
-function renderOrders(orders) {
-  if (!orders.length) {
-    ordersList.innerHTML =
-      `<p class="empty">No online orders yet.</p>`;
+async function archiveOrder(id) {
+  const confirmed = confirm("Archive this order?");
+
+  if (!confirmed) {
     return;
   }
 
-  ordersList.innerHTML = orders
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      archived: true,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert(`Could not archive order: ${error.message}`);
+    return;
+  }
+
+  await loadOrders();
+  alert("Order archived.");
+}
+
+async function restoreOrder(id) {
+  const { error } = await supabaseClient
+    .from("orders")
+    .update({
+      archived: false,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert(`Could not restore order: ${error.message}`);
+    return;
+  }
+
+  await loadOrders();
+  alert("Order restored.");
+}
+
+async function deleteOrderPermanently(id, order) {
+  const confirmed = confirm("Delete this order permanently? This cannot be undone.");
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const { error: itemsError } = await supabaseClient
+      .from("order_items")
+      .delete()
+      .eq("order_id", id);
+
+    if (itemsError) {
+      throw new Error(`Could not delete order items: ${itemsError.message}`);
+    }
+
+    if (order?.receipt_image) {
+      const { error: storageError } = await supabaseClient.storage
+        .from("payment-receipts")
+        .remove([order.receipt_image]);
+
+      if (storageError) {
+        throw new Error(`Could not delete receipt image: ${storageError.message}`);
+      }
+    }
+
+    const { error: orderError } = await supabaseClient
+      .from("orders")
+      .delete()
+      .eq("id", id);
+
+    if (orderError) {
+      throw new Error(`Could not delete order: ${orderError.message}`);
+    }
+
+    await loadOrders();
+    alert("Order deleted permanently.");
+  } catch (error) {
+    alert(error.message || "Could not delete order permanently.");
+  }
+}
+
+function renderOrders(ordersToRender) {
+  if (!ordersToRender.length) {
+    ordersList.innerHTML =
+      `<p class="empty">No orders in this view yet.</p>`;
+    return;
+  }
+
+  ordersList.innerHTML = ordersToRender
     .map(
       (order) => `
         <article class="order-card">
-          <strong>${escapeHtml(order.order_reference)}</strong>
+          <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
 
           <p>
             ${escapeHtml(order.customer_name)}
@@ -1189,6 +1381,18 @@ function renderOrders(orders) {
             <button class="secondary-button danger" type="button" data-order-reject="${order.id}">
               Reject Payment
             </button>
+            ${Boolean(order.archived) ? `
+              <button class="secondary-button" type="button" data-order-restore="${order.id}">
+                Restore Order
+              </button>
+              <button class="secondary-button danger" type="button" data-order-delete-permanent="${order.id}">
+                Delete Permanently
+              </button>
+            ` : `
+              <button class="secondary-button" type="button" data-order-archive="${order.id}">
+                Archive Order
+              </button>
+            `}
           </div>
 
           <small>
@@ -1236,6 +1440,33 @@ function renderOrders(orders) {
         await updateOrderPaymentStatus(button.dataset.orderReject, "Rejected");
       });
     });
+
+  ordersList
+    .querySelectorAll("[data-order-archive]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        await archiveOrder(button.dataset.orderArchive);
+      });
+    });
+
+  ordersList
+    .querySelectorAll("[data-order-restore]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        await restoreOrder(button.dataset.orderRestore);
+      });
+    });
+
+  ordersList
+    .querySelectorAll("[data-order-delete-permanent]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const order = orders.find((item) => String(item.id) === String(button.dataset.orderDeletePermanent));
+        if (order) {
+          await deleteOrderPermanently(order.id, order);
+        }
+      });
+    });
 }
 
 async function updateOrderStatus(id, status) {
@@ -1253,6 +1484,7 @@ async function updateOrderStatus(id, status) {
     return;
   }
 
+  await loadOrders();
   alert("Order status updated.");
 }
 
