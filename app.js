@@ -928,7 +928,7 @@ async function submitOrder() {
     }
 
     const orderData = {
-      order_reference: reference,
+      order_ref: reference,
       customer_name: String(formData.get("name") || "").trim(),
       phone: String(formData.get("phone") || "").trim(),
       address: String(formData.get("address") || "").trim(),
@@ -948,7 +948,7 @@ async function submitOrder() {
     const { data: order, error: orderError } = await supabaseClient
       .from("orders")
       .insert(orderData)
-      .select("id, order_reference")
+      .select("id, order_ref")
       .single();
 
     if (orderError) {
@@ -987,16 +987,16 @@ async function submitOrder() {
     paymentStepDialog.close();
     resetCheckoutState();
 
-    orderReference.textContent = order.order_reference;
+    orderReference.textContent = order.order_ref;
     successDialog.showModal();
   } catch (error) {
     console.error("Checkout error:", error);
     if (uploadedReceiptPath) {
       await deleteUploadedReceipt(uploadedReceiptPath);
     }
-    showCheckoutError(
-      `We could not place your order right now. ${error?.message || "Please try again."}`
-    );
+    const errorMessage = `We could not place your order right now. ${error?.message || "Please try again."}`;
+    showPaymentStepFeedback(errorMessage);
+    showCheckoutError(errorMessage);
   } finally {
     if (submitButton) {
       submitButton.disabled = false;
