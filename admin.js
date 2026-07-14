@@ -130,7 +130,6 @@ async function showAdmin() {
   loginSection.hidden = true;
   adminContent.hidden = false;
 
-  resetButton.textContent = "Log out";
   setupAdminUI();
   setActiveSettingsTab(activeSettingsTab);
 
@@ -186,11 +185,6 @@ loginForm.addEventListener("submit", async (event) => {
 
   loginForm.reset();
   await verifyAdmin();
-});
-
-resetButton.addEventListener("click", async () => {
-  await supabaseClient.auth.signOut();
-  await showLogin("You have been logged out.");
 });
 
 /* -------------------------
