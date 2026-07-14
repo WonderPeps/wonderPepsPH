@@ -348,7 +348,7 @@ function renderMenuItems() {
           <div>
             <strong>${escapeHtml(item.label)}</strong>
 
-            <div>
+            <div class="menu-url">
               ${escapeHtml(item.url)}
             </div>
 
