@@ -47,6 +47,7 @@
       <a href="#shopSettingsSection">Shop Settings</a>
       <a href="#productsSection">Products</a>
       <a href="#menuSection">Menu</a>
+      <a href="#paymentMethodsSection">💳 Payment Methods</a>
       <a href="#ordersSection">Orders</a>
     </nav>
 
@@ -182,7 +183,33 @@
         <div id="adminProducts" class="admin-products"></div>
       </section>
     </div>
+<section id="paymentMethodsSection" class="admin-card" style="margin-top:24px">
 
+    <div class="admin-section-header">
+        <div>
+            <h2>💳 Payment Methods</h2>
+            <p class="tiny-note">
+                Manage the payment methods available during checkout.
+            </p>
+        </div>
+
+        <button id="addPaymentMethodBtn" class="primary-button">
+            + Add Payment Method
+        </button>
+    </div>
+
+    <div id="paymentMethodsContainer" class="payment-method-grid">
+
+        <div class="payment-method-empty">
+            <p>No payment methods loaded yet.</p>
+            <p class="tiny-note">
+                Payment methods will automatically load from Supabase.
+            </p>
+        </div>
+
+    </div>
+
+</section>
     <section id="ordersSection" class="admin-card" style="margin-top:24px">
       <h2>Orders on this device</h2>
       <div id="ordersList"></div>
