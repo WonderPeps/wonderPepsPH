@@ -27,13 +27,25 @@ const checkoutButton = document.querySelector("#checkoutButton");
 const checkoutDialog = document.querySelector("#checkoutDialog");
 const checkoutForm = document.querySelector("#checkoutForm");
 const checkoutTotal = document.querySelector("#checkoutTotal");
+const paymentMethodsList = document.querySelector("#paymentMethodsList");
+const selectedPaymentInput = document.querySelector("#selectedPaymentInput");
+const proceedPaymentButton = document.querySelector("#proceedPaymentButton");
+const checkoutFormError = document.querySelector("#checkoutFormError");
+const paymentStepDialog = document.querySelector("#paymentStepDialog");
+const paymentStepContent = document.querySelector("#paymentStepContent");
+const paymentStepBackButton = document.querySelector("#paymentStepBackButton");
+const paymentStepContinueButton = document.querySelector("#paymentStepContinueButton");
+const paymentStepCloseButton = document.querySelector("#paymentStepCloseButton");
 
 const successDialog = document.querySelector("#successDialog");
+
 const orderReference = document.querySelector("#orderReference");
 const closeSuccess = document.querySelector("#closeSuccess");
 
 let products = [];
 let cart = [];
+let paymentMethods = [];
+let selectedPaymentMethod = null;
 
 /* -------------------------
    HELPERS
@@ -50,6 +62,24 @@ function escapeHtml(value) {
 
 function formatCurrency(value) {
   return currency.format(Number(value || 0));
+}
+
+function roundToTwo(value) {
+  return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
+}
+
+function clearCheckoutFormError() {
+  if (checkoutFormError) {
+    checkoutFormError.textContent = "";
+  }
+}
+
+function showCheckoutError(message) {
+  if (checkoutFormError) {
+    checkoutFormError.textContent = message;
+  } else {
+    alert(message);
+  }
 }
 
 /* -------------------------
@@ -244,7 +274,7 @@ function renderProducts(list) {
     .querySelectorAll("[data-add-product]")
     .forEach((button) => {
       button.addEventListener("click", () => {
-        addToCart(button.dataset.addProduct);
+        addToCart(button.dataset.addProduct, button);
       });
     });
 }
@@ -274,7 +304,7 @@ function getProductById(id) {
   return products.find((product) => String(product.id) === String(id));
 }
 
-function addToCart(productId) {
+function addToCart(productId, sourceButton = null) {
   const product = getProductById(productId);
 
   if (!product || Number(product.stock || 0) < 1) {
@@ -304,8 +334,10 @@ function addToCart(productId) {
 
   renderCart();
   showAddedToBag(product.name);
-animateBag();
-  flyHeartToBag(event.currentTarget);
+  animateBag();
+  if (sourceButton) {
+    flyHeartToBag(sourceButton);
+  }
 }
 
 function removeFromCart(productId) {
@@ -506,6 +538,7 @@ checkoutButton.addEventListener("click", () => {
     return;
   }
 
+  clearCheckoutFormError();
   closeCartDrawer();
   updateCheckoutTotal();
   checkoutDialog.showModal();
@@ -532,20 +565,178 @@ function createOrderReference() {
   return `WPPH-${datePart}-${randomPart}`;
 }
 
-checkoutForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+async function loadPaymentMethods() {
+  if (!paymentMethodsList) {
+    return;
+  }
 
+  paymentMethodsList.innerHTML = `<p class="empty">Loading payment methods…</p>`;
+
+  const { data, error } = await supabaseClient
+    .from("payment_methods")
+    .select("*")
+    .eq("is_visible", true)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    paymentMethods = [];
+    selectedPaymentMethod = null;
+    if (selectedPaymentInput) {
+      selectedPaymentInput.value = "";
+    }
+    paymentMethodsList.innerHTML = `
+      <div class="payment-step-summary">
+        <strong>Payment methods unavailable</strong>
+        <p class="tiny-note">We could not load payment options right now. Please try again shortly.</p>
+      </div>
+    `;
+    if (proceedPaymentButton) {
+      proceedPaymentButton.disabled = true;
+    }
+    return;
+  }
+
+  paymentMethods = data || [];
+  selectedPaymentMethod = null;
+  if (selectedPaymentInput) {
+    selectedPaymentInput.value = "";
+  }
+  renderPaymentMethods();
+}
+
+function renderPaymentMethods() {
+  if (!paymentMethodsList) {
+    return;
+  }
+
+  if (!paymentMethods.length) {
+    paymentMethodsList.innerHTML = `
+      <div class="payment-step-summary">
+        <strong>No payment methods available</strong>
+        <p class="tiny-note">Payment options will appear here once they are enabled in the admin dashboard.</p>
+      </div>
+    `;
+    if (proceedPaymentButton) {
+      proceedPaymentButton.disabled = true;
+    }
+    return;
+  }
+
+  paymentMethodsList.innerHTML = paymentMethods
+    .map((method) => {
+      const isSelected = selectedPaymentMethod && String(selectedPaymentMethod.id) === String(method.id);
+      const depositText = method.deposit_required
+        ? `${Number(method.deposit_percentage || 0)}% deposit`
+        : "Full payment";
+
+      return `
+        <button
+          class="payment-option-card${isSelected ? " selected" : ""}"
+          type="button"
+          data-payment-select="${method.id}"
+        >
+          <div class="payment-option-header">
+            <strong>${escapeHtml(method.payment_name || "Payment method")}</strong>
+            <span class="payment-option-pill">${escapeHtml(depositText)}</span>
+          </div>
+          <p>${escapeHtml(method.short_description || "Please follow the payment instructions provided.")}</p>
+        </button>
+      `;
+    })
+    .join("");
+
+  if (proceedPaymentButton) {
+    proceedPaymentButton.disabled = false;
+  }
+
+  paymentMethodsList
+    .querySelectorAll("[data-payment-select]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        selectPaymentMethod(button.dataset.paymentSelect);
+      });
+    });
+}
+
+function selectPaymentMethod(methodId) {
+  const method = paymentMethods.find(
+    (item) => String(item.id) === String(methodId)
+  );
+
+  if (!method) {
+    return;
+  }
+
+  selectedPaymentMethod = method;
+  if (selectedPaymentInput) {
+    selectedPaymentInput.value = method.payment_name || "";
+  }
+  renderPaymentMethods();
+}
+
+function openPaymentStep() {
+  if (!selectedPaymentMethod) {
+    showCheckoutError("Please choose a payment method to continue.");
+    return;
+  }
+
+  const subtotal = calculateSubtotal();
+  const shippingFee = getSelectedShippingFee();
+  const total = roundToTwo(subtotal + shippingFee);
+  const depositPercentage = Number(selectedPaymentMethod.deposit_percentage || 0);
+  const amountDueNow = selectedPaymentMethod.deposit_required
+    ? roundToTwo(total * (depositPercentage / 100))
+    : total;
+  const remainingBalance = roundToTwo(total - amountDueNow);
+  const instructions = selectedPaymentMethod.short_description || "Please follow the payment instructions provided.";
+  const qrUrl = selectedPaymentMethod.qr_url && String(selectedPaymentMethod.qr_url).trim();
+
+  paymentStepContent.innerHTML = `
+    <div class="payment-step-summary">
+      <strong>${escapeHtml(selectedPaymentMethod.payment_name || "Payment method")}</strong>
+      <p class="tiny-note">${escapeHtml(instructions)}</p>
+    </div>
+    <div class="payment-step-qr">
+      ${qrUrl
+        ? `<img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" />`
+        : `<div class="payment-step-qr-placeholder">No QR code available</div>`}
+    </div>
+    <div class="payment-step-summary">
+      <div class="cart-summary"><div><span>Order total</span><strong>${formatCurrency(total)}</strong></div></div>
+      <div class="cart-summary"><div><span>Amount due now</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>
+      ${selectedPaymentMethod.deposit_required
+        ? `<div class="cart-summary"><div><span>Remaining balance</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
+        : ""}
+    </div>
+  `;
+
+  clearCheckoutFormError();
+  checkoutDialog.close();
+  paymentStepDialog.showModal();
+}
+
+function resetCheckoutState() {
+  checkoutForm.reset();
+  selectedPaymentMethod = null;
+  if (selectedPaymentInput) {
+    selectedPaymentInput.value = "";
+  }
+  renderPaymentMethods();
+  clearCheckoutFormError();
+}
+
+async function submitOrder() {
   if (!cart.length) {
     alert("Your bag is empty.");
     return;
   }
 
-  const submitButton = checkoutForm.querySelector(
-    'button[type="submit"]'
-  );
+  const submitButton = paymentStepContinueButton;
 
-  submitButton.disabled = true;
-  submitButton.textContent = "Placing order…";
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Processing…";
+  }
 
   try {
     const formData = new FormData(checkoutForm);
@@ -553,32 +744,29 @@ checkoutForm.addEventListener("submit", async (event) => {
     const reference = createOrderReference();
     const shippingFee = getSelectedShippingFee();
     const subtotal = calculateSubtotal();
-    const total = subtotal + shippingFee;
+    const total = roundToTwo(subtotal + shippingFee);
+    const paymentMethodName = String(
+      selectedPaymentMethod?.payment_name || formData.get("payment") || ""
+    ).trim();
 
     const orderData = {
       order_reference: reference,
-      customer_name: String(
-        formData.get("name") || ""
-      ).trim(),
+      customer_name: String(formData.get("name") || "").trim(),
       phone: String(formData.get("phone") || "").trim(),
       address: String(formData.get("address") || "").trim(),
-      payment_method: String(
-        formData.get("payment") || ""
-      ).trim(),
-      notes:
-        String(formData.get("notes") || "").trim() || null,
+      payment_method: paymentMethodName,
+      notes: String(formData.get("notes") || "").trim() || null,
       shipping_fee: shippingFee,
       subtotal,
       total,
       status: "Pending"
     };
 
-    const { data: order, error: orderError } =
-      await supabaseClient
-        .from("orders")
-        .insert(orderData)
-        .select("id, order_reference")
-        .single();
+    const { data: order, error: orderError } = await supabaseClient
+      .from("orders")
+      .insert(orderData)
+      .select("id, order_reference")
+      .single();
 
     if (orderError) {
       throw orderError;
@@ -593,8 +781,7 @@ checkoutForm.addEventListener("submit", async (event) => {
         product_name: product.name,
         unit_price: Number(product.price),
         quantity: item.quantity,
-        line_total:
-          Number(product.price) * Number(item.quantity)
+        line_total: Number(product.price) * Number(item.quantity)
       };
     });
 
@@ -608,23 +795,51 @@ checkoutForm.addEventListener("submit", async (event) => {
 
     cart = [];
     renderCart();
-    checkoutForm.reset();
-    checkoutDialog.close();
+    paymentStepDialog.close();
+    resetCheckoutState();
 
     orderReference.textContent = order.order_reference;
     successDialog.showModal();
   } catch (error) {
     console.error("Checkout error:", error);
-
-    alert(
-      `Could not place your order: ${
-        error?.message || "Unknown error"
-      }`
+    showCheckoutError(
+      `We could not place your order right now. ${error?.message || "Please try again."}`
     );
   } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = "Place order";
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = "Continue Payment";
+    }
   }
+}
+
+checkoutForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!cart.length) {
+    alert("Your bag is empty.");
+    return;
+  }
+
+  if (!checkoutForm.checkValidity()) {
+    checkoutForm.reportValidity();
+    return;
+  }
+
+  clearCheckoutFormError();
+  openPaymentStep();
+});
+
+paymentStepBackButton?.addEventListener("click", () => {
+  paymentStepDialog.close();
+  checkoutDialog.showModal();
+});
+
+paymentStepContinueButton?.addEventListener("click", () => {
+  submitOrder();
+});
+
+proceedPaymentButton?.addEventListener("click", () => {
+  checkoutForm.requestSubmit();
 });
 
 closeSuccess.addEventListener("click", () => {
@@ -641,6 +856,16 @@ checkoutDialog.addEventListener("click", (event) => {
   if (event.target === checkoutDialog) {
     checkoutDialog.close();
   }
+});
+
+paymentStepDialog.addEventListener("click", (event) => {
+  if (event.target === paymentStepDialog) {
+    paymentStepDialog.close();
+  }
+});
+
+paymentStepCloseButton?.addEventListener("click", () => {
+  paymentStepDialog.close();
 });
 /* ------------------------
    STOREFRONT MENU
@@ -711,7 +936,8 @@ async function initializeStorefront() {
 await Promise.all([
   loadShopSettings(),
   loadProducts(),
-  loadStoreMenuItems()
+  loadStoreMenuItems(),
+  loadPaymentMethods()
 ]);
 
   renderCart();

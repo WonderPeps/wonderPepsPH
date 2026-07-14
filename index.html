@@ -133,25 +133,36 @@
           <option value="150">₱150 — Farther area</option>
         </select>
       </label>
-      <label>Payment method
-        <select name="payment" required>
-          <option value="">Choose payment</option>
-          <option>GCash</option>
-          <option>Maya</option>
-          <option>Bank Transfer</option>
-          <option>Cash on Delivery</option>
-        </select>
-      </label>
+      <div>
+        <label>Payment method</label>
+        <input id="selectedPaymentInput" name="payment" type="hidden" />
+        <div id="paymentMethodsList" class="payment-method-selector" aria-live="polite"></div>
+      </div>
       <label>Order notes
         <textarea name="notes" rows="2"></textarea>
       </label>
+      <p id="checkoutFormError" class="checkout-error" role="alert"></p>
       <div class="checkout-total">
         <span>Total</span>
         <strong id="checkoutTotal">₱0</strong>
       </div>
-      <button class="primary-button full" type="submit">Place order</button>
+      <button id="proceedPaymentButton" class="primary-button full" type="button">Proceed to Payment</button>
       <p class="tiny-note">Stage 1 stores orders in this browser. In Stage 2, we will connect Supabase so all customer orders appear online in your admin dashboard.</p>
     </form>
+  </dialog>
+
+  <dialog id="paymentStepDialog">
+    <div class="payment-step-card">
+      <div class="drawer-header">
+        <h2>Payment</h2>
+        <button id="paymentStepCloseButton" class="icon-button" type="button" aria-label="Close payment step">×</button>
+      </div>
+      <div id="paymentStepContent" class="payment-step-content"></div>
+      <div class="payment-step-actions">
+        <button id="paymentStepBackButton" class="secondary-button" type="button">Back to Checkout</button>
+        <button id="paymentStepContinueButton" class="primary-button" type="button">Continue Payment</button>
+      </div>
+    </div>
   </dialog>
 
   <dialog id="successDialog">
