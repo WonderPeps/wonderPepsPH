@@ -46,6 +46,8 @@ let products = [];
 let cart = [];
 let paymentMethods = [];
 let selectedPaymentMethod = null;
+let paymentStepReceiptFile = null;
+let paymentStepReceiptPreviewUrl = null;
 
 /* -------------------------
    HELPERS
@@ -674,6 +676,111 @@ function selectPaymentMethod(methodId) {
   renderPaymentMethods();
 }
 
+function revokePaymentStepReceiptPreview() {
+  if (paymentStepReceiptPreviewUrl) {
+    URL.revokeObjectURL(paymentStepReceiptPreviewUrl);
+    paymentStepReceiptPreviewUrl = null;
+  }
+}
+
+function clearPaymentStepReceiptState() {
+  revokePaymentStepReceiptPreview();
+  paymentStepReceiptFile = null;
+}
+
+function showPaymentStepFeedback(message) {
+  const feedback = paymentStepContent?.querySelector("#paymentStepFeedback");
+
+  if (feedback) {
+    feedback.textContent = message;
+  }
+}
+
+function validateReceiptFile(file) {
+  if (!file) {
+    return { valid: false, message: "Please upload a receipt image to continue." };
+  }
+
+  const maximumSize = 10 * 1024 * 1024;
+  const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
+  const allowedExtensions = /\.(png|jpe?g|webp)$/i;
+
+  if (!allowedTypes.has(file.type) && !allowedExtensions.test(file.name)) {
+    return {
+      valid: false,
+      message: "Please upload a PNG, JPG, JPEG, or WebP receipt image."
+    };
+  }
+
+  if (file.size > maximumSize) {
+    return {
+      valid: false,
+      message: "Receipt images must be 10 MB or smaller."
+    };
+  }
+
+  return { valid: true, message: "" };
+}
+
+function renderPaymentStepReceiptPreview(file) {
+  const previewBox = paymentStepContent?.querySelector("#receiptPreviewBox");
+  const previewImage = paymentStepContent?.querySelector("#paymentReceiptPreview");
+
+  if (!previewBox || !previewImage) {
+    return;
+  }
+
+  revokePaymentStepReceiptPreview();
+
+  if (!file) {
+    previewBox.hidden = true;
+    previewImage.removeAttribute("src");
+    return;
+  }
+
+  paymentStepReceiptPreviewUrl = URL.createObjectURL(file);
+  previewImage.src = paymentStepReceiptPreviewUrl;
+  previewImage.alt = "Receipt preview";
+  previewBox.hidden = false;
+}
+
+function createReceiptStoragePath(file) {
+  const safeName = String(file.name || "receipt")
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "") || "receipt";
+
+  return `receipts/${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${safeName}`;
+}
+
+async function uploadCustomerReceipt(file) {
+  const storagePath = createReceiptStoragePath(file);
+  const { error } = await supabaseClient.storage
+    .from("payment-receipts")
+    .upload(storagePath, file, {
+      cacheControl: "3600",
+      upsert: false,
+      contentType: file.type || "application/octet-stream"
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return storagePath;
+}
+
+async function deleteUploadedReceipt(storagePath) {
+  if (!storagePath) {
+    return;
+  }
+
+  await supabaseClient.storage
+    .from("payment-receipts")
+    .remove([storagePath]);
+}
+
 function openPaymentStep() {
   if (!selectedPaymentMethod) {
     showCheckoutError("Please choose a payment method to continue.");
@@ -690,6 +797,11 @@ function openPaymentStep() {
   const remainingBalance = roundToTwo(total - amountDueNow);
   const instructions = selectedPaymentMethod.short_description || "Please follow the payment instructions provided.";
   const qrUrl = selectedPaymentMethod.qr_url && String(selectedPaymentMethod.qr_url).trim();
+  const requiresReceipt = Boolean(selectedPaymentMethod.receipt_required);
+  const requiresReference = Boolean(selectedPaymentMethod.reference_required);
+
+  clearPaymentStepReceiptState();
+  showPaymentStepFeedback("");
 
   paymentStepContent.innerHTML = `
     <div class="payment-step-summary">
@@ -708,7 +820,43 @@ function openPaymentStep() {
         ? `<div class="cart-summary"><div><span>Remaining balance</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
         : ""}
     </div>
+    ${requiresReceipt ? `
+      <label class="payment-step-field">
+        Upload receipt image
+        <input id="paymentReceiptFile" name="receipt_file" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" />
+      </label>
+      <div id="receiptPreviewBox" class="payment-step-preview-box" hidden>
+        <div class="tiny-note">Local receipt preview</div>
+        <img id="paymentReceiptPreview" class="payment-step-preview-image" alt="Receipt preview" />
+      </div>
+    ` : ""}
+    ${requiresReference ? `
+      <label class="payment-step-field">
+        Reference number
+        <input id="paymentReferenceInput" name="reference_number" type="text" maxlength="80" required />
+      </label>
+    ` : ""}
+    <p id="paymentStepFeedback" class="checkout-error" role="alert"></p>
   `;
+
+  const receiptInput = paymentStepContent.querySelector("#paymentReceiptFile");
+
+  receiptInput?.addEventListener("change", (event) => {
+    const file = event.target.files?.[0] || null;
+    const validation = validateReceiptFile(file);
+
+    if (!validation.valid) {
+      showPaymentStepFeedback(validation.message);
+      clearPaymentStepReceiptState();
+      renderPaymentStepReceiptPreview(null);
+      event.target.value = "";
+      return;
+    }
+
+    showPaymentStepFeedback("");
+    paymentStepReceiptFile = file;
+    renderPaymentStepReceiptPreview(file);
+  });
 
   clearCheckoutFormError();
   checkoutDialog.close();
@@ -718,6 +866,8 @@ function openPaymentStep() {
 function resetCheckoutState() {
   checkoutForm.reset();
   selectedPaymentMethod = null;
+  clearPaymentStepReceiptState();
+  showPaymentStepFeedback("");
   if (selectedPaymentInput) {
     selectedPaymentInput.value = "";
   }
@@ -735,8 +885,10 @@ async function submitOrder() {
 
   if (submitButton) {
     submitButton.disabled = true;
-    submitButton.textContent = "Processing…";
+    submitButton.textContent = "Uploading…";
   }
+
+  let uploadedReceiptPath = null;
 
   try {
     const formData = new FormData(checkoutForm);
@@ -748,6 +900,32 @@ async function submitOrder() {
     const paymentMethodName = String(
       selectedPaymentMethod?.payment_name || formData.get("payment") || ""
     ).trim();
+    const amountDueNow = selectedPaymentMethod?.deposit_required
+      ? roundToTwo(total * (Number(selectedPaymentMethod.deposit_percentage || 0) / 100))
+      : total;
+    const requiresReceipt = Boolean(selectedPaymentMethod?.receipt_required);
+    const requiresReference = Boolean(selectedPaymentMethod?.reference_required);
+    const referenceInput = paymentStepContent?.querySelector("#paymentReferenceInput");
+    const referenceNumber = requiresReference
+      ? String(referenceInput?.value || "").trim()
+      : "";
+
+    if (requiresReceipt) {
+      const validation = validateReceiptFile(paymentStepReceiptFile);
+      if (!validation.valid) {
+        showPaymentStepFeedback(validation.message);
+        return;
+      }
+    }
+
+    if (requiresReference && !referenceNumber) {
+      showPaymentStepFeedback("Please enter the reference number before continuing.");
+      return;
+    }
+
+    if (requiresReceipt && paymentStepReceiptFile) {
+      uploadedReceiptPath = await uploadCustomerReceipt(paymentStepReceiptFile);
+    }
 
     const orderData = {
       order_reference: reference,
@@ -759,6 +937,11 @@ async function submitOrder() {
       shipping_fee: shippingFee,
       subtotal,
       total,
+      amount_paid: amountDueNow,
+      payment_status: "Pending",
+      receipt_image: uploadedReceiptPath,
+      reference_number: referenceNumber || null,
+      paid_at: uploadedReceiptPath ? new Date().toISOString() : null,
       status: "Pending"
     };
 
@@ -769,6 +952,9 @@ async function submitOrder() {
       .single();
 
     if (orderError) {
+      if (uploadedReceiptPath) {
+        await deleteUploadedReceipt(uploadedReceiptPath);
+      }
       throw orderError;
     }
 
@@ -790,6 +976,9 @@ async function submitOrder() {
       .insert(orderItems);
 
     if (itemsError) {
+      if (uploadedReceiptPath) {
+        await deleteUploadedReceipt(uploadedReceiptPath);
+      }
       throw itemsError;
     }
 
@@ -802,6 +991,9 @@ async function submitOrder() {
     successDialog.showModal();
   } catch (error) {
     console.error("Checkout error:", error);
+    if (uploadedReceiptPath) {
+      await deleteUploadedReceipt(uploadedReceiptPath);
+    }
     showCheckoutError(
       `We could not place your order right now. ${error?.message || "Please try again."}`
     );
