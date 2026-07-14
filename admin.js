@@ -14,9 +14,17 @@ const menuForm = document.querySelector("#menuForm");
 const menuFormTitle = document.querySelector("#menuFormTitle");
 const adminMenuItems = document.querySelector("#adminMenuItems");
 const cancelMenuEdit = document.querySelector("#cancelMenuEdit");
+const paymentMethodsContainer = document.querySelector("#paymentMethodsContainer");
+const addPaymentMethodBtn = document.querySelector("#addPaymentMethodBtn");
+const paymentMethodModal = document.querySelector("#paymentMethodModal");
+const paymentMethodForm = document.querySelector("#paymentMethodForm");
+const paymentMethodModalTitle = document.querySelector("#paymentMethodModalTitle");
+const closePaymentMethodModal = document.querySelector("#closePaymentMethodModal");
+const cancelPaymentMethod = document.querySelector("#cancelPaymentMethod");
 
 let menuItems = [];
 let products = [];
+let paymentMethods = [];
 
 /* -------------------------
    LOGIN AND ADMIN CHECK
@@ -38,6 +46,7 @@ await Promise.all([
   loadSettings(),
   loadProducts(),
   loadMenuItems(),
+  loadPaymentMethods(),
   loadOrders()
 ]);
 }
@@ -331,6 +340,319 @@ async function deleteMenuItem(id) {
 
   await loadMenuItems();
 }
+
+/* -------------------------
+   PAYMENT METHODS
+------------------------- */
+
+async function loadPaymentMethods() {
+  const { data, error } = await supabaseClient
+    .from("payment_methods")
+    .select("*")
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    paymentMethodsContainer.innerHTML =
+      `<p class="empty">Could not load payment methods: ${escapeHtml(error.message)}</p>`;
+    return;
+  }
+
+  paymentMethods = data || [];
+  renderPaymentMethods();
+}
+
+function renderPaymentMethods() {
+  if (!paymentMethods.length) {
+    paymentMethodsContainer.innerHTML = `
+      <div class="payment-method-empty">
+        <p>No payment methods loaded yet.</p>
+        <p class="tiny-note">
+          Payment methods will automatically load from Supabase.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  paymentMethodsContainer.innerHTML = paymentMethods
+    .map((method) => {
+      const depositText = method.deposit_required
+        ? `${method.deposit_percentage ?? 0}% deposit`
+        : "Deposit not required";
+
+      return `
+        <article class="payment-method-card">
+          <div>
+            <strong>${escapeHtml(method.payment_name)}</strong>
+            <p>${escapeHtml(method.short_description || "")}</p>
+          </div>
+
+          <div class="payment-meta">
+            <div>${escapeHtml(depositText)}</div>
+            <div>${method.receipt_required ? "Receipt required" : "No receipt"}</div>
+            <div>${method.reference_required ? "Reference required" : "No reference"}</div>
+            <div>${method.is_visible ? "Visible" : "Hidden"}</div>
+          </div>
+
+          <div class="payment-tags">
+            <span class="payment-tag">Sort order: ${Number(method.sort_order ?? 0)}</span>
+          </div>
+
+          <div class="admin-actions">
+            <button
+              class="secondary-button"
+              type="button"
+              data-payment-up="${method.id}"
+            >
+              ↑
+            </button>
+            <button
+              class="secondary-button"
+              type="button"
+              data-payment-down="${method.id}"
+            >
+              ↓
+            </button>
+            <button
+              class="secondary-button"
+              type="button"
+              data-payment-toggle-visible="${method.id}"
+            >
+              ${method.is_visible ? "Hide" : "Show"}
+            </button>
+            <button
+              class="secondary-button"
+              type="button"
+              data-payment-edit="${method.id}"
+            >
+              Edit
+            </button>
+            <button
+              class="secondary-button danger"
+              type="button"
+              data-payment-delete="${method.id}"
+            >
+              Delete
+            </button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  paymentMethodsContainer
+    .querySelectorAll("[data-payment-toggle-visible]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        togglePaymentMethodVisibility(button.dataset.paymentToggleVisible);
+      });
+    });
+
+  paymentMethodsContainer
+    .querySelectorAll("[data-payment-edit]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        editPaymentMethod(button.dataset.paymentEdit);
+      });
+    });
+
+  paymentMethodsContainer
+    .querySelectorAll("[data-payment-down]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        changePaymentMethodOrder(button.dataset.paymentDown, 1);
+      });
+    });
+
+  paymentMethodsContainer
+    .querySelectorAll("[data-payment-up]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        changePaymentMethodOrder(button.dataset.paymentUp, -1);
+      });
+    });
+
+  paymentMethodsContainer
+    .querySelectorAll("[data-payment-delete]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        deletePaymentMethod(button.dataset.paymentDelete);
+      });
+    });
+}
+
+function openPaymentMethodModal(isEdit = false) {
+  paymentMethodModalTitle.textContent = isEdit
+    ? "Edit payment method"
+    : "Add payment method";
+
+  paymentMethodModal.showModal();
+}
+
+function closePaymentMethodDialog() {
+  paymentMethodModal.close();
+  paymentMethodForm.reset();
+  paymentMethodForm.elements.id.value = "";
+}
+
+function populatePaymentMethodForm(method) {
+  paymentMethodForm.elements.id.value = method.id;
+  paymentMethodForm.elements.payment_name.value = method.payment_name || "";
+  paymentMethodForm.elements.short_description.value = method.short_description || "";
+  paymentMethodForm.elements.instructions.value = method.instructions || "";
+  paymentMethodForm.elements.receipt_required.checked = method.receipt_required;
+  paymentMethodForm.elements.reference_required.checked = method.reference_required;
+  paymentMethodForm.elements.deposit_required.checked = method.deposit_required;
+  paymentMethodForm.elements.deposit_percentage.value = method.deposit_percentage ?? "";
+  paymentMethodForm.elements.is_visible.checked = method.is_visible;
+  paymentMethodForm.elements.sort_order.value = method.sort_order ?? 0;
+}
+
+addPaymentMethodBtn.addEventListener("click", () => {
+  paymentMethodForm.reset();
+  paymentMethodForm.elements.id.value = "";
+  paymentMethodModalTitle.textContent = "Add payment method";
+  openPaymentMethodModal(false);
+});
+
+closePaymentMethodModal.addEventListener("click", () => {
+  closePaymentMethodDialog();
+});
+
+cancelPaymentMethod.addEventListener("click", () => {
+  closePaymentMethodDialog();
+});
+
+paymentMethodForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const formData = new FormData(paymentMethodForm);
+  const id = String(formData.get("id") || "").trim();
+
+  const requestedSortOrder = formData.get("sort_order");
+  const payload = {
+    payment_name: String(formData.get("payment_name") || "").trim(),
+    short_description: String(formData.get("short_description") || "").trim() || null,
+    instructions: String(formData.get("instructions") || "").trim() || null,
+    receipt_required: formData.get("receipt_required") === "on",
+    reference_required: formData.get("reference_required") === "on",
+    deposit_required: formData.get("deposit_required") === "on",
+    deposit_percentage: formData.get("deposit_percentage") !== ""
+      ? Number(formData.get("deposit_percentage"))
+      : null,
+    is_visible: formData.get("is_visible") === "on",
+    sort_order:
+      requestedSortOrder !== ""
+        ? Number(requestedSortOrder)
+        : paymentMethods.length
+        ? Math.max(...paymentMethods.map((item) => Number(item.sort_order ?? 0))) + 10
+        : 10,
+    updated_at: new Date().toISOString()
+  };
+
+  let error;
+
+  if (id) {
+    ({ error } = await supabaseClient
+      .from("payment_methods")
+      .update(payload)
+      .eq("id", id));
+  } else {
+    ({ error } = await supabaseClient
+      .from("payment_methods")
+      .insert(payload));
+  }
+
+  if (error) {
+    alert(`Could not save payment method: ${error.message}`);
+    return;
+  }
+
+  closePaymentMethodDialog();
+  await loadPaymentMethods();
+});
+
+function editPaymentMethod(id) {
+  const method = paymentMethods.find((item) => item.id === id);
+  if (!method) return;
+
+  populatePaymentMethodForm(method);
+  openPaymentMethodModal(true);
+}
+
+async function deletePaymentMethod(id) {
+  const method = paymentMethods.find((item) => item.id === id);
+  if (!method) return;
+
+  if (!confirm(`Delete "${method.payment_name}" payment method?`)) return;
+
+  const { error } = await supabaseClient
+    .from("payment_methods")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert(`Could not delete payment method: ${error.message}`);
+    return;
+  }
+
+  await loadPaymentMethods();
+}
+
+async function togglePaymentMethodVisibility(id) {
+  const method = paymentMethods.find((item) => item.id === id);
+  if (!method) return;
+
+  const { error } = await supabaseClient
+    .from("payment_methods")
+    .update({
+      is_visible: !method.is_visible,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    alert(`Could not update visibility: ${error.message}`);
+    return;
+  }
+
+  await loadPaymentMethods();
+}
+
+async function changePaymentMethodOrder(id, direction) {
+  const index = paymentMethods.findIndex((item) => item.id === id);
+  if (index === -1) return;
+
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= paymentMethods.length) return;
+
+  const current = paymentMethods[index];
+  const adjacent = paymentMethods[targetIndex];
+
+  const currentOrder = Number(current.sort_order ?? 0);
+  const adjacentOrder = Number(adjacent.sort_order ?? 0);
+
+  const [firstUpdate, secondUpdate] = await Promise.all([
+    supabaseClient
+      .from("payment_methods")
+      .update({ sort_order: adjacentOrder, updated_at: new Date().toISOString() })
+      .eq("id", current.id),
+    supabaseClient
+      .from("payment_methods")
+      .update({ sort_order: currentOrder, updated_at: new Date().toISOString() })
+      .eq("id", adjacent.id)
+  ]);
+
+  if (firstUpdate.error || secondUpdate.error) {
+    alert(
+      `Could not reorder payment methods: ${firstUpdate.error?.message || secondUpdate.error?.message}`
+    );
+    return;
+  }
+
+  await loadPaymentMethods();
+}
+
 /* -------------------------
    PRODUCTS
 ------------------------- */
