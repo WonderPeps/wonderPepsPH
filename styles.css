@@ -889,3 +889,22 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
                                   background: var(--pink-1);
                                   }
 }
+/* Keep product images small inside the cart */
+.cart-thumb {
+  width: 58px;
+    height: 58px;
+      max-width: 58px;
+        max-height: 58px;
+          object-fit: cover;
+            display: block;
+              flex-shrink: 0;
+                overflow: hidden;
+                  border-radius: 14px;
+                  }
+
+                  .cart-thumb img {
+                    width: 100%;
+                      height: 100%;
+                        object-fit: cover;
+                          display: block;
+                          }
