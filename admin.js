@@ -19,6 +19,15 @@ const productImagePreviewWrap = document.getElementById(
 
     let selectedProductImageFile = null;
     let temporaryProductPreviewUrl = "";
+    let selectedShopLogoFile = null;
+let temporaryShopLogoPreviewUrl = "";
+
+const shopLogoFileInput = document.querySelector("#shopLogoFile");
+const shopLogoPreview = document.querySelector("#shopLogoPreview");
+const replaceShopLogoButton =
+  document.querySelector("#replaceShopLogoButton");
+const deleteShopLogoButton =
+  document.querySelector("#deleteShopLogoButton");
 const adminProducts = document.querySelector("#adminProducts");
 const ordersList = document.querySelector("#ordersList");
 const ordersTabs = document.querySelector("#ordersTabs");
@@ -270,6 +279,22 @@ async function loadSettings() {
 
   settingsForm.elements.shopName.value = data.shop_name || "";
   settingsForm.elements.logoUrl.value = data.logo_url || "";
+  if (data.logo_url) {
+  shopLogoPreview.innerHTML = `
+    <img
+      src="${data.logo_url}"
+      alt="Shop logo"
+    />
+  `;
+
+  deleteShopLogoButton.hidden = false;
+} else {
+  shopLogoPreview.innerHTML = `
+    <span>No logo uploaded</span>
+  `;
+
+  deleteShopLogoButton.hidden = true;
+}
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
   settingsForm.elements.facebook.value = data.facebook_url || "";
@@ -1352,7 +1377,50 @@ function showProductImagePreview(url) {
                                                                                                                                                                           productImageUrlInput.value = "";
                                                                                                                                                                             showProductImagePreview("");
                                                                                                                                                                             });
+shopLogoFileInput?.addEventListener("change", () => {
+  const file = shopLogoFileInput.files?.[0] || null;
 
+  selectedShopLogoFile = file;
+
+  if (!file) return;
+
+  if (temporaryShopLogoPreviewUrl) {
+    URL.revokeObjectURL(temporaryShopLogoPreviewUrl);
+  }
+
+  temporaryShopLogoPreviewUrl = URL.createObjectURL(file);
+
+  shopLogoPreview.innerHTML = `
+    <img
+      src="${temporaryShopLogoPreviewUrl}"
+      alt="Shop logo preview"
+    />
+  `;
+
+  deleteShopLogoButton.hidden = false;
+});
+
+replaceShopLogoButton?.addEventListener("click", () => {
+  shopLogoFileInput?.click();
+});
+
+deleteShopLogoButton?.addEventListener("click", () => {
+  selectedShopLogoFile = null;
+
+  if (temporaryShopLogoPreviewUrl) {
+    URL.revokeObjectURL(temporaryShopLogoPreviewUrl);
+    temporaryShopLogoPreviewUrl = "";
+  }
+
+  shopLogoFileInput.value = "";
+  settingsForm.elements.logoUrl.value = "";
+
+  shopLogoPreview.innerHTML = `
+    <span>No logo uploaded</span>
+  `;
+
+  deleteShopLogoButton.hidden = true;
+});
 productForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
