@@ -861,3 +861,48 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
       rotate(20deg);
   }
 }
+/* Admin product table tablet improvements */
+#productsSection .admin-products img {
+  width: 64px;
+    height: 64px;
+      object-fit: cover;
+        border-radius: 12px;
+          display: block;
+          }
+
+          #productsSection .admin-products {
+            overflow-x: auto;
+            }
+
+            #productsSection .admin-products table {
+              width: 100%;
+                min-width: 980px;
+                  table-layout: fixed;
+                  }
+
+                  #productsSection .admin-products th:nth-child(1),
+                  #productsSection .admin-products td:nth-child(1) {
+                    width: 90px;
+                    }
+
+                    #productsSection .admin-products th:nth-child(2),
+                    #productsSection .admin-products td:nth-child(2) {
+                      width: 150px;
+                      }
+
+                      #productsSection .admin-products th:nth-child(3),
+                      #productsSection .admin-products td:nth-child(3) {
+                        width: 220px;
+                        }
+
+                        #productsSection .admin-products td:nth-child(3) {
+                          overflow: hidden;
+                            display: -webkit-box;
+                              -webkit-line-clamp: 3;
+                                -webkit-box-orient: vertical;
+                                }
+
+                                #productsSection .admin-products td {
+                                  vertical-align: top;
+                                    overflow-wrap: anywhere;
+                                    }
