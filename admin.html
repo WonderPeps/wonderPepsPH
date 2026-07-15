@@ -176,7 +176,40 @@
       <form id="settingsForm" class="admin-form">
         <div class="settings-grid">
           <label data-settings-group="branding">Shop name<input name="shopName" required /></label>
-          <label data-settings-group="branding">Logo image URL<input name="logoUrl" placeholder="Paste an image link" /></label>
+          <div class="settings-upload-field" data-settings-group="branding">
+  <label for="shopLogoFile">Shop logo</label>
+
+  <input type="hidden" name="logoUrl" />
+
+  <input
+    id="shopLogoFile"
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+  />
+
+  <div class="settings-image-preview" id="shopLogoPreview">
+    <span>No logo uploaded</span>
+  </div>
+
+  <div class="settings-upload-actions">
+    <button
+      type="button"
+      class="secondary-button"
+      id="replaceShopLogoButton"
+    >
+      Upload logo
+    </button>
+
+    <button
+      type="button"
+      class="danger-button"
+      id="deleteShopLogoButton"
+      hidden
+    >
+      Delete logo
+    </button>
+  </div>
+</div>
           <label data-settings-group="hero">Hero title<input name="heroTitle" required /></label>
           <label data-settings-group="hero">Hero subtitle<input name="heroSubtitle" required /></label>
           <label data-settings-group="social">Facebook link<input name="facebook" placeholder="https://facebook.com/..." /></label>
