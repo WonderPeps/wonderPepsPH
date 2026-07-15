@@ -41,9 +41,39 @@ const successDialog = document.querySelector("#successDialog");
 
 const orderReference = document.querySelector("#orderReference");
 const closeSuccess = document.querySelector("#closeSuccess");
+const CART_STORAGE_KEY = "wonderPepsCart";
 
+function loadSavedCart() {
+  try {
+    const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+
+    if (!savedCart) {
+      return [];
+    }
+
+    const parsedCart = JSON.parse(savedCart);
+
+    return Array.isArray(parsedCart) ? parsedCart : [];
+  } catch (error) {
+    console.error("Unable to load saved cart:", error);
+    return [];
+  }
+}
+
+function saveCart() {
+  try {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  } catch (error) {
+    console.error("Unable to save cart:", error);
+  }
+}
+
+function clearSavedCart() {
+  cart = [];
+  localStorage.removeItem(CART_STORAGE_KEY);
+}
 let products = [];
-let cart = [];
+let cart = loadSavedCart();
 let paymentMethods = [];
 let selectedPaymentMethod = null;
 let paymentStepReceiptFile = null;
@@ -333,7 +363,7 @@ function addToCart(productId, sourceButton = null) {
       quantity: 1
     });
   }
-
+saveCart();
   renderCart();
   showAddedToBag(product.name);
   animateBag();
@@ -346,7 +376,7 @@ function removeFromCart(productId) {
   cart = cart.filter(
     (item) => String(item.productId) !== String(productId)
   );
-
+saveCart();
   renderCart();
 }
 
@@ -373,6 +403,7 @@ function changeQuantity(productId, amount) {
   }
 
   item.quantity = newQuantity;
+  saveCart();
   renderCart();
 }
 
@@ -410,7 +441,7 @@ function renderCart() {
   );
 
   cart = validItems;
-
+saveCart();
   const totalQuantity = cart.reduce(
     (total, item) => total + item.quantity,
     0
@@ -982,10 +1013,10 @@ async function submitOrder() {
       throw itemsError;
     }
 
-    cart = [];
-    renderCart();
-    paymentStepDialog.close();
-    resetCheckoutState();
+   clearSavedCart();
+renderCart();
+paymentStepDialog.close();
+resetCheckoutState();
 
     orderReference.textContent = order.order_ref;
     successDialog.showModal();
