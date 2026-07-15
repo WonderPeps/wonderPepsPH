@@ -1337,3 +1337,22 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
     height: 140px;
   }
 }
+/* ===========================
+   Hero Image
+=========================== */
+
+.hero-media {
+  display: grid;
+  place-items: center;
+}
+
+.hero-image {
+  width: min(320px, 100%);
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+
+  border-radius: 34px;
+  background: var(--pink-2);
+  box-shadow: var(--shadow);
+}

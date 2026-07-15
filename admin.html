@@ -215,7 +215,40 @@
   </div>
 
 </div>
+<div class="settings-upload-field" data-settings-group="hero">
+  <label for="heroImageFile">Hero image</label>
 
+  <input type="hidden" name="heroImageUrl" />
+
+  <input
+    id="heroImageFile"
+    type="file"
+    accept="image/png,image/jpeg,image/webp"
+  />
+
+  <div class="settings-image-preview" id="heroImagePreview">
+    <span>No hero image uploaded</span>
+  </div>
+
+  <div class="settings-upload-actions">
+    <button
+      type="button"
+      class="secondary-button"
+      id="replaceHeroImageButton"
+    >
+      Upload image
+    </button>
+
+    <button
+      type="button"
+      class="danger-button"
+      id="deleteHeroImageButton"
+      hidden
+    >
+      Delete image
+    </button>
+  </div>
+</div>
           <label data-settings-group="hero">Hero title<input name="heroTitle" required /></label>
           <label data-settings-group="hero">Hero subtitle<input name="heroSubtitle" required /></label>
           <label data-settings-group="social">Facebook link<input name="facebook" placeholder="https://facebook.com/..." /></label>

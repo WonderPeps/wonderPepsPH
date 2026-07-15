@@ -22,6 +22,15 @@ const productImagePreviewWrap = document.getElementById(
     let selectedShopLogoFile = null;
 let temporaryShopLogoPreviewUrl = "";
 
+let selectedHeroImageFile = null;
+let temporaryHeroImagePreviewUrl = "";
+
+const heroImageFileInput = document.querySelector("#heroImageFile");
+const heroImagePreview = document.querySelector("#heroImagePreview");
+const replaceHeroImageButton =
+  document.querySelector("#replaceHeroImageButton");
+const deleteHeroImageButton =
+  document.querySelector("#deleteHeroImageButton");
 const shopLogoFileInput = document.querySelector("#shopLogoFile");
 const shopLogoPreview = document.querySelector("#shopLogoPreview");
 const replaceShopLogoButton =
@@ -295,6 +304,25 @@ async function loadSettings() {
 
   deleteShopLogoButton.hidden = true;
 }
+settingsForm.elements.heroImageUrl.value =
+  data.hero_image_url || "";
+
+if (data.hero_image_url) {
+  heroImagePreview.innerHTML = `
+    <img
+      src="${data.hero_image_url}"
+      alt="Hero image"
+    />
+  `;
+
+  deleteHeroImageButton.hidden = false;
+} else {
+  heroImagePreview.innerHTML = `
+    <span>No hero image uploaded</span>
+  `;
+
+  deleteHeroImageButton.hidden = true;
+}
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
   settingsForm.elements.facebook.value = data.facebook_url || "";
@@ -318,6 +346,7 @@ settingsForm.addEventListener("submit", async (event) => {
   const updates = {
     shop_name: String(formData.get("shopName") || "").trim(),
     logo_url: String(formData.get("logoUrl") || "").trim() || null,
+    hero_image_url: String(formData.get("heroImageUrl") || "").trim() || null,
     hero_title: String(formData.get("heroTitle") || "").trim(),
     hero_subtitle: String(formData.get("heroSubtitle") || "").trim(),
     facebook_url:
@@ -343,7 +372,15 @@ if (selectedShopLogoFile) {
     return;
   }
 }
-
+if (selectedHeroImageFile) {
+  try {
+    updates.hero_image_url = await uploadProductImage(selectedHeroImageFile);
+    settingsForm.elements.heroImageUrl.value = updates.hero_image_url;
+  } catch (uploadError) {
+    alert(`Could not upload hero image: ${uploadError.message}`);
+    return;
+  }
+}
 const { error } = await supabaseClient
   .from("shop_settings")
   .update(updates)
@@ -355,6 +392,7 @@ if (error) {
 }
 
 selectedShopLogoFile = null;
+selectedHeroImageFile = null;
 
 alert("Shop profile saved online.");
 });
@@ -1420,6 +1458,50 @@ deleteShopLogoButton?.addEventListener("click", () => {
   `;
 
   deleteShopLogoButton.hidden = true;
+});
+heroImageFileInput?.addEventListener("change", () => {
+  const file = heroImageFileInput.files?.[0] || null;
+
+  selectedHeroImageFile = file;
+
+  if (!file) return;
+
+  if (temporaryHeroImagePreviewUrl) {
+    URL.revokeObjectURL(temporaryHeroImagePreviewUrl);
+  }
+
+  temporaryHeroImagePreviewUrl = URL.createObjectURL(file);
+
+  heroImagePreview.innerHTML = `
+    <img
+      src="${temporaryHeroImagePreviewUrl}"
+      alt="Hero image preview"
+    />
+  `;
+
+  deleteHeroImageButton.hidden = false;
+});
+
+replaceHeroImageButton?.addEventListener("click", () => {
+  heroImageFileInput?.click();
+});
+
+deleteHeroImageButton?.addEventListener("click", () => {
+  selectedHeroImageFile = null;
+
+  if (temporaryHeroImagePreviewUrl) {
+    URL.revokeObjectURL(temporaryHeroImagePreviewUrl);
+    temporaryHeroImagePreviewUrl = "";
+  }
+
+  heroImageFileInput.value = "";
+  settingsForm.elements.heroImageUrl.value = "";
+
+  heroImagePreview.innerHTML = `
+    <span>No hero image uploaded</span>
+  `;
+
+  deleteHeroImageButton.hidden = true;
 });
 productForm.addEventListener("submit", async (event) => {
   event.preventDefault();

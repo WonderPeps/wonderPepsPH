@@ -9,6 +9,8 @@ const brandLogo = document.querySelector("#brandLogo");
 const brandFallback = document.querySelector("#brandFallback");
 const heroTitle = document.querySelector("#heroTitle");
 const heroSubtitle = document.querySelector("#heroSubtitle");
+const heroImage = document.querySelector("#heroImage");
+const heroFallback = document.querySelector("#heroFallback");
 const footerBrand = document.querySelector("#footerBrand");
 const facebookLink = document.querySelector("#facebookLink");
 const tiktokLink = document.querySelector("#tiktokLink");
@@ -170,7 +172,16 @@ function applyShopSettings(settings) {
       brandFallback.hidden = false;
     }
   }
-
+if (heroImage && heroFallback) {
+  if (settings.hero_image_url) {
+    heroImage.src = settings.hero_image_url;
+    heroImage.hidden = false;
+    heroFallback.hidden = true;
+  } else {
+    heroImage.hidden = true;
+    heroFallback.hidden = false;
+  }
+}
   if (facebookLink) {
     if (settings.facebook_url) {
       facebookLink.href = settings.facebook_url;
