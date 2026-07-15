@@ -1363,3 +1363,11 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 #heroImage[hidden] {
   display: none !important;
 }
+/* Hide the default heart when an uploaded navbar logo exists */
+#brandFallback[hidden] {
+  display: none !important;
+}
+
+#brandLogo[hidden] {
+  display: none !important;
+}
