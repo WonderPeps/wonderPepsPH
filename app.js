@@ -1167,14 +1167,19 @@ storeMenuItems.addEventListener("click", () => {
 ------------------------- */
 
 async function initializeStorefront() {
-await Promise.all([
-  loadShopSettings(),
-  loadProducts(),
-  loadStoreMenuItems(),
-  loadPaymentMethods()
-]);
+    try {
+        await Promise.all([
+            loadShopSettings(),
+            loadProducts(),
+            loadStoreMenuItems(),
+            loadPaymentMethods()
+        ]);
+    } finally {
+        document.body.classList.remove("settings-loading");
+    }
 
-  renderCart();
+    renderCart();
+
 }
 function showAddedToBag(productName) {
     let toast = document.getElementById("cartToast");

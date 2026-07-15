@@ -1371,3 +1371,15 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 #brandLogo[hidden] {
   display: none !important;
 }
+/* Prevent default branding from flashing before Supabase loads */
+
+.brand,
+#home {
+  transition: opacity 0.2s ease;
+}
+
+body.settings-loading .brand,
+body.settings-loading #home {
+  opacity: 0;
+  visibility: hidden;
+}
