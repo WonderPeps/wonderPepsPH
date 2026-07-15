@@ -862,26 +862,31 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
       rotate(20deg);
   }
 }
-/* Tablet: sidebar scrolls naturally with the whole page */
-@media (max-width: 980px) {
-  .admin-layout {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-    align-items: start;
-  }
+/* Restore normal full-page scrolling for the admin sidebar */
+.admin-layout {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  align-items: start !important;
+}
 
-  .admin-sidebar {
-    position: static !important;
-    top: auto !important;
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
+.admin-sidebar {
+  position: static !important;
+  top: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  align-self: start !important;
+}
 
-  .admin-main-content {
-    height: auto !important;
-    max-height: none !important;
-    overflow: visible !important;
-  }
+.admin-sidebar-nav-wrap {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.admin-main-content {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
 }
