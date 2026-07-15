@@ -607,10 +607,10 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 =========================== */
 
 .admin-layout{
-    display:grid;
-    grid-template-columns:260px 1fr;
-    gap:24px;
-    align-items:start;
+  display:grid;
+  grid-template-columns:300px minmax(0,1fr);
+  gap:40px;
+  align-items:start;
 }
 
 .admin-sidebar{
