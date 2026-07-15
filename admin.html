@@ -220,7 +220,41 @@
         <label>Price (₱)<input name="price" type="number" min="0" required /></label>
         <label>Stock<input name="stock" type="number" min="0" required /></label>
         <label>Category<input name="category" /></label>
-        <label>Image URL<input name="image" placeholder="Paste an image link" /></label>
+        <label class="product-image-upload-field">
+            Product image
+
+              <input
+                  id="productImageFile"
+                      type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                            />
+
+                              <input
+                                  id="productImageUrl"
+                                      name="image"
+                                          type="hidden"
+                                            />
+
+                                              <div id="productImagePreviewWrap" class="product-image-preview-wrap" hidden>
+                                                  <img
+                                                        id="productImagePreview"
+                                                              class="product-image-preview"
+                                                                    alt="Product image preview"
+                                                                        />
+
+                                                                            <button
+                                                                                  id="removeProductImageButton"
+                                                                                        class="secondary-button"
+                                                                                              type="button"
+                                                                                                  >
+                                                                                                        Remove image
+                                                                                                            </button>
+                                                                                                              </div>
+
+                                                                                                                <small class="tiny-note">
+                                                                                                                    Choose a JPG, PNG, or WebP image from your gallery. Maximum size: 5 MB.
+                                                                                                                      </small>
+                                                                                                                      </label>
         <label>Description<textarea name="description" rows="4"></textarea></label>
         <button class="primary-button full" type="submit">Save product</button>
         <button id="cancelEdit" class="secondary-button full" type="button" hidden>Cancel editing</button>

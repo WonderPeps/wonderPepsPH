@@ -861,3 +861,31 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
       rotate(20deg);
   }
 }
+.product-image-upload-field {
+    display: grid;
+      gap: 10px;
+      }
+
+      .product-image-upload-field input[type="file"] {
+        width: 100%;
+          padding: 14px;
+            border: 1px solid var(--line);
+              border-radius: 14px;
+                background: #fff;
+                }
+
+                .product-image-preview-wrap {
+                  display: grid;
+                    justify-items: start;
+                      gap: 10px;
+                      }
+
+                      .product-image-preview {
+                        width: 160px;
+                          height: 160px;
+                            object-fit: cover;
+                              border: 1px solid var(--line);
+                                border-radius: 16px;
+                                  background: var(--pink-1);
+                                  }
+}

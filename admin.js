@@ -5,6 +5,20 @@ const adminContent = document.querySelector("#adminContent");
 
 const settingsForm = document.querySelector("#settingsForm");
 const productForm = document.querySelector("#productForm");
+const PRODUCT_IMAGE_BUCKET = "product-images";
+
+const productImageFileInput = document.getElementById("productImageFile");
+const productImageUrlInput = document.getElementById("productImageUrl");
+const productImagePreviewWrap = document.getElementById(
+  "productImagePreviewWrap"
+  );
+  const productImagePreview = document.getElementById("productImagePreview");
+  const removeProductImageButton = document.getElementById(
+    "removeProductImageButton"
+    );
+
+    let selectedProductImageFile = null;
+    let temporaryProductPreviewUrl = "";
 const adminProducts = document.querySelector("#adminProducts");
 const ordersList = document.querySelector("#ordersList");
 const ordersTabs = document.querySelector("#ordersTabs");
@@ -1239,21 +1253,117 @@ async function duplicateProduct(id) {
 
   await loadProducts();
 }
+function showProductImagePreview(url) {
+    if (!url) {
+        productImagePreview.removeAttribute("src");
+            productImagePreviewWrap.hidden = true;
+                return;
+                  }
+
+                    productImagePreview.src = url;
+                      productImagePreviewWrap.hidden = false;
+                      }
+
+                      function clearTemporaryProductPreview() {
+                        if (temporaryProductPreviewUrl) {
+                            URL.revokeObjectURL(temporaryProductPreviewUrl);
+                                temporaryProductPreviewUrl = "";
+                                  }
+                                  }
+
+                                  function sanitizeProductImageName(fileName) {
+                                    return fileName
+                                        .toLowerCase()
+                                            .replace(/[^a-z0-9._-]+/g, "-")
+                                                .replace(/-+/g, "-");
+                                                }
+
+                                                async function uploadProductImage(file) {
+                                                  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+                                                    const maximumSize = 5 * 1024 * 1024;
+
+                                                      if (!allowedTypes.includes(file.type)) {
+                                                          throw new Error("Please choose a JPG, PNG, or WebP image.");
+                                                            }
+
+                                                              if (file.size > maximumSize) {
+                                                                  throw new Error("The image must be 5 MB or smaller.");
+                                                                    }
+
+                                                                      const safeName = sanitizeProductImageName(file.name);
+                                                                        const uniqueName =
+                                                                            typeof crypto.randomUUID === "function"
+                                                                                  ? crypto.randomUUID()
+                                                                                        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+                                                                                          const filePath = `products/${uniqueName}-${safeName}`;
+
+                                                                                            const { error: uploadError } = await supabaseClient.storage
+                                                                                                .from(PRODUCT_IMAGE_BUCKET)
+                                                                                                    .upload(filePath, file, {
+                                                                                                          cacheControl: "3600",
+                                                                                                                upsert: false,
+                                                                                                                      contentType: file.type
+                                                                                                                          });
+
+                                                                                                                            if (uploadError) {
+                                                                                                                                throw uploadError;
+                                                                                                                                  }
+
+                                                                                                                                    const { data } = supabaseClient.storage
+                                                                                                                                        .from(PRODUCT_IMAGE_BUCKET)
+                                                                                                                                            .getPublicUrl(filePath);
+
+                                                                                                                                              if (!data?.publicUrl) {
+                                                                                                                                                  throw new Error("The image uploaded, but no public URL was returned.");
+                                                                                                                                                    }
+
+                                                                                                                                                      return data.publicUrl;
+                                                                                                                                                      }
+
+                                                                                                                                                      productImageFileInput?.addEventListener("change", () => {
+                                                                                                                                                        clearTemporaryProductPreview();
+
+                                                                                                                                                          const file = productImageFileInput.files?.[0] || null;
+                                                                                                                                                            selectedProductImageFile = file;
+
+                                                                                                                                                              if (!file) return;
+
+                                                                                                                                                                temporaryProductPreviewUrl = URL.createObjectURL(file);
+                                                                                                                                                                  showProductImagePreview(temporaryProductPreviewUrl);
+                                                                                                                                                                  });
+
+                                                                                                                                                                  removeProductImageButton?.addEventListener("click", () => {
+                                                                                                                                                                    clearTemporaryProductPreview();
+                                                                                                                                                                      selectedProductImageFile = null;
+                                                                                                                                                                        productImageFileInput.value = "";
+                                                                                                                                                                          productImageUrlInput.value = "";
+                                                                                                                                                                            showProductImagePreview("");
+                                                                                                                                                                            });
 
 productForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(productForm);
   const id = String(formData.get("id") || "").trim();
+let productImageUrl = String(formData.get("image") || "").trim();
 
+if (selectedProductImageFile) {
+  try {
+      productImageUrl = await uploadProductImage(selectedProductImageFile);
+          productImageUrlInput.value = productImageUrl;
+            } catch (uploadError) {
+                alert(`Could not upload product image: ${uploadError.message}`);
+                    return;
+                      }
+                      }
   const product = {
     name: String(formData.get("name") || "").trim(),
     price: Number(formData.get("price")),
     stock: Number(formData.get("stock")),
     category:
       String(formData.get("category") || "").trim() || null,
-    image_url:
-      String(formData.get("image") || "").trim() || null,
+    image_url: productImageUrl || null,
     description:
       String(formData.get("description") || "").trim() || null,
     is_visible: true,
@@ -1293,6 +1403,10 @@ function editProduct(id) {
   productForm.elements.stock.value = product.stock ?? 0;
   productForm.elements.category.value = product.category || "";
   productForm.elements.image.value = product.image_url || "";
+  selectedProductImageFile = null;
+  productImageFileInput.value = "";
+  clearTemporaryProductPreview();
+  showProductImagePreview(product.image_url || "");
   productForm.elements.description.value =
     product.description || "";
 
@@ -1329,6 +1443,11 @@ async function deleteProduct(id) {
 
 function resetProductForm() {
   productForm.reset();
+  clearTemporaryProductPreview();
+  selectedProductImageFile = null;
+  productImageFileInput.value = "";
+  productImageUrlInput.value = "";
+  showProductImagePreview("");
   productForm.elements.id.value = "";
   formTitle.textContent = "Add product";
   cancelEdit.hidden = true;
