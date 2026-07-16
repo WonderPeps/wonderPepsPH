@@ -18,7 +18,9 @@ VariantManager.init({
   variantManager,
   variantRows,
   addVariantButton,
-  standardPricingFields
+  standardPricingFields,
+  supabaseClient,
+  uploadProductImage
 });
 const PRODUCT_IMAGE_BUCKET = "product-images";
 const productImageFileInput = document.getElementById("productImageFile");
