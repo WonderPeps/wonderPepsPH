@@ -5,6 +5,13 @@ const adminContent = document.querySelector("#adminContent");
 
 const settingsForm = document.querySelector("#settingsForm");
 const productForm = document.querySelector("#productForm");
+const hasVariantsToggle = document.querySelector("#hasVariantsToggle");
+const variantManager = document.querySelector("#variantManager");
+const variantRows = document.querySelector("#variantRows");
+const addVariantButton = document.querySelector("#addVariantButton");
+const standardPricingFields = document.querySelector(
+  "#standardPricingFields"
+);
 const PRODUCT_IMAGE_BUCKET = "product-images";
 
 const productImageFileInput = document.getElementById("productImageFile");
@@ -1502,6 +1509,35 @@ deleteHeroImageButton?.addEventListener("click", () => {
   `;
 
   deleteHeroImageButton.hidden = true;
+});
+/* =========================================================
+   PRODUCT VARIANTS
+========================================================= */
+
+function setVariantsEnabled(enabled) {
+  if (!variantManager || !standardPricingFields) return;
+
+  variantManager.hidden = !enabled;
+
+  standardPricingFields.classList.toggle(
+    "is-disabled",
+    enabled
+  );
+
+  const priceInput = productForm.elements.price;
+  const stockInput = productForm.elements.stock;
+
+  if (enabled) {
+    priceInput.required = false;
+    stockInput.required = false;
+  } else {
+    priceInput.required = true;
+    stockInput.required = true;
+  }
+}
+
+hasVariantsToggle?.addEventListener("change", () => {
+  setVariantsEnabled(hasVariantsToggle.checked);
 });
 productForm.addEventListener("submit", async (event) => {
   event.preventDefault();

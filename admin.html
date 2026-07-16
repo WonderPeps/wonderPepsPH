@@ -289,9 +289,71 @@
       <form id="productForm" class="admin-form">
         <input type="hidden" name="id" />
         <label>Product name<input name="name" required /></label>
-        <label>Price (₱)<input name="price" type="number" min="0" required /></label>
-        <label>Stock<input name="stock" type="number" min="0" required /></label>
-        <label>Category<input name="category" /></label>
+        <div id="standardPricingFields" class="standard-pricing-fields">
+    <label>
+        Price (₱)
+        <input name="price" type="number" min="0" required />
+    </label>
+
+    <label>
+        Stock
+        <input name="stock" type="number" min="0" required />
+    </label>
+</div>
+
+<label>
+    Category
+    <input name="category" />
+</label>
+
+<!-- =========================
+     PRODUCT VARIANTS START
+========================= -->
+
+<section class="product-variants-section">
+
+    <div class="variant-section-heading">
+
+        <div>
+            <h3>Product Variants</h3>
+            <p class="tiny-note">
+                Enable this if the product has multiple options.
+            </p>
+        </div>
+
+        <label class="variant-toggle">
+            <input
+                id="hasVariantsToggle"
+                type="checkbox"
+            />
+            <span>This product has variants</span>
+        </label>
+
+    </div>
+
+    <div
+        id="variantManager"
+        class="variant-manager"
+        hidden
+    >
+
+        <div id="variantRows"></div>
+
+        <button
+            id="addVariantButton"
+            type="button"
+            class="secondary-button"
+        >
+            + Add Variant
+        </button>
+
+    </div>
+
+</section>
+
+<!-- =========================
+     PRODUCT VARIANTS END
+========================= -->
         <label class="product-image-upload-field">
             Product image
 

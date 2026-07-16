@@ -1383,3 +1383,90 @@ body.settings-loading #home {
   opacity: 0;
   visibility: hidden;
 }
+/* =========================================================
+   PRODUCT VARIANTS
+========================================================= */
+
+.product-variants-section {
+  display: grid;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fff, #fff8fb);
+}
+
+.variant-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.variant-section-heading h3 {
+  margin: 0 0 5px;
+  font-size: 1.15rem;
+}
+
+.variant-toggle {
+  display: inline-flex !important;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 9px !important;
+  padding: 10px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.variant-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--pink-3);
+}
+
+.variant-manager {
+  display: grid;
+  gap: 14px;
+}
+
+.variant-manager[hidden] {
+  display: none;
+}
+
+#variantRows {
+  display: grid;
+  gap: 14px;
+}
+
+.standard-pricing-fields {
+  display: grid;
+  gap: 12px;
+}
+
+.standard-pricing-fields.is-disabled {
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--pink-2);
+  opacity: 0.7;
+}
+
+#addVariantButton {
+  justify-self: start;
+}
+
+@media (max-width: 620px) {
+  .variant-section-heading {
+    flex-direction: column;
+  }
+
+  .variant-toggle {
+    width: 100%;
+    border-radius: 15px;
+    white-space: normal;
+  }
+}
