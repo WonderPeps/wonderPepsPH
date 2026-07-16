@@ -1470,3 +1470,78 @@ body.settings-loading #home {
     white-space: normal;
   }
 }
+.variant-card {
+  display: grid;
+  gap: 15px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 22px rgba(104, 56, 76, 0.06);
+}
+
+.variant-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.variant-card-header strong {
+  font-size: 1rem;
+}
+
+.variant-remove-button {
+  color: #a82f58;
+  border-color: #f0c4d2;
+}
+
+.variant-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.variant-fields label,
+.variant-advanced-fields > label:not(.variant-check-option) {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-weight: 700;
+}
+
+.variant-advanced {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.variant-advanced summary {
+  cursor: pointer;
+  color: var(--pink-3);
+  font-weight: 800;
+}
+
+.variant-advanced-fields {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.variant-check-option {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px !important;
+  font-weight: 700;
+}
+
+.variant-check-option input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--pink-3);
+}
+
+@media (max-width: 620px) {
+  .variant-fields {
+    grid-template-columns: 1fr;
+  }
+}

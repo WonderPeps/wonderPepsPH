@@ -1528,6 +1528,12 @@ function setVariantsEnabled(enabled) {
   const stockInput = productForm.elements.stock;
 
   if (enabled) {
+    if (!variantRows.querySelector(".variant-card")) {
+  createVariantCard({
+    is_default: true,
+    is_active: true
+  });
+}
     priceInput.required = false;
     stockInput.required = false;
   } else {
@@ -1538,6 +1544,221 @@ function setVariantsEnabled(enabled) {
 
 hasVariantsToggle?.addEventListener("change", () => {
   setVariantsEnabled(hasVariantsToggle.checked);
+});
+let variantCardCounter = 0;
+
+function renumberVariantCards() {
+  const cards = variantRows.querySelectorAll(".variant-card");
+
+  cards.forEach((card, index) => {
+    const title = card.querySelector("[data-variant-title]");
+
+    if (title) {
+      title.textContent = `Variant ${index + 1}`;
+    }
+
+    const sortOrderInput = card.querySelector(
+      '[data-variant-field="sort_order"]'
+    );
+
+    if (sortOrderInput) {
+      sortOrderInput.value = index;
+    }
+  });
+}
+
+function ensureDefaultVariant() {
+  const defaultInputs = Array.from(
+    variantRows.querySelectorAll(
+      '[data-variant-field="is_default"]'
+    )
+  );
+
+  if (!defaultInputs.length) return;
+
+  const hasDefault = defaultInputs.some((input) => input.checked);
+
+  if (!hasDefault) {
+    defaultInputs[0].checked = true;
+  }
+}
+
+function createVariantFieldLabel(labelText, input) {
+  const label = document.createElement("label");
+  const text = document.createElement("span");
+
+  text.textContent = labelText;
+
+  label.append(text, input);
+
+  return label;
+}
+
+function createVariantCard(variant = {}) {
+  variantCardCounter += 1;
+
+  const card = document.createElement("article");
+  card.className = "variant-card";
+  card.dataset.variantId = variant.id || "";
+  card.dataset.variantKey =
+    variant.id || `new-${variantCardCounter}`;
+
+  const header = document.createElement("div");
+  header.className = "variant-card-header";
+
+  const title = document.createElement("strong");
+  title.dataset.variantTitle = "";
+  title.textContent = "Variant";
+
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className =
+    "secondary-button variant-remove-button";
+  removeButton.textContent = "Remove";
+
+  header.append(title, removeButton);
+
+  const fields = document.createElement("div");
+  fields.className = "variant-fields";
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.placeholder = "Example: 30mg";
+  nameInput.value = variant.name || "";
+  nameInput.required = true;
+  nameInput.dataset.variantField = "name";
+
+  const priceInput = document.createElement("input");
+  priceInput.type = "number";
+  priceInput.min = "0";
+  priceInput.step = "0.01";
+  priceInput.placeholder = "0.00";
+  priceInput.value = variant.price ?? "";
+  priceInput.required = true;
+  priceInput.dataset.variantField = "price";
+
+  const stockInput = document.createElement("input");
+  stockInput.type = "number";
+  stockInput.min = "0";
+  stockInput.step = "1";
+  stockInput.placeholder = "0";
+  stockInput.value = variant.stock ?? 0;
+  stockInput.required = true;
+  stockInput.dataset.variantField = "stock";
+
+  const badgeInput = document.createElement("input");
+  badgeInput.type = "text";
+  badgeInput.placeholder = "Example: Best Seller";
+  badgeInput.value = variant.badge || "";
+  badgeInput.dataset.variantField = "badge";
+
+  const imageInput = document.createElement("input");
+  imageInput.type = "file";
+  imageInput.accept = "image/jpeg,image/png,image/webp";
+  imageInput.dataset.variantField = "image_file";
+
+  fields.append(
+    createVariantFieldLabel("Variant name", nameInput),
+    createVariantFieldLabel("Price (₱)", priceInput),
+    createVariantFieldLabel("Stock", stockInput),
+    createVariantFieldLabel("Badge", badgeInput),
+    createVariantFieldLabel("Variant image", imageInput)
+  );
+
+  const advanced = document.createElement("details");
+  advanced.className = "variant-advanced";
+
+  const advancedSummary = document.createElement("summary");
+  advancedSummary.textContent = "Advanced";
+
+  const advancedFields = document.createElement("div");
+  advancedFields.className = "variant-advanced-fields";
+
+  const skuInput = document.createElement("input");
+  skuInput.type = "text";
+  skuInput.placeholder = "Example: TIRZ-30";
+  skuInput.value = variant.sku || "";
+  skuInput.dataset.variantField = "sku";
+
+  const defaultInput = document.createElement("input");
+  defaultInput.type = "radio";
+  defaultInput.name = "defaultVariant";
+  defaultInput.checked = Boolean(variant.is_default);
+  defaultInput.dataset.variantField = "is_default";
+
+  const defaultLabel = document.createElement("label");
+  defaultLabel.className = "variant-check-option";
+  defaultLabel.append(
+    defaultInput,
+    document.createTextNode("Default variant")
+  );
+
+  const activeInput = document.createElement("input");
+  activeInput.type = "checkbox";
+  activeInput.checked = variant.is_active !== false;
+  activeInput.dataset.variantField = "is_active";
+
+  const activeLabel = document.createElement("label");
+  activeLabel.className = "variant-check-option";
+  activeLabel.append(
+    activeInput,
+    document.createTextNode("Active")
+  );
+
+  const imageUrlInput = document.createElement("input");
+  imageUrlInput.type = "hidden";
+  imageUrlInput.value = variant.image_url || "";
+  imageUrlInput.dataset.variantField = "image_url";
+
+  const sortOrderInput = document.createElement("input");
+  sortOrderInput.type = "hidden";
+  sortOrderInput.value = variant.sort_order ?? 0;
+  sortOrderInput.dataset.variantField = "sort_order";
+
+  advancedFields.append(
+    createVariantFieldLabel("SKU", skuInput),
+    defaultLabel,
+    activeLabel,
+    imageUrlInput,
+    sortOrderInput
+  );
+
+  advanced.append(advancedSummary, advancedFields);
+
+  removeButton.addEventListener("click", () => {
+    card.remove();
+
+    if (
+      hasVariantsToggle.checked &&
+      !variantRows.querySelector(".variant-card")
+    ) {
+      createVariantCard({
+        is_default: true,
+        is_active: true
+      });
+    }
+
+    renumberVariantCards();
+    ensureDefaultVariant();
+  });
+
+  defaultInput.addEventListener("change", () => {
+    ensureDefaultVariant();
+  });
+
+  card.append(header, fields, advanced);
+  variantRows.appendChild(card);
+
+  renumberVariantCards();
+  ensureDefaultVariant();
+
+  return card;
+}
+
+addVariantButton?.addEventListener("click", () => {
+  createVariantCard({
+    is_active: true
+  });
 });
 productForm.addEventListener("submit", async (event) => {
   event.preventDefault();
