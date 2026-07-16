@@ -888,7 +888,7 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
                                 border-radius: 16px;
                                   background: var(--pink-1);
                                   }
-}
+
 /* Keep product images small inside the cart */
 .cart-thumb {
   width: 58px;

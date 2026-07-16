@@ -12,8 +12,15 @@ const addVariantButton = document.querySelector("#addVariantButton");
 const standardPricingFields = document.querySelector(
   "#standardPricingFields"
 );
+VariantManager.init({
+  productForm,
+  hasVariantsToggle,
+  variantManager,
+  variantRows,
+  addVariantButton,
+  standardPricingFields
+});
 const PRODUCT_IMAGE_BUCKET = "product-images";
-
 const productImageFileInput = document.getElementById("productImageFile");
 const productImageUrlInput = document.getElementById("productImageUrl");
 const productImagePreviewWrap = document.getElementById(
@@ -1776,10 +1783,33 @@ if (selectedProductImageFile) {
                     return;
                       }
                       }
+                      let basePrice = Number(formData.get("price"));
+let baseStock = Number(formData.get("stock"));
+
+if (VariantManager.isEnabled()) {
+  try {
+    const variants = VariantManager.collect();
+
+    const defaultVariant =
+      variants.find((variant) => variant.isDefault) ||
+      variants[0];
+
+    basePrice = defaultVariant.price;
+
+    baseStock = variants.reduce(
+      (total, variant) =>
+        total + (variant.isActive ? variant.stock : 0),
+      0
+    );
+  } catch (variantError) {
+    alert(variantError.message);
+    return;
+  }
+}
   const product = {
     name: String(formData.get("name") || "").trim(),
-    price: Number(formData.get("price")),
-    stock: Number(formData.get("stock")),
+   price: basePrice,
+   stock: baseStock,
     category:
       String(formData.get("category") || "").trim() || null,
     image_url: productImageUrl || null,
@@ -1789,31 +1819,56 @@ if (selectedProductImageFile) {
     updated_at: new Date().toISOString()
   };
 
-  let error;
+  let savedProductId = id;
 
-  if (id) {
-    ({ error } = await supabaseClient
-      .from("products")
-      .update(product)
-      .eq("id", id));
-  } else {
-    ({ error } = await supabaseClient
-      .from("products")
-      .insert(product));
+if (id) {
+  const { error } = await supabaseClient
+    .from("products")
+    .update(product)
+    .eq("id", id);
+
+  if (error) {
+    alert(`Could not save product: ${error.message}`);
+    return;
   }
+} else {
+  const { data, error } = await supabaseClient
+    .from("products")
+    .insert(product)
+    .select("id")
+    .single();
 
   if (error) {
     alert(`Could not save product: ${error.message}`);
     return;
   }
 
-  resetProductForm();
-  await loadProducts();
-  alert(id ? "Product updated online." : "Product added online.");
-});
+  savedProductId = data.id;
+}
 
+try {
+  await VariantManager.save(savedProductId);
+} catch (variantError) {
+  alert(
+    `The product was saved, but its variants could not be saved: ${
+      variantError.message || "Unknown error"
+    }`
+  );
+  return;
+}
+
+resetProductForm();
+await loadProducts();
+
+alert(
+  id
+    ? "Product and variants updated online."
+    : "Product and variants added online."
+);
+});
 function editProduct(id) {
   const product = products.find((item) => item.id === id);
+
   if (!product) return;
 
   productForm.elements.id.value = product.id;
