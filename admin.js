@@ -5,6 +5,54 @@ const adminContent = document.querySelector("#adminContent");
 
 const settingsForm = document.querySelector("#settingsForm");
 const productForm = document.querySelector("#productForm");
+const hasVariantsToggle = document.querySelector("#hasVariantsToggle");
+const variantManager = document.querySelector("#variantManager");
+const variantRows = document.querySelector("#variantRows");
+const addVariantButton = document.querySelector("#addVariantButton");
+const standardPricingFields = document.querySelector(
+  "#standardPricingFields"
+);
+VariantManager.init({
+  productForm,
+  hasVariantsToggle,
+  variantManager,
+  variantRows,
+  addVariantButton,
+  standardPricingFields,
+  supabaseClient,
+  uploadProductImage
+});
+const PRODUCT_IMAGE_BUCKET = "product-images";
+const productImageFileInput = document.getElementById("productImageFile");
+const productImageUrlInput = document.getElementById("productImageUrl");
+const productImagePreviewWrap = document.getElementById(
+  "productImagePreviewWrap"
+  );
+  const productImagePreview = document.getElementById("productImagePreview");
+  const removeProductImageButton = document.getElementById(
+    "removeProductImageButton"
+    );
+
+    let selectedProductImageFile = null;
+    let temporaryProductPreviewUrl = "";
+    let selectedShopLogoFile = null;
+let temporaryShopLogoPreviewUrl = "";
+
+let selectedHeroImageFile = null;
+let temporaryHeroImagePreviewUrl = "";
+
+const heroImageFileInput = document.querySelector("#heroImageFile");
+const heroImagePreview = document.querySelector("#heroImagePreview");
+const replaceHeroImageButton =
+  document.querySelector("#replaceHeroImageButton");
+const deleteHeroImageButton =
+  document.querySelector("#deleteHeroImageButton");
+const shopLogoFileInput = document.querySelector("#shopLogoFile");
+const shopLogoPreview = document.querySelector("#shopLogoPreview");
+const replaceShopLogoButton =
+  document.querySelector("#replaceShopLogoButton");
+const deleteShopLogoButton =
+  document.querySelector("#deleteShopLogoButton");
 const adminProducts = document.querySelector("#adminProducts");
 const ordersList = document.querySelector("#ordersList");
 const ordersTabs = document.querySelector("#ordersTabs");
@@ -256,6 +304,41 @@ async function loadSettings() {
 
   settingsForm.elements.shopName.value = data.shop_name || "";
   settingsForm.elements.logoUrl.value = data.logo_url || "";
+  if (data.logo_url) {
+  shopLogoPreview.innerHTML = `
+    <img
+      src="${data.logo_url}"
+      alt="Shop logo"
+    />
+  `;
+
+  deleteShopLogoButton.hidden = false;
+} else {
+  shopLogoPreview.innerHTML = `
+    <span>No logo uploaded</span>
+  `;
+
+  deleteShopLogoButton.hidden = true;
+}
+settingsForm.elements.heroImageUrl.value =
+  data.hero_image_url || "";
+
+if (data.hero_image_url) {
+  heroImagePreview.innerHTML = `
+    <img
+      src="${data.hero_image_url}"
+      alt="Hero image"
+    />
+  `;
+
+  deleteHeroImageButton.hidden = false;
+} else {
+  heroImagePreview.innerHTML = `
+    <span>No hero image uploaded</span>
+  `;
+
+  deleteHeroImageButton.hidden = true;
+}
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
   settingsForm.elements.facebook.value = data.facebook_url || "";
@@ -279,6 +362,7 @@ settingsForm.addEventListener("submit", async (event) => {
   const updates = {
     shop_name: String(formData.get("shopName") || "").trim(),
     logo_url: String(formData.get("logoUrl") || "").trim() || null,
+    hero_image_url: String(formData.get("heroImageUrl") || "").trim() || null,
     hero_title: String(formData.get("heroTitle") || "").trim(),
     hero_subtitle: String(formData.get("heroSubtitle") || "").trim(),
     facebook_url:
@@ -295,19 +379,40 @@ settingsForm.addEventListener("submit", async (event) => {
       String(formData.get("footerText") || "").trim() || null,
     updated_at: new Date().toISOString()
   };
-
-  const { error } = await supabaseClient
-    .from("shop_settings")
-    .update(updates)
-    .eq("id", 1);
-
-  if (error) {
-    alert(`Could not save shop profile: ${error.message}`);
+if (selectedShopLogoFile) {
+  try {
+    updates.logo_url = await uploadProductImage(selectedShopLogoFile);
+    settingsForm.elements.logoUrl.value = updates.logo_url;
+  } catch (uploadError) {
+    alert(`Could not upload shop logo: ${uploadError.message}`);
     return;
   }
+}
+if (selectedHeroImageFile) {
+  try {
+    updates.hero_image_url = await uploadProductImage(selectedHeroImageFile);
+    settingsForm.elements.heroImageUrl.value = updates.hero_image_url;
+  } catch (uploadError) {
+    alert(`Could not upload hero image: ${uploadError.message}`);
+    return;
+  }
+}
+const { error } = await supabaseClient
+  .from("shop_settings")
+  .update(updates)
+  .eq("id", 1);
 
-  alert("Shop profile saved online.");
+if (error) {
+  alert(`Could not save shop profile: ${error.message}`);
+  return;
+}
+
+selectedShopLogoFile = null;
+selectedHeroImageFile = null;
+
+alert("Shop profile saved online.");
 });
+  
 /* ------------------------
    MENU ITEMS
 ------------------------ */
@@ -1239,60 +1344,554 @@ async function duplicateProduct(id) {
 
   await loadProducts();
 }
+function showProductImagePreview(url) {
+    if (!url) {
+        productImagePreview.removeAttribute("src");
+            productImagePreviewWrap.hidden = true;
+                return;
+                  }
 
+                    productImagePreview.src = url;
+                      productImagePreviewWrap.hidden = false;
+                      }
+
+                      function clearTemporaryProductPreview() {
+                        if (temporaryProductPreviewUrl) {
+                            URL.revokeObjectURL(temporaryProductPreviewUrl);
+                                temporaryProductPreviewUrl = "";
+                                  }
+                                  }
+
+                                  function sanitizeProductImageName(fileName) {
+                                    return fileName
+                                        .toLowerCase()
+                                            .replace(/[^a-z0-9._-]+/g, "-")
+                                                .replace(/-+/g, "-");
+                                                }
+
+                                                async function uploadProductImage(file) {
+                                                  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+                                                    const maximumSize = 5 * 1024 * 1024;
+
+                                                      if (!allowedTypes.includes(file.type)) {
+                                                          throw new Error("Please choose a JPG, PNG, or WebP image.");
+                                                            }
+
+                                                              if (file.size > maximumSize) {
+                                                                  throw new Error("The image must be 5 MB or smaller.");
+                                                                    }
+
+                                                                      const safeName = sanitizeProductImageName(file.name);
+                                                                        const uniqueName =
+                                                                            typeof crypto.randomUUID === "function"
+                                                                                  ? crypto.randomUUID()
+                                                                                        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+                                                                                          const filePath = `products/${uniqueName}-${safeName}`;
+
+                                                                                            const { error: uploadError } = await supabaseClient.storage
+                                                                                                .from(PRODUCT_IMAGE_BUCKET)
+                                                                                                    .upload(filePath, file, {
+                                                                                                          cacheControl: "3600",
+                                                                                                                upsert: false,
+                                                                                                                      contentType: file.type
+                                                                                                                          });
+
+                                                                                                                            if (uploadError) {
+                                                                                                                                throw uploadError;
+                                                                                                                                  }
+
+                                                                                                                                    const { data } = supabaseClient.storage
+                                                                                                                                        .from(PRODUCT_IMAGE_BUCKET)
+                                                                                                                                            .getPublicUrl(filePath);
+
+                                                                                                                                              if (!data?.publicUrl) {
+                                                                                                                                                  throw new Error("The image uploaded, but no public URL was returned.");
+                                                                                                                                                    }
+
+                                                                                                                                                      return data.publicUrl;
+                                                                                                                                                      }
+
+                                                                                                                                                      productImageFileInput?.addEventListener("change", () => {
+                                                                                                                                                        clearTemporaryProductPreview();
+
+                                                                                                                                                          const file = productImageFileInput.files?.[0] || null;
+                                                                                                                                                            selectedProductImageFile = file;
+
+                                                                                                                                                              if (!file) return;
+
+                                                                                                                                                                temporaryProductPreviewUrl = URL.createObjectURL(file);
+                                                                                                                                                                  showProductImagePreview(temporaryProductPreviewUrl);
+                                                                                                                                                                  });
+
+                                                                                                                                                                  removeProductImageButton?.addEventListener("click", () => {
+                                                                                                                                                                    clearTemporaryProductPreview();
+                                                                                                                                                                      selectedProductImageFile = null;
+                                                                                                                                                                        productImageFileInput.value = "";
+                                                                                                                                                                          productImageUrlInput.value = "";
+                                                                                                                                                                            showProductImagePreview("");
+                                                                                                                                                                            });
+shopLogoFileInput?.addEventListener("change", () => {
+  const file = shopLogoFileInput.files?.[0] || null;
+
+  selectedShopLogoFile = file;
+
+  if (!file) return;
+
+  if (temporaryShopLogoPreviewUrl) {
+    URL.revokeObjectURL(temporaryShopLogoPreviewUrl);
+  }
+
+  temporaryShopLogoPreviewUrl = URL.createObjectURL(file);
+
+  shopLogoPreview.innerHTML = `
+    <img
+      src="${temporaryShopLogoPreviewUrl}"
+      alt="Shop logo preview"
+    />
+  `;
+
+  deleteShopLogoButton.hidden = false;
+});
+
+replaceShopLogoButton?.addEventListener("click", () => {
+  shopLogoFileInput?.click();
+});
+
+deleteShopLogoButton?.addEventListener("click", () => {
+  selectedShopLogoFile = null;
+
+  if (temporaryShopLogoPreviewUrl) {
+    URL.revokeObjectURL(temporaryShopLogoPreviewUrl);
+    temporaryShopLogoPreviewUrl = "";
+  }
+
+  shopLogoFileInput.value = "";
+  settingsForm.elements.logoUrl.value = "";
+
+  shopLogoPreview.innerHTML = `
+    <span>No logo uploaded</span>
+  `;
+
+  deleteShopLogoButton.hidden = true;
+});
+heroImageFileInput?.addEventListener("change", () => {
+  const file = heroImageFileInput.files?.[0] || null;
+
+  selectedHeroImageFile = file;
+
+  if (!file) return;
+
+  if (temporaryHeroImagePreviewUrl) {
+    URL.revokeObjectURL(temporaryHeroImagePreviewUrl);
+  }
+
+  temporaryHeroImagePreviewUrl = URL.createObjectURL(file);
+
+  heroImagePreview.innerHTML = `
+    <img
+      src="${temporaryHeroImagePreviewUrl}"
+      alt="Hero image preview"
+    />
+  `;
+
+  deleteHeroImageButton.hidden = false;
+});
+
+replaceHeroImageButton?.addEventListener("click", () => {
+  heroImageFileInput?.click();
+});
+
+deleteHeroImageButton?.addEventListener("click", () => {
+  selectedHeroImageFile = null;
+
+  if (temporaryHeroImagePreviewUrl) {
+    URL.revokeObjectURL(temporaryHeroImagePreviewUrl);
+    temporaryHeroImagePreviewUrl = "";
+  }
+
+  heroImageFileInput.value = "";
+  settingsForm.elements.heroImageUrl.value = "";
+
+  heroImagePreview.innerHTML = `
+    <span>No hero image uploaded</span>
+  `;
+
+  deleteHeroImageButton.hidden = true;
+});
+/* =========================================================
+   PRODUCT VARIANTS
+========================================================= */
+
+function setVariantsEnabled(enabled) {
+  if (!variantManager || !standardPricingFields) return;
+
+  variantManager.hidden = !enabled;
+
+  standardPricingFields.classList.toggle(
+    "is-disabled",
+    enabled
+  );
+
+  const priceInput = productForm.elements.price;
+  const stockInput = productForm.elements.stock;
+
+  if (enabled) {
+    if (!variantRows.querySelector(".variant-card")) {
+  createVariantCard({
+    is_default: true,
+    is_active: true
+  });
+}
+    priceInput.required = false;
+    stockInput.required = false;
+  } else {
+    priceInput.required = true;
+    stockInput.required = true;
+  }
+}
+
+hasVariantsToggle?.addEventListener("change", () => {
+  setVariantsEnabled(hasVariantsToggle.checked);
+});
+let variantCardCounter = 0;
+
+function renumberVariantCards() {
+  const cards = variantRows.querySelectorAll(".variant-card");
+
+  cards.forEach((card, index) => {
+    const title = card.querySelector("[data-variant-title]");
+
+    if (title) {
+      title.textContent = `Variant ${index + 1}`;
+    }
+
+    const sortOrderInput = card.querySelector(
+      '[data-variant-field="sort_order"]'
+    );
+
+    if (sortOrderInput) {
+      sortOrderInput.value = index;
+    }
+  });
+}
+
+function ensureDefaultVariant() {
+  const defaultInputs = Array.from(
+    variantRows.querySelectorAll(
+      '[data-variant-field="is_default"]'
+    )
+  );
+
+  if (!defaultInputs.length) return;
+
+  const hasDefault = defaultInputs.some((input) => input.checked);
+
+  if (!hasDefault) {
+    defaultInputs[0].checked = true;
+  }
+}
+
+function createVariantFieldLabel(labelText, input) {
+  const label = document.createElement("label");
+  const text = document.createElement("span");
+
+  text.textContent = labelText;
+
+  label.append(text, input);
+
+  return label;
+}
+
+function createVariantCard(variant = {}) {
+  variantCardCounter += 1;
+
+  const card = document.createElement("article");
+  card.className = "variant-card";
+  card.dataset.variantId = variant.id || "";
+  card.dataset.variantKey =
+    variant.id || `new-${variantCardCounter}`;
+
+  const header = document.createElement("div");
+  header.className = "variant-card-header";
+
+  const title = document.createElement("strong");
+  title.dataset.variantTitle = "";
+  title.textContent = "Variant";
+
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className =
+    "secondary-button variant-remove-button";
+  removeButton.textContent = "Remove";
+
+  header.append(title, removeButton);
+
+  const fields = document.createElement("div");
+  fields.className = "variant-fields";
+
+  const nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.placeholder = "Example: 30mg";
+  nameInput.value = variant.name || "";
+  nameInput.required = true;
+  nameInput.dataset.variantField = "name";
+
+  const priceInput = document.createElement("input");
+  priceInput.type = "number";
+  priceInput.min = "0";
+  priceInput.step = "0.01";
+  priceInput.placeholder = "0.00";
+  priceInput.value = variant.price ?? "";
+  priceInput.required = true;
+  priceInput.dataset.variantField = "price";
+
+  const stockInput = document.createElement("input");
+  stockInput.type = "number";
+  stockInput.min = "0";
+  stockInput.step = "1";
+  stockInput.placeholder = "0";
+  stockInput.value = variant.stock ?? 0;
+  stockInput.required = true;
+  stockInput.dataset.variantField = "stock";
+
+  const badgeInput = document.createElement("input");
+  badgeInput.type = "text";
+  badgeInput.placeholder = "Example: Best Seller";
+  badgeInput.value = variant.badge || "";
+  badgeInput.dataset.variantField = "badge";
+
+  const imageInput = document.createElement("input");
+  imageInput.type = "file";
+  imageInput.accept = "image/jpeg,image/png,image/webp";
+  imageInput.dataset.variantField = "image_file";
+
+  fields.append(
+    createVariantFieldLabel("Variant name", nameInput),
+    createVariantFieldLabel("Price (₱)", priceInput),
+    createVariantFieldLabel("Stock", stockInput),
+    createVariantFieldLabel("Badge", badgeInput),
+    createVariantFieldLabel("Variant image", imageInput)
+  );
+
+  const advanced = document.createElement("details");
+  advanced.className = "variant-advanced";
+
+  const advancedSummary = document.createElement("summary");
+  advancedSummary.textContent = "Advanced";
+
+  const advancedFields = document.createElement("div");
+  advancedFields.className = "variant-advanced-fields";
+
+  const skuInput = document.createElement("input");
+  skuInput.type = "text";
+  skuInput.placeholder = "Example: TIRZ-30";
+  skuInput.value = variant.sku || "";
+  skuInput.dataset.variantField = "sku";
+
+  const defaultInput = document.createElement("input");
+  defaultInput.type = "radio";
+  defaultInput.name = "defaultVariant";
+  defaultInput.checked = Boolean(variant.is_default);
+  defaultInput.dataset.variantField = "is_default";
+
+  const defaultLabel = document.createElement("label");
+  defaultLabel.className = "variant-check-option";
+  defaultLabel.append(
+    defaultInput,
+    document.createTextNode("Default variant")
+  );
+
+  const activeInput = document.createElement("input");
+  activeInput.type = "checkbox";
+  activeInput.checked = variant.is_active !== false;
+  activeInput.dataset.variantField = "is_active";
+
+  const activeLabel = document.createElement("label");
+  activeLabel.className = "variant-check-option";
+  activeLabel.append(
+    activeInput,
+    document.createTextNode("Active")
+  );
+
+  const imageUrlInput = document.createElement("input");
+  imageUrlInput.type = "hidden";
+  imageUrlInput.value = variant.image_url || "";
+  imageUrlInput.dataset.variantField = "image_url";
+
+  const sortOrderInput = document.createElement("input");
+  sortOrderInput.type = "hidden";
+  sortOrderInput.value = variant.sort_order ?? 0;
+  sortOrderInput.dataset.variantField = "sort_order";
+
+  advancedFields.append(
+    createVariantFieldLabel("SKU", skuInput),
+    defaultLabel,
+    activeLabel,
+    imageUrlInput,
+    sortOrderInput
+  );
+
+  advanced.append(advancedSummary, advancedFields);
+
+  removeButton.addEventListener("click", () => {
+    card.remove();
+
+    if (
+      hasVariantsToggle.checked &&
+      !variantRows.querySelector(".variant-card")
+    ) {
+      createVariantCard({
+        is_default: true,
+        is_active: true
+      });
+    }
+
+    renumberVariantCards();
+    ensureDefaultVariant();
+  });
+
+  defaultInput.addEventListener("change", () => {
+    ensureDefaultVariant();
+  });
+
+  card.append(header, fields, advanced);
+  variantRows.appendChild(card);
+
+  renumberVariantCards();
+  ensureDefaultVariant();
+
+  return card;
+}
+
+addVariantButton?.addEventListener("click", () => {
+  createVariantCard({
+    is_active: true
+  });
+});
 productForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(productForm);
   const id = String(formData.get("id") || "").trim();
+let productImageUrl = String(formData.get("image") || "").trim();
 
+if (selectedProductImageFile) {
+  try {
+      productImageUrl = await uploadProductImage(selectedProductImageFile);
+          productImageUrlInput.value = productImageUrl;
+            } catch (uploadError) {
+                alert(`Could not upload product image: ${uploadError.message}`);
+                    return;
+                      }
+                      }
+                      let basePrice = Number(formData.get("price"));
+let baseStock = Number(formData.get("stock"));
+
+if (VariantManager.isEnabled()) {
+  try {
+    const variants = VariantManager.collect();
+
+    const defaultVariant =
+      variants.find((variant) => variant.isDefault) ||
+      variants[0];
+
+    basePrice = defaultVariant.price;
+
+    baseStock = variants.reduce(
+      (total, variant) =>
+        total + (variant.isActive ? variant.stock : 0),
+      0
+    );
+  } catch (variantError) {
+    alert(variantError.message);
+    return;
+  }
+}
   const product = {
     name: String(formData.get("name") || "").trim(),
-    price: Number(formData.get("price")),
-    stock: Number(formData.get("stock")),
+   price: basePrice,
+   stock: baseStock,
     category:
       String(formData.get("category") || "").trim() || null,
-    image_url:
-      String(formData.get("image") || "").trim() || null,
+    image_url: productImageUrl || null,
     description:
       String(formData.get("description") || "").trim() || null,
     is_visible: true,
     updated_at: new Date().toISOString()
   };
 
-  let error;
+  let savedProductId = id;
 
-  if (id) {
-    ({ error } = await supabaseClient
-      .from("products")
-      .update(product)
-      .eq("id", id));
-  } else {
-    ({ error } = await supabaseClient
-      .from("products")
-      .insert(product));
+if (id) {
+  const { error } = await supabaseClient
+    .from("products")
+    .update(product)
+    .eq("id", id);
+
+  if (error) {
+    alert(`Could not save product: ${error.message}`);
+    return;
   }
+} else {
+  const { data, error } = await supabaseClient
+    .from("products")
+    .insert(product)
+    .select("id")
+    .single();
 
   if (error) {
     alert(`Could not save product: ${error.message}`);
     return;
   }
 
-  resetProductForm();
-  await loadProducts();
-  alert(id ? "Product updated online." : "Product added online.");
-});
+  savedProductId = data.id;
+}
 
-function editProduct(id) {
+try {
+  await VariantManager.save(savedProductId);
+} catch (variantError) {
+  alert(
+    `The product was saved, but its variants could not be saved: ${
+      variantError.message || "Unknown error"
+    }`
+  );
+  return;
+}
+
+resetProductForm();
+await loadProducts();
+
+alert(
+  id
+    ? "Product and variants updated online."
+    : "Product and variants added online."
+);
+});
+async function editProduct(id) {
   const product = products.find((item) => item.id === id);
+
   if (!product) return;
 
+try {
+  await VariantManager.load(product.id);
+} catch (variantError) {
+  alert(
+    `Could not load product variants: ${
+      variantError.message || "Unknown error"
+    }`
+  );
+}
   productForm.elements.id.value = product.id;
   productForm.elements.name.value = product.name || "";
   productForm.elements.price.value = product.price ?? 0;
   productForm.elements.stock.value = product.stock ?? 0;
   productForm.elements.category.value = product.category || "";
   productForm.elements.image.value = product.image_url || "";
+  selectedProductImageFile = null;
+  productImageFileInput.value = "";
+  clearTemporaryProductPreview();
+  showProductImagePreview(product.image_url || "");
   productForm.elements.description.value =
     product.description || "";
 
@@ -1329,7 +1928,13 @@ async function deleteProduct(id) {
 
 function resetProductForm() {
   productForm.reset();
+  clearTemporaryProductPreview();
+  selectedProductImageFile = null;
+  productImageFileInput.value = "";
+  productImageUrlInput.value = "";
+  showProductImagePreview("");
   productForm.elements.id.value = "";
+  VariantManager.reset();
   formTitle.textContent = "Add product";
   cancelEdit.hidden = true;
 }
@@ -1539,21 +2144,141 @@ async function viewOrderReceipt(order) {
 }
 
 async function updateOrderPaymentStatus(id, paymentStatus) {
-  const { error } = await supabaseClient
-    .from("orders")
-    .update({
+  try {
+    const approvingPayment = paymentStatus === "Approved";
+
+    const { data: order, error: orderError } = await supabaseClient
+      .from("orders")
+      .select("id, stock_deducted")
+      .eq("id", id)
+      .single();
+
+    if (orderError) {
+      throw orderError;
+    }
+
+    /*
+     * Deduct inventory only when payment is approved
+     * and only if this order has not deducted stock before.
+     */
+    if (approvingPayment && !order.stock_deducted) {
+      const { data: orderItems, error: itemsError } =
+        await supabaseClient
+          .from("order_items")
+          .select(
+            "product_id, variant_id, quantity"
+          )
+          .eq("order_id", id);
+
+      if (itemsError) {
+        throw itemsError;
+      }
+
+      for (const item of orderItems || []) {
+        const orderedQuantity = Number(item.quantity || 0);
+
+        if (orderedQuantity < 1) continue;
+
+        if (item.variant_id) {
+          const { data: variant, error: variantError } =
+            await supabaseClient
+              .from("product_variants")
+              .select("id, stock")
+              .eq("id", item.variant_id)
+              .single();
+
+          if (variantError) {
+            throw variantError;
+          }
+
+          const currentStock = Number(variant.stock || 0);
+
+          if (orderedQuantity > currentStock) {
+            throw new Error(
+              `Not enough variant stock. Available: ${currentStock}, ordered: ${orderedQuantity}.`
+            );
+          }
+
+          const { error: variantUpdateError } =
+            await supabaseClient
+              .from("product_variants")
+              .update({
+                stock: currentStock - orderedQuantity,
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", item.variant_id);
+
+          if (variantUpdateError) {
+            throw variantUpdateError;
+          }
+        } else {
+          const { data: product, error: productError } =
+            await supabaseClient
+              .from("products")
+              .select("id, stock")
+              .eq("id", item.product_id)
+              .single();
+
+          if (productError) {
+            throw productError;
+          }
+
+          const currentStock = Number(product.stock || 0);
+
+          if (orderedQuantity > currentStock) {
+            throw new Error(
+              `Not enough product stock. Available: ${currentStock}, ordered: ${orderedQuantity}.`
+            );
+          }
+
+          const { error: productUpdateError } =
+            await supabaseClient
+              .from("products")
+              .update({
+                stock: currentStock - orderedQuantity,
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", item.product_id);
+
+          if (productUpdateError) {
+            throw productUpdateError;
+          }
+        }
+      }
+    }
+
+    const updatePayload = {
       payment_status: paymentStatus,
       updated_at: new Date().toISOString()
-    })
-    .eq("id", id);
+    };
 
-  if (error) {
-    alert(`Could not update payment status: ${error.message}`);
-    return;
+    if (approvingPayment && !order.stock_deducted) {
+      updatePayload.stock_deducted = true;
+    }
+
+    const { error: updateError } = await supabaseClient
+      .from("orders")
+      .update(updatePayload)
+      .eq("id", id);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    await loadOrders();
+
+    alert(
+      approvingPayment
+        ? "Payment approved and stock updated."
+        : `Payment marked as ${paymentStatus}.`
+    );
+  } catch (error) {
+    alert(
+      `Could not update payment status: ${
+        error.message || "Unknown error"
+      }`
+    );
   }
-
-  await loadOrders();
-  alert(`Payment marked as ${paymentStatus}.`);
 }
 
 async function archiveOrder(id) {
@@ -1649,122 +2374,212 @@ function renderOrders(ordersToRender) {
   }
 
   ordersList.innerHTML = ordersToRender
-    .map(
-      (order) => {
-        const orderItems = orderItemsByOrder[String(order.id)] || [];
-        const productsLabel = `Products (${orderItems.length})`;
-        const productRows = orderItems.length
-          ? orderItems
-              .map((item) => `
+    .map((order) => {
+      const orderItems = orderItemsByOrder[String(order.id)] || [];
+      const productsLabel = `Products (${orderItems.length})`;
+
+      const productRows = orderItems.length
+        ? orderItems
+            .map(
+              (item) => `
                 <div class="order-product-row">
                   <div>
                     <strong>${escapeHtml(item.product_name || "Product")}</strong>
+
+                    ${
+                      item.variant_name
+                        ? `<div class="tiny-note">Variant: ${escapeHtml(item.variant_name)}</div>`
+                        : ""
+                    }
+
+                    ${
+                      item.variant_sku
+                        ? `<div class="tiny-note">SKU: ${escapeHtml(item.variant_sku)}</div>`
+                        : ""
+                    }
+
                     <div class="tiny-note">Qty: ${Number(item.quantity || 0)}</div>
                   </div>
+
                   <div class="order-product-prices">
                     <span>${formatCurrency(item.unit_price || 0)}</span>
                     <span>${formatCurrency(item.line_total || 0)}</span>
                   </div>
                 </div>
-              `)
-              .join("")
-          : `<div class="tiny-note">No products found</div>`;
+              `
+            )
+            .join("")
+        : `<div class="tiny-note">No products found</div>`;
 
-        return `
-          <article class="order-card">
-            <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
+      const shippingLines = [
+        [order.house_unit, order.street].filter(Boolean).join(", "),
+        order.barangay ? `Brgy. ${order.barangay}` : "",
+        [order.city, order.province].filter(Boolean).join(", "),
+        order.zipcode || ""
+      ].filter(Boolean);
 
+      const shippingAddress = shippingLines.length
+        ? shippingLines.map((line) => escapeHtml(line)).join("<br>")
+        : escapeHtml(order.address || "—");
+
+      return `
+        <article class="order-card">
+          <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
+
+          <p>
+            ${escapeHtml(order.customer_name || "—")}
+            · ${escapeHtml(order.phone || "—")}
+          </p>
+
+          <p>📍 ${shippingAddress}</p>
+
+          <p>
+            ${formatCurrency(order.total || 0)}
+            · ${escapeHtml(order.payment_method || "—")}
+          </p>
+
+          <div class="order-actions">
+            <button
+              class="secondary-button"
+              type="button"
+              data-order-details="${order.id}"
+            >
+              View Details
+            </button>
+          </div>
+
+          <div
+            class="order-inline-details"
+            data-order-inline-details="${order.id}"
+            hidden
+          >
             <p>
-              ${escapeHtml(order.customer_name)}
-              · ${escapeHtml(order.phone)}
+              Payment status:
+              <strong>${escapeHtml(order.payment_status || "Pending")}</strong>
             </p>
 
-            <p>${escapeHtml(order.address)}</p>
-
             <p>
-              ${formatCurrency(order.total)}
-              · ${escapeHtml(order.payment_method || "—")}
+              Amount paid:
+              ${formatCurrency(order.amount_paid || order.total || 0)}
             </p>
 
-            <p>
-              Payment status: <strong>${escapeHtml(order.payment_status || "Pending")}</strong>
-            </p>
+            <div class="order-products-box">
+              <div class="order-products-header">
+                <strong>${productsLabel}</strong>
+                <span>⌄</span>
+              </div>
 
-            <p>
-              Amount paid: ${formatCurrency(order.amount_paid || 0)}
-            </p>
-
-            ${order.reference_number ? `<p>Reference: ${escapeHtml(order.reference_number)}</p>` : ""}
-
-            <details class="order-products-details">
-              <summary>${escapeHtml(productsLabel)} <span class="order-details-arrow">▾</span></summary>
-              <div class="order-products-body">
+              <div class="order-products-list">
                 ${productRows}
               </div>
-            </details>
-
-            <label>
-              Status
-              <select data-order-status="${order.id}">
-                ${orderStatusOptions(order.status)}
-              </select>
-            </label>
-
-            <div class="order-actions">
-              <button class="secondary-button" type="button" data-order-view-details="${order.id}">View Details</button>
-              ${order.receipt_image ? `
-                <button class="secondary-button" type="button" data-order-view-receipt="${order.id}">
-                  View Receipt
-                </button>
-              ` : ""}
-              <button class="secondary-button" type="button" data-order-approve="${order.id}">
-                Approve Payment
-              </button>
-              <button class="secondary-button danger" type="button" data-order-reject="${order.id}">
-                Reject Payment
-              </button>
-              ${Boolean(order.archived) ? `
-                <button class="secondary-button" type="button" data-order-restore="${order.id}">
-                  Restore Order
-                </button>
-                <button class="secondary-button danger" type="button" data-order-delete-permanent="${order.id}">
-                  Delete Permanently
-                </button>
-              ` : `
-                <button class="secondary-button" type="button" data-order-archive="${order.id}">
-                  Archive Order
-                </button>
-              `}
             </div>
 
-            <small>
+            <div class="order-status-row">
+              <label>
+                Status
+                <select data-order-status="${order.id}">
+                  <option value="Pending" ${order.status === "Pending" ? "selected" : ""}>Pending</option>
+                  <option value="Processing" ${order.status === "Processing" ? "selected" : ""}>Processing</option>
+                  <option value="Shipped" ${order.status === "Shipped" ? "selected" : ""}>Shipped</option>
+                  <option value="Completed" ${order.status === "Completed" ? "selected" : ""}>Completed</option>
+                  <option value="Cancelled" ${order.status === "Cancelled" ? "selected" : ""}>Cancelled</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="order-actions">
+              ${
+                order.receipt_image
+                  ? `
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-order-view-receipt="${order.id}"
+                    >
+                      View Receipt
+                    </button>
+                  `
+                  : ""
+              }
+
+              ${
+                !Boolean(order.archived)
+                  ? `
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-order-approve="${order.id}"
+                    >
+                      Approve Payment
+                    </button>
+
+                    <button
+                      class="secondary-button danger"
+                      type="button"
+                      data-order-reject="${order.id}"
+                    >
+                      Reject Payment
+                    </button>
+
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-order-archive="${order.id}"
+                    >
+                      Archive Order
+                    </button>
+                  `
+                  : `
+                    <button
+                      class="secondary-button"
+                      type="button"
+                      data-order-restore="${order.id}"
+                    >
+                      Restore Order
+                    </button>
+
+                    <button
+                      class="secondary-button danger"
+                      type="button"
+                      data-order-delete-permanent="${order.id}"
+                    >
+                      Delete Permanently
+                    </button>
+                  `
+              }
+            </div>
+
+            <div class="tiny-note">
               ${new Date(order.created_at).toLocaleString()}
-            </small>
-          </article>
-        `;
-      }
-    )
+            </div>
+          </div>
+        </article>
+      `;
+    })
     .join("");
+
+  ordersList
+    .querySelectorAll("[data-order-details]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        const orderId = button.dataset.orderDetails;
+        const details = ordersList.querySelector(
+          `[data-order-inline-details="${orderId}"]`
+        );
+
+        if (!details) return;
+
+        const isHidden = details.hidden;
+        details.hidden = !isHidden;
+        button.textContent = isHidden ? "Hide Details" : "View Details";
+      });
+    });
 
   ordersList
     .querySelectorAll("[data-order-status]")
     .forEach((select) => {
       select.addEventListener("change", async () => {
-        await updateOrderStatus(
-          select.dataset.orderStatus,
-          select.value
-        );
-      });
-    });
-
-  ordersList
-    .querySelectorAll("[data-order-view-details]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        const order = orders.find((item) => String(item.id) === String(button.dataset.orderViewDetails));
-        if (order) {
-          openOrderDetails(order);
-        }
+        await updateOrderStatus(select.dataset.orderStatus, select.value);
       });
     });
 
@@ -1772,7 +2587,10 @@ function renderOrders(ordersToRender) {
     .querySelectorAll("[data-order-view-receipt]")
     .forEach((button) => {
       button.addEventListener("click", async () => {
-        const order = orders.find((item) => String(item.id) === String(button.dataset.orderViewReceipt));
+        const order = orders.find(
+          (item) => String(item.id) === String(button.dataset.orderViewReceipt)
+        );
+
         if (order) {
           await viewOrderReceipt(order);
         }
@@ -1815,7 +2633,10 @@ function renderOrders(ordersToRender) {
     .querySelectorAll("[data-order-delete-permanent]")
     .forEach((button) => {
       button.addEventListener("click", async () => {
-        const order = orders.find((item) => String(item.id) === String(button.dataset.orderDeletePermanent));
+        const order = orders.find(
+          (item) => String(item.id) === String(button.dataset.orderDeletePermanent)
+        );
+
         if (order) {
           await deleteOrderPermanently(order.id, order);
         }
@@ -1833,7 +2654,7 @@ async function updateOrderStatus(id, status) {
     .eq("id", id);
 
   if (error) {
-    alert(`Could not update order: ${error.message}`);
+  alert(`Could not update order: ${error.message}`);
     await loadOrders();
     return;
   }
@@ -1847,7 +2668,16 @@ function openOrderDetails(order) {
   const totalItems = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const orderTotals = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
   const currency = formatCurrency;
+const shippingLines = [
+    [order.house_unit, order.street].filter(Boolean).join(", "),
+    order.barangay ? `Brgy. ${order.barangay}` : "",
+    [order.city, order.province].filter(Boolean).join(", "),
+    order.zipcode || ""
+].filter(Boolean);
 
+const shippingAddress = shippingLines.length
+   ? shippingLines.map(line => escapeHtml(line)).join("<br>")
+    : escapeHtml(order.address || "—");
   orderDetailsContent.innerHTML = `
     <div class="order-detail-shell">
       <div class="order-detail-card">
@@ -1863,7 +2693,10 @@ function openOrderDetails(order) {
             <h4>Customer</h4>
             <p>${escapeHtml(order.customer_name || "—")}</p>
             <p>${escapeHtml(order.phone || "—")}</p>
-            <p>${escapeHtml(order.address || "—")}</p>
+            <p>
+  <strong>📍 Shipping</strong><br>
+  ${shippingAddress}
+</p>
           </div>
           <div>
             <h4>Payment</h4>
