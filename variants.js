@@ -214,11 +214,75 @@ const VariantManager = (() => {
 
     return data || [];
   }
+function clearRows() {
+  if (elements.variantRows) {
+    elements.variantRows.innerHTML = "";
+  }
+}
 
+async function load(productId) {
+  if (!supabase) {
+    throw new Error("Supabase is not connected.");
+  }
+
+  clearRows();
+
+  const { data, error } = await supabase
+    .from("product_variants")
+    .select("*")
+    .eq("product_id", productId)
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  const variants = data || [];
+  const hasVariants = variants.length > 0;
+
+  elements.hasVariantsToggle.checked = hasVariants;
+
+  /*
+   * Use the existing admin.js function temporarily.
+   * We will move this into the module later.
+   */
+  if (typeof setVariantsEnabled === "function") {
+    setVariantsEnabled(hasVariants);
+  }
+
+  if (!hasVariants) {
+    clearRows();
+    return [];
+  }
+
+  clearRows();
+
+  variants.forEach((variant) => {
+    if (typeof createVariantCard === "function") {
+      createVariantCard(variant);
+    }
+  });
+
+  return variants;
+}
+
+function reset() {
+  clearRows();
+
+  if (elements.hasVariantsToggle) {
+    elements.hasVariantsToggle.checked = false;
+  }
+
+  if (typeof setVariantsEnabled === "function") {
+    setVariantsEnabled(false);
+  }
+}
   return {
-    init,
-    isEnabled,
-    collect,
-    save
-  };
+  init,
+  isEnabled,
+  collect,
+  save,
+  load,
+  reset
+};
 })();

@@ -117,7 +117,111 @@
       </div>
     </div>
   </aside>
+<!-- =========================
+     PRODUCT VARIANT MODAL
+========================= -->
 
+<dialog id="variantDialog" class="variant-dialog">
+  <div class="variant-dialog-card">
+    <div class="variant-dialog-header">
+      <div>
+        <p class="eyebrow">Product options</p>
+        <h2 id="variantDialogTitle">Choose Variant</h2>
+      </div>
+
+      <button
+        id="closeVariantDialog"
+        class="icon-button"
+        type="button"
+        aria-label="Close variant selector"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="variant-dialog-product">
+      <div id="variantDialogImageWrap" class="variant-dialog-image-wrap">
+        <img
+          id="variantDialogImage"
+          class="variant-dialog-image"
+          alt=""
+          hidden
+        />
+
+        <div
+          id="variantDialogImageFallback"
+          class="variant-dialog-image-fallback"
+          aria-hidden="true"
+        >
+          ♡
+        </div>
+      </div>
+
+      <div>
+        <h3 id="variantDialogProductName"></h3>
+        <p id="variantDialogDescription" class="tiny-note"></p>
+      </div>
+    </div>
+
+    <div
+      id="variantOptions"
+      class="variant-options-list"
+      role="radiogroup"
+      aria-label="Product variants"
+    ></div>
+
+    <div class="variant-selection-summary">
+      <div>
+        <span>Selected price</span>
+        <strong id="variantSelectedPrice">₱0</strong>
+      </div>
+
+      <div>
+        <span>Available stock</span>
+        <strong id="variantSelectedStock">—</strong>
+      </div>
+    </div>
+
+    <div class="variant-quantity-row">
+      <span>Quantity</span>
+
+      <div class="variant-quantity-control">
+        <button
+          id="decreaseVariantQuantity"
+          type="button"
+          aria-label="Decrease quantity"
+        >
+          −
+        </button>
+
+        <strong id="variantQuantity">1</strong>
+
+        <button
+          id="increaseVariantQuantity"
+          type="button"
+          aria-label="Increase quantity"
+        >
+          +
+        </button>
+      </div>
+    </div>
+
+    <p id="variantDialogError" class="checkout-error" role="alert"></p>
+
+    <button
+      id="confirmVariantButton"
+      class="primary-button full"
+      type="button"
+      disabled
+    >
+      Add to Bag
+    </button>
+  </div>
+</dialog>
+
+<!-- =========================
+     PRODUCT VARIANT MODAL END
+========================= -->
   <dialog id="checkoutDialog">
     <form id="checkoutForm" method="dialog" class="checkout-form">
       <div class="drawer-header">
@@ -125,15 +229,86 @@
         <button id="closeCheckout" class="icon-button" type="button">×</button>
       </div>
 
-      <label>Full name
-        <input name="name" required />
-      </label>
-      <label>Mobile number
-        <input name="phone" inputmode="tel" placeholder="09XXXXXXXXX" required />
-      </label>
-      <label>Complete address
-        <textarea name="address" rows="4" required></textarea>
-      </label>
+      <h3 class="checkout-section-title">Customer Information</h3>
+
+<label>
+    Full Name
+    <input name="name" required>
+</label>
+
+<label>
+    Mobile Number
+    <input
+        name="phone"
+        inputmode="tel"
+        placeholder="09XXXXXXXXX"
+        required
+    >
+</label>
+
+<label>
+    Email Address (Optional)
+    <input
+        type="email"
+        name="email"
+        placeholder="you@example.com"
+    >
+</label>
+
+<h3 class="checkout-section-title">Shipping Address</h3>
+
+<label>
+    Province
+    <input
+        name="province"
+        placeholder="Laguna"
+        required
+    >
+</label>
+
+<label>
+    City / Municipality
+    <input
+        name="city"
+        placeholder="Biñan City"
+        required
+    >
+</label>
+
+<label>
+    Barangay
+    <input
+        name="barangay"
+        placeholder="San Antonio"
+        required
+    >
+</label>
+
+<label>
+    Street Address
+    <input
+        name="street"
+        placeholder="Rose Street"
+        required
+    >
+</label>
+
+<label>
+    House / Unit No.
+    <input
+        name="house_unit"
+        placeholder="Blk 10 Lot 5"
+        required
+    >
+</label>
+
+<label>
+    ZIP Code (Optional)
+    <input
+        name="zipcode"
+        placeholder="4024"
+    >
+</label>
       <label>Shipping fee
         <select name="shipping" required>
           <option value="">Choose shipping fee</option>

@@ -16,6 +16,45 @@ const facebookLink = document.querySelector("#facebookLink");
 const tiktokLink = document.querySelector("#tiktokLink");
 
 const productGrid = document.querySelector("#productGrid");
+const variantDialog = document.querySelector("#variantDialog");
+const closeVariantDialogButton = document.querySelector(
+  "#closeVariantDialog"
+);
+const variantDialogTitle = document.querySelector(
+  "#variantDialogTitle"
+);
+const variantDialogProductName = document.querySelector(
+  "#variantDialogProductName"
+);
+const variantDialogDescription = document.querySelector(
+  "#variantDialogDescription"
+);
+const variantDialogImage = document.querySelector(
+  "#variantDialogImage"
+);
+const variantDialogImageFallback = document.querySelector(
+  "#variantDialogImageFallback"
+);
+const variantOptions = document.querySelector("#variantOptions");
+const variantSelectedPrice = document.querySelector(
+  "#variantSelectedPrice"
+);
+const variantSelectedStock = document.querySelector(
+  "#variantSelectedStock"
+);
+const variantQuantity = document.querySelector("#variantQuantity");
+const decreaseVariantQuantity = document.querySelector(
+  "#decreaseVariantQuantity"
+);
+const increaseVariantQuantity = document.querySelector(
+  "#increaseVariantQuantity"
+);
+const confirmVariantButton = document.querySelector(
+  "#confirmVariantButton"
+);
+const variantDialogError = document.querySelector(
+  "#variantDialogError"
+);
 const searchInput = document.querySelector("#searchInput");
 
 const cartButton = document.querySelector("#cartButton");
@@ -75,6 +114,11 @@ function clearSavedCart() {
   localStorage.removeItem(CART_STORAGE_KEY);
 }
 let products = [];
+let productVariants = [];
+let activeVariantProduct = null;
+let selectedVariant = null;
+let selectedVariantQuantity = 1;
+let variantSourceButton = null;
 let cart = loadSavedCart();
 let paymentMethods = [];
 let selectedPaymentMethod = null;
@@ -230,27 +274,60 @@ if (heroImage && heroFallback) {
 
 async function loadProducts() {
   productGrid.innerHTML =
-    `<p class="empty">Loading products…</p>`;
+    '<p class="empty">Loading products...</p>';
 
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .eq("is_visible", true)
-    .order("created_at", { ascending: false });
+  const [
+    { data: productData, error: productError },
+    { data: variantData, error: variantError }
+  ] = await Promise.all([
+    supabaseClient
+      .from("products")
+      .select("*")
+      .eq("is_visible", true)
+      .order("created_at", { ascending: false }),
 
-  if (error) {
+    supabaseClient
+      .from("product_variants")
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+  ]);
+
+  if (productError) {
     productGrid.innerHTML = `
       <p class="empty">
-        Could not load products: ${escapeHtml(error.message)}
+        Could not load products: ${escapeHtml(productError.message)}
       </p>
     `;
     return;
   }
 
-  products = data || [];
+  if (variantError) {
+    console.error(
+      "Could not load product variants:",
+      variantError.message
+    );
+  }
+
+  productVariants = variantData || [];
+
+  products = (productData || []).map((product) => ({
+    ...product,
+    variants: productVariants.filter(
+      (variant) =>
+        String(variant.product_id) === String(product.id)
+    )
+  }));
+
   renderProducts(products);
 }
 
+function getProductVariants(productId) {
+  return productVariants.filter(
+    (variant) =>
+      String(variant.product_id) === String(productId)
+  );
+}
 function renderProducts(list) {
   if (!list.length) {
     productGrid.innerHTML =
@@ -260,6 +337,15 @@ function renderProducts(list) {
 
   productGrid.innerHTML = list
     .map((product) => {
+      const variants = getProductVariants(product.id);
+      const hasVariants = variants.length > 0;
+const displayedStock = hasVariants
+  ? variants.reduce(
+      (total, variant) =>
+        total + Number(variant.stock || 0),
+      0
+    )
+  : Number(product.stock || 0);
       const image = product.image_url
         ? `
           <img
@@ -291,7 +377,7 @@ function renderProducts(list) {
               <strong>${formatCurrency(product.price)}</strong>
 
               <span class="stock">
-                Stock: ${Number(product.stock || 0)}
+                Stock: ${displayedStock}
               </span>
             </div>
 
@@ -299,12 +385,14 @@ function renderProducts(list) {
               class="add-button"
               type="button"
               data-add-product="${product.id}"
-              ${Number(product.stock || 0) < 1 ? "disabled" : ""}
+              ${displayedStock < 1 ? "disabled" : ""}
             >
               ${
-                Number(product.stock || 0) < 1
+                displayedStock < 1
                   ? "Out of stock"
-                  : "Add to bag"
+                  : hasVariants
+                    ? "Choose variant"
+                    : "Add to bag"
               }
             </button>
           </div>
@@ -317,7 +405,19 @@ function renderProducts(list) {
     .querySelectorAll("[data-add-product]")
     .forEach((button) => {
       button.addEventListener("click", () => {
-        addToCart(button.dataset.addProduct, button);
+        const product = getProductById(
+          button.dataset.addProduct
+        );
+
+        if (!product) return;
+
+        const variants = getProductVariants(product.id);
+
+        if (variants.length) {
+          openVariantSelector(product, button);
+        } else {
+          addToCart(product.id, button);
+        }
       });
     });
 }
@@ -339,13 +439,301 @@ searchInput.addEventListener("input", (event) => {
 
   renderProducts(filteredProducts);
 });
+function resetVariantDialog() {
+  activeVariantProduct = null;
+  selectedVariant = null;
+  selectedVariantQuantity = 1;
+  variantSourceButton = null;
+
+  variantOptions.innerHTML = "";
+  variantSelectedPrice.textContent = formatCurrency(0);
+  variantSelectedStock.textContent = "—";
+  variantQuantity.textContent = "1";
+  variantDialogError.textContent = "";
+  confirmVariantButton.disabled = true;
+}
+
+function updateVariantDialogImage(product, variant) {
+  const imageUrl = variant?.image_url || product?.image_url || "";
+
+  if (imageUrl) {
+    variantDialogImage.src = imageUrl;
+    variantDialogImage.alt = `${product.name} ${variant?.name || ""}`.trim();
+    variantDialogImage.hidden = false;
+    variantDialogImageFallback.hidden = true;
+  } else {
+    variantDialogImage.removeAttribute("src");
+    variantDialogImage.hidden = true;
+    variantDialogImageFallback.hidden = false;
+  }
+}
+
+function selectVariant(variantId) {
+  const variants = getProductVariants(activeVariantProduct?.id);
+
+  selectedVariant =
+    variants.find(
+      (variant) => String(variant.id) === String(variantId)
+    ) || null;
+
+  if (!selectedVariant) return;
+
+  selectedVariantQuantity = 1;
+
+  variantOptions
+    .querySelectorAll("[data-variant-option]")
+    .forEach((option) => {
+      option.classList.toggle(
+        "selected",
+        String(option.dataset.variantOption) ===
+          String(selectedVariant.id)
+      );
+    });
+
+  variantOptions
+    .querySelectorAll('input[type="radio"]')
+    .forEach((input) => {
+      input.checked =
+        String(input.value) === String(selectedVariant.id);
+    });
+
+  variantSelectedPrice.textContent =
+    formatCurrency(selectedVariant.price);
+
+  variantSelectedStock.textContent =
+    String(Number(selectedVariant.stock || 0));
+
+  variantQuantity.textContent = "1";
+
+  variantDialogError.textContent = "";
+
+  confirmVariantButton.disabled =
+    Number(selectedVariant.stock || 0) < 1;
+
+  updateVariantDialogImage(
+    activeVariantProduct,
+    selectedVariant
+  );
+}
+
+function openVariantSelector(product, sourceButton = null) {
+  resetVariantDialog();
+
+  activeVariantProduct = product;
+  variantSourceButton = sourceButton;
+
+  const variants = getProductVariants(product.id);
+
+  variantDialogTitle.textContent = "Choose Variant";
+  variantDialogProductName.textContent = product.name;
+  variantDialogDescription.textContent =
+    product.description || "";
+
+  updateVariantDialogImage(product, null);
+
+  variantOptions.innerHTML = variants
+    .map((variant) => {
+      const outOfStock = Number(variant.stock || 0) < 1;
+
+      return `
+        <label
+          class="variant-option-card${outOfStock ? " disabled" : ""}"
+          data-variant-option="${variant.id}"
+        >
+          <input
+            type="radio"
+            name="storefrontVariant"
+            value="${variant.id}"
+            ${outOfStock ? "disabled" : ""}
+          />
+
+          <div class="variant-option-main">
+            <strong>${escapeHtml(variant.name)}</strong>
+
+            ${
+              variant.badge
+                ? `<span class="variant-option-badge">${escapeHtml(
+                    variant.badge
+                  )}</span>`
+                : ""
+            }
+          </div>
+
+          <div class="variant-option-meta">
+            <span>${formatCurrency(variant.price)}</span>
+            <small>
+              ${
+                outOfStock
+                  ? "Out of stock"
+                  : `Stock: ${Number(variant.stock || 0)}`
+              }
+            </small>
+          </div>
+        </label>
+      `;
+    })
+    .join("");
+
+  variantOptions
+    .querySelectorAll("[data-variant-option]")
+    .forEach((option) => {
+      option.addEventListener("click", () => {
+        const radio = option.querySelector('input[type="radio"]');
+
+        if (radio?.disabled) return;
+
+        selectVariant(option.dataset.variantOption);
+      });
+    });
+
+  const defaultVariant =
+    variants.find(
+      (variant) =>
+        variant.is_default &&
+        Number(variant.stock || 0) > 0
+    ) ||
+    variants.find(
+      (variant) => Number(variant.stock || 0) > 0
+    );
+
+  if (defaultVariant) {
+    selectVariant(defaultVariant.id);
+  }
+
+  variantDialog.showModal();
+}
+
+function closeVariantSelector() {
+  variantDialog.close();
+  resetVariantDialog();
+}
+
+closeVariantDialogButton?.addEventListener(
+  "click",
+  closeVariantSelector
+);
+
+variantDialog?.addEventListener("click", (event) => {
+  if (event.target === variantDialog) {
+    closeVariantSelector();
+  }
+});
 /* -------------------------
    SHOPPING BAG
 ------------------------- */
+function getCartItem(productId, variantId = null) {
+  return cart.find(
+    (item) =>
+      String(item.productId) === String(productId) &&
+      String(item.variantId || "") === String(variantId || "")
+  );
+}
 
 function getProductById(id) {
   return products.find((product) => String(product.id) === String(id));
 }
+function addSelectedVariantToCart() {
+  if (!activeVariantProduct || !selectedVariant) {
+    variantDialogError.textContent =
+      "Please choose a variant first.";
+    return;
+  }
+
+  const availableStock = Number(selectedVariant.stock || 0);
+
+  if (availableStock < 1) {
+    variantDialogError.textContent =
+      "This variant is currently out of stock.";
+    return;
+  }
+
+  const existingItem = getCartItem(
+    activeVariantProduct.id,
+    selectedVariant.id
+  );
+
+  const existingQuantity = existingItem
+    ? Number(existingItem.quantity || 0)
+    : 0;
+
+  const requestedTotal =
+    existingQuantity + selectedVariantQuantity;
+
+  if (requestedTotal > availableStock) {
+    variantDialogError.textContent =
+      "You cannot add more than the available stock.";
+    return;
+  }
+
+  if (existingItem) {
+    existingItem.quantity = requestedTotal;
+  } else {
+    cart.push({
+      productId: activeVariantProduct.id,
+      variantId: selectedVariant.id,
+      variantName: selectedVariant.name,
+      variantSku: selectedVariant.sku || null,
+      unitPrice: Number(selectedVariant.price || 0),
+      imageUrl:
+        selectedVariant.image_url ||
+        activeVariantProduct.image_url ||
+        null,
+      quantity: selectedVariantQuantity
+    });
+  }
+
+  const productName = activeVariantProduct.name;
+  const variantName = selectedVariant.name;
+  const sourceButton = variantSourceButton;
+
+  saveCart();
+  renderCart();
+  closeVariantSelector();
+
+  showAddedToBag(`${productName} - ${variantName}`);
+  animateBag();
+
+  if (sourceButton) {
+    flyHeartToBag(sourceButton);
+  }
+}                                                                                                                                                                                                                                                                                                                                                                                                                    
+decreaseVariantQuantity?.addEventListener("click", () => {
+  if (!selectedVariant) return;
+
+  selectedVariantQuantity = Math.max(
+    1,
+    selectedVariantQuantity - 1
+  );
+
+  variantQuantity.textContent = String(selectedVariantQuantity);
+  variantDialogError.textContent = "";
+});
+
+increaseVariantQuantity?.addEventListener("click", () => {
+  if (!selectedVariant) {
+    variantDialogError.textContent =
+      "Please choose a variant first.";
+    return;
+  }
+
+  const availableStock = Number(selectedVariant.stock || 0);
+
+  if (selectedVariantQuantity >= availableStock) {
+    variantDialogError.textContent =
+      "You reached the available stock.";
+    return;
+  }
+
+  selectedVariantQuantity++;
+
+  variantQuantity.textContent = String(selectedVariantQuantity);
+  variantDialogError.textContent = "";
+});
+
+confirmVariantButton?.addEventListener(
+  "click",
+  addSelectedVariantToCart
+);
 
 function addToCart(productId, sourceButton = null) {
   const product = getProductById(productId);
@@ -383,39 +771,52 @@ saveCart();
   }
 }
 
-function removeFromCart(productId) {
+function removeCartItem(productId, variantId = null) {
   cart = cart.filter(
-    (item) => String(item.productId) !== String(productId)
+    (item) =>
+      !(
+        String(item.productId) === String(productId) &&
+        String(item.variantId || "") === String(variantId || "")
+      )
   );
-saveCart();
+
+  saveCart();
   renderCart();
 }
 
-function changeQuantity(productId, amount) {
-  const item = cart.find(
-    (cartItem) =>
-      String(cartItem.productId) === String(productId)
-  );
+function changeQuantity(productId, variantId, amount) {
+  const item = getCartItem(productId, variantId);
+
+  if (!item) return;
 
   const product = getProductById(productId);
 
-  if (!item || !product) return;
+  if (!product) return;
 
-  const newQuantity = item.quantity + amount;
+  const stock = item.variantId
+    ? Number(
+        getProductVariants(productId).find(
+          (variant) =>
+            String(variant.id) === String(item.variantId)
+        )?.stock || 0
+      )
+    : Number(product.stock || 0);
 
-  if (newQuantity <= 0) {
-    removeFromCart(productId);
+  const newQuantity = Number(item.quantity || 0) + amount;
+
+  if (newQuantity < 1) {
+    removeCartItem(productId, variantId);
     return;
   }
 
-  if (newQuantity > Number(product.stock || 0)) {
+  if (newQuantity > stock) {
     alert("You cannot add more than the available stock.");
     return;
   }
 
   item.quantity = newQuantity;
-  saveCart();
-  renderCart();
+saveCart();
+renderCart();
 }
 
 function calculateSubtotal() {
@@ -424,7 +825,12 @@ function calculateSubtotal() {
 
     if (!product) return total;
 
-    return total + Number(product.price || 0) * item.quantity;
+    const itemPrice =
+  item.variantId && Number.isFinite(Number(item.unitPrice))
+    ? Number(item.unitPrice)
+    : Number(product.price || 0);
+
+return total + itemPrice * Number(item.quantity || 0);
   }, 0);
 }
 
@@ -474,30 +880,50 @@ saveCart();
     .map((item) => {
       const product = getProductById(item.productId);
 
+      const itemImage =
+  item.imageUrl ||
+  product.image_url ||
+  "";
+
+const itemPrice =
+  item.variantId
+    ? Number(item.unitPrice || 0)
+    : Number(product.price || 0);
       return `
         <article class="cart-item">
           <div class="cart-thumb">
             ${
-              product.image_url
-                ? `
-                  <img
-                    src="${escapeHtml(product.image_url)}"
-                    alt="${escapeHtml(product.name)}"
-                  />
-                `
-                : "♡"
+              itemImage
+  ? `
+    <img
+      src="${escapeHtml(itemImage)}"
+      alt="${escapeHtml(product.name)}"
+    />
+  `
+  : "♡"
             }
           </div>
 
           <div>
             <strong>${escapeHtml(product.name)}</strong>
+${
+  item.variantId
+    ? `
+      <p class="cart-variant-name">
+        Variant: ${escapeHtml(item.variantName || "")}
+      </p>
 
-            <p>${formatCurrency(product.price)}</p>
+    `
+    : ""
+}
+
+            <p>${formatCurrency(itemPrice)}</p>
 
             <div class="qty">
               <button
                 type="button"
-                data-decrease="${product.id}"
+                data-decrease-product="${product.id}"
+                data-decrease-variant="${item.variantId || ""}"
                 aria-label="Decrease quantity">
                 −
               </button>
@@ -506,7 +932,8 @@ saveCart();
 
               <button
                 type="button"
-                data-increase="${product.id}"
+              data-increase-product="${product.id}"
+              data-increase-variant="${item.variantId || ""}"  
                 aria-label="Increase quantity">
                 +
               </button>
@@ -514,12 +941,14 @@ saveCart();
           </div>
 
           <button
-            class="icon-button"
-            type="button"
-            data-remove="${product.id}"
-            aria-label="Remove product">
-            ×
-          </button>
+  class="icon-button"
+  type="button"
+  data-remove-product="${product.id}"
+  data-remove-variant="${item.variantId || ""}"
+  aria-label="Remove product"
+>
+  ×
+</button>
         </article>
       `;
     })
@@ -540,20 +969,39 @@ saveCart();
     });
 
   cartItems
-    .querySelectorAll("[data-increase]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        changeQuantity(button.dataset.increase, 1);
-      });
+  .querySelectorAll("[data-increase-product]")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      changeQuantity(
+        button.dataset.increaseProduct,
+        button.dataset.increaseVariant || null,
+        1
+      );
     });
+  });
 
-  cartItems
-    .querySelectorAll("[data-remove]")
-    .forEach((button) => {
-      button.addEventListener("click", () => {
-        removeFromCart(button.dataset.remove);
-      });
+cartItems
+  .querySelectorAll("[data-decrease-product]")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      changeQuantity(
+        button.dataset.decreaseProduct,
+        button.dataset.decreaseVariant || null,
+        -1
+      );
     });
+  });
+
+cartItems
+  .querySelectorAll("[data-remove-product]")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      removeCartItem(
+        button.dataset.removeProduct,
+        button.dataset.removeVariant || null
+      );
+    });
+  });
 }
 
 function openCart() {
@@ -938,6 +1386,27 @@ async function submitOrder() {
     const reference = createOrderReference();
     const shippingFee = getSelectedShippingFee();
     const subtotal = calculateSubtotal();
+    const customerName = String(formData.get("name") || "").trim();
+const phone = String(formData.get("phone") || "").trim();
+const email = String(formData.get("email") || "").trim();
+
+const province = String(formData.get("province") || "").trim();
+const city = String(formData.get("city") || "").trim();
+const barangay = String(formData.get("barangay") || "").trim();
+const street = String(formData.get("street") || "").trim();
+const houseUnit = String(formData.get("house_unit") || "").trim();
+const zipcode = String(formData.get("zipcode") || "").trim();
+
+const formattedAddress = [
+    houseUnit,
+    street,
+    barangay ? `Barangay ${barangay}` : "",
+    city,
+    province,
+    zipcode
+]
+.filter(Boolean)
+.join(", ");
     const total = roundToTwo(subtotal + shippingFee);
     const paymentMethodName = String(
       selectedPaymentMethod?.payment_name || formData.get("payment") || ""
@@ -971,9 +1440,17 @@ async function submitOrder() {
 
     const orderData = {
       order_ref: reference,
-      customer_name: String(formData.get("name") || "").trim(),
-      phone: String(formData.get("phone") || "").trim(),
-      address: String(formData.get("address") || "").trim(),
+      customer_name: customerName,
+phone,
+email: email || null,
+
+address: formattedAddress,
+province,
+city,
+barangay,
+street,
+house_unit: houseUnit,
+zipcode: zipcode || null,
       payment_method: paymentMethodName,
       notes: String(formData.get("notes") || "").trim() || null,
       shipping_fee: shippingFee,
@@ -1001,17 +1478,27 @@ async function submitOrder() {
     }
 
     const orderItems = cart.map((item) => {
-      const product = getProductById(item.productId);
+  const product = getProductById(item.productId);
 
-      return {
-        order_id: order.id,
-        product_id: product.id,
-        product_name: product.name,
-        unit_price: Number(product.price),
-        quantity: item.quantity,
-        line_total: Number(product.price) * Number(item.quantity)
-      };
-    });
+  const unitPrice =
+    item.variantId && Number.isFinite(Number(item.unitPrice))
+      ? Number(item.unitPrice)
+      : Number(product.price || 0);
+
+  return {
+    order_id: order.id,
+    product_id: product.id,
+    product_name: product.name,
+
+    variant_id: item.variantId || null,
+    variant_name: item.variantName || null,
+    variant_sku: item.variantSku || null,
+
+    unit_price: unitPrice,
+    quantity: Number(item.quantity || 0),
+    line_total: unitPrice * Number(item.quantity || 0)
+  };
+});
 
     const { error: itemsError } = await supabaseClient
       .from("order_items")

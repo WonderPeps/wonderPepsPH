@@ -1868,11 +1868,20 @@ alert(
     : "Product and variants added online."
 );
 });
-function editProduct(id) {
+async function editProduct(id) {
   const product = products.find((item) => item.id === id);
 
   if (!product) return;
 
+try {
+  await VariantManager.load(product.id);
+} catch (variantError) {
+  alert(
+    `Could not load product variants: ${
+      variantError.message || "Unknown error"
+    }`
+  );
+}
   productForm.elements.id.value = product.id;
   productForm.elements.name.value = product.name || "";
   productForm.elements.price.value = product.price ?? 0;
@@ -1925,6 +1934,7 @@ function resetProductForm() {
   productImageUrlInput.value = "";
   showProductImagePreview("");
   productForm.elements.id.value = "";
+  VariantManager.reset();
   formTitle.textContent = "Add product";
   cancelEdit.hidden = true;
 }
@@ -2134,21 +2144,141 @@ async function viewOrderReceipt(order) {
 }
 
 async function updateOrderPaymentStatus(id, paymentStatus) {
-  const { error } = await supabaseClient
-    .from("orders")
-    .update({
+  try {
+    const approvingPayment = paymentStatus === "Approved";
+
+    const { data: order, error: orderError } = await supabaseClient
+      .from("orders")
+      .select("id, stock_deducted")
+      .eq("id", id)
+      .single();
+
+    if (orderError) {
+      throw orderError;
+    }
+
+    /*
+     * Deduct inventory only when payment is approved
+     * and only if this order has not deducted stock before.
+     */
+    if (approvingPayment && !order.stock_deducted) {
+      const { data: orderItems, error: itemsError } =
+        await supabaseClient
+          .from("order_items")
+          .select(
+            "product_id, variant_id, quantity"
+          )
+          .eq("order_id", id);
+
+      if (itemsError) {
+        throw itemsError;
+      }
+
+      for (const item of orderItems || []) {
+        const orderedQuantity = Number(item.quantity || 0);
+
+        if (orderedQuantity < 1) continue;
+
+        if (item.variant_id) {
+          const { data: variant, error: variantError } =
+            await supabaseClient
+              .from("product_variants")
+              .select("id, stock")
+              .eq("id", item.variant_id)
+              .single();
+
+          if (variantError) {
+            throw variantError;
+          }
+
+          const currentStock = Number(variant.stock || 0);
+
+          if (orderedQuantity > currentStock) {
+            throw new Error(
+              `Not enough variant stock. Available: ${currentStock}, ordered: ${orderedQuantity}.`
+            );
+          }
+
+          const { error: variantUpdateError } =
+            await supabaseClient
+              .from("product_variants")
+              .update({
+                stock: currentStock - orderedQuantity,
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", item.variant_id);
+
+          if (variantUpdateError) {
+            throw variantUpdateError;
+          }
+        } else {
+          const { data: product, error: productError } =
+            await supabaseClient
+              .from("products")
+              .select("id, stock")
+              .eq("id", item.product_id)
+              .single();
+
+          if (productError) {
+            throw productError;
+          }
+
+          const currentStock = Number(product.stock || 0);
+
+          if (orderedQuantity > currentStock) {
+            throw new Error(
+              `Not enough product stock. Available: ${currentStock}, ordered: ${orderedQuantity}.`
+            );
+          }
+
+          const { error: productUpdateError } =
+            await supabaseClient
+              .from("products")
+              .update({
+                stock: currentStock - orderedQuantity,
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", item.product_id);
+
+          if (productUpdateError) {
+            throw productUpdateError;
+          }
+        }
+      }
+    }
+
+    const updatePayload = {
       payment_status: paymentStatus,
       updated_at: new Date().toISOString()
-    })
-    .eq("id", id);
+    };
 
-  if (error) {
-    alert(`Could not update payment status: ${error.message}`);
-    return;
+    if (approvingPayment && !order.stock_deducted) {
+      updatePayload.stock_deducted = true;
+    }
+
+    const { error: updateError } = await supabaseClient
+      .from("orders")
+      .update(updatePayload)
+      .eq("id", id);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    await loadOrders();
+
+    alert(
+      approvingPayment
+        ? "Payment approved and stock updated."
+        : `Payment marked as ${paymentStatus}.`
+    );
+  } catch (error) {
+    alert(
+      `Could not update payment status: ${
+        error.message || "Unknown error"
+      }`
+    );
   }
-
-  await loadOrders();
-  alert(`Payment marked as ${paymentStatus}.`);
 }
 
 async function archiveOrder(id) {
@@ -2253,9 +2383,32 @@ function renderOrders(ordersToRender) {
               .map((item) => `
                 <div class="order-product-row">
                   <div>
-                    <strong>${escapeHtml(item.product_name || "Product")}</strong>
-                    <div class="tiny-note">Qty: ${Number(item.quantity || 0)}</div>
-                  </div>
+  <strong>${escapeHtml(item.product_name || "Product")}</strong>
+
+  ${
+    item.variant_name
+      ? `
+        <div class="tiny-note">
+          Variant: ${escapeHtml(item.variant_name)}
+        </div>
+      `
+      : ""
+  }
+
+  ${
+    item.variant_sku
+      ? `
+        <div class="tiny-note">
+          SKU: ${escapeHtml(item.variant_sku)}
+        </div>
+      `
+      : ""
+  }
+
+  <div class="tiny-note">
+    Qty: ${Number(item.quantity || 0)}
+  </div>
+</div>
                   <div class="order-product-prices">
                     <span>${formatCurrency(item.unit_price || 0)}</span>
                     <span>${formatCurrency(item.line_total || 0)}</span>
@@ -2265,81 +2418,40 @@ function renderOrders(ordersToRender) {
               .join("")
           : `<div class="tiny-note">No products found</div>`;
 
-        return `
-          <article class="order-card">
+    const shippingLines = [
+        [order.house_unit, order.street].filter(Boolean).join(", "),
+        order.barangay ? `Brgy. ${order.barangay}` : "",
+        [order.city, order.province].filter(Boolean).join(", "),
+        order.zipcode || ""
+    ].filter(Boolean);
+
+    const shippingAddress = shippingLines.length
+        ? shippingLines.map((line) => escapeHtml(line)).join("<br>")
+        : escapeHtml(order.address || "—");
+
+    return `
+        <article class="order-card">
             <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
 
             <p>
-              ${escapeHtml(order.customer_name)}
-              · ${escapeHtml(order.phone)}
-            </p>
-
-            <p>${escapeHtml(order.address)}</p>
-
-            <p>
-              ${formatCurrency(order.total)}
-              · ${escapeHtml(order.payment_method || "—")}
+                ${escapeHtml(order.customer_name)}
+                · ${escapeHtml(order.phone)}
             </p>
 
             <p>
-              Payment status: <strong>${escapeHtml(order.payment_status || "Pending")}</strong>
+                📍 ${shippingAddress}
             </p>
 
             <p>
-              Amount paid: ${formatCurrency(order.amount_paid || 0)}
+                ${formatCurrency(order.total)}
+                · ${escapeHtml(order.payment_method || "—")}
             </p>
-
-            ${order.reference_number ? `<p>Reference: ${escapeHtml(order.reference_number)}</p>` : ""}
-
-            <details class="order-products-details">
-              <summary>${escapeHtml(productsLabel)} <span class="order-details-arrow">▾</span></summary>
-              <div class="order-products-body">
-                ${productRows}
-              </div>
-            </details>
-
-            <label>
-              Status
-              <select data-order-status="${order.id}">
-                ${orderStatusOptions(order.status)}
-              </select>
-            </label>
-
-            <div class="order-actions">
-              <button class="secondary-button" type="button" data-order-view-details="${order.id}">View Details</button>
-              ${order.receipt_image ? `
-                <button class="secondary-button" type="button" data-order-view-receipt="${order.id}">
-                  View Receipt
-                </button>
-              ` : ""}
-              <button class="secondary-button" type="button" data-order-approve="${order.id}">
-                Approve Payment
-              </button>
-              <button class="secondary-button danger" type="button" data-order-reject="${order.id}">
-                Reject Payment
-              </button>
-              ${Boolean(order.archived) ? `
-                <button class="secondary-button" type="button" data-order-restore="${order.id}">
-                  Restore Order
-                </button>
-                <button class="secondary-button danger" type="button" data-order-delete-permanent="${order.id}">
-                  Delete Permanently
-                </button>
-              ` : `
-                <button class="secondary-button" type="button" data-order-archive="${order.id}">
-                  Archive Order
-                </button>
-              `}
-            </div>
-
-            <small>
-              ${new Date(order.created_at).toLocaleString()}
-            </small>
-          </article>
-        `;
-      }
-    )
-    .join("");
+      
+            </article>
+    `;
+  })
+  .join("");
+    
 
   ordersList
     .querySelectorAll("[data-order-status]")
@@ -2428,7 +2540,7 @@ async function updateOrderStatus(id, status) {
     .eq("id", id);
 
   if (error) {
-    alert(`Could not update order: ${error.message}`);
+  alert(`Could not update order: ${error.message}`);
     await loadOrders();
     return;
   }
@@ -2442,7 +2554,16 @@ function openOrderDetails(order) {
   const totalItems = items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
   const orderTotals = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
   const currency = formatCurrency;
+const shippingLines = [
+    [order.house_unit, order.street].filter(Boolean).join(", "),
+    order.barangay ? `Brgy. ${order.barangay}` : "",
+    [order.city, order.province].filter(Boolean).join(", "),
+    order.zipcode || ""
+].filter(Boolean);
 
+const shippingAddress = shippingLines.length
+   ? shippingLines.map(line => escapeHtml(line)).join("<br>")
+    : escapeHtml(order.address || "—");
   orderDetailsContent.innerHTML = `
     <div class="order-detail-shell">
       <div class="order-detail-card">
@@ -2458,7 +2579,10 @@ function openOrderDetails(order) {
             <h4>Customer</h4>
             <p>${escapeHtml(order.customer_name || "—")}</p>
             <p>${escapeHtml(order.phone || "—")}</p>
-            <p>${escapeHtml(order.address || "—")}</p>
+            <p>
+  <strong>📍 Shipping</strong><br>
+  ${shippingAddress}
+</p>
           </div>
           <div>
             <h4>Payment</h4>
