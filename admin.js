@@ -2494,6 +2494,18 @@ function renderOrders(ordersToRender) {
   ordersList.innerHTML = ordersToRender
     .map(
       (order) => {
+        const orderedAt = order.created_at
+  ? new Date(order.created_at).toLocaleString("en-PH", {
+      timeZone: "Asia/Manila",
+      month: "numeric",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    })
+  : "—";
         const orderItems = orderItemsByOrder[String(order.id)] || [];
         const productsLabel = `Products (${orderItems.length})`;
         const productRows = orderItems.length
@@ -2653,6 +2665,10 @@ ${Boolean(order.archived) ? `
   `
 }
 </div>
+
+<p class="tiny-note">
+  ${escapeHtml(orderedAt)}
+</p>
 
 </article>
     `;
