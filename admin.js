@@ -973,9 +973,10 @@ paymentMethodForm.addEventListener("submit", async (event) => {
     receipt_required: formData.get("receipt_required") === "on",
     reference_required: formData.get("reference_required") === "on",
     deposit_required: formData.get("deposit_required") === "on",
-    deposit_percentage: formData.get("deposit_percentage") !== ""
-      ? Number(formData.get("deposit_percentage"))
-      : null,
+    deposit_percentage:
+  formData.get("deposit_percentage") !== ""
+    ? Number(formData.get("deposit_percentage"))
+    : 0,
     is_visible: formData.get("is_visible") === "on",
     sort_order:
       requestedSortOrder !== ""
@@ -1808,12 +1809,23 @@ if (VariantManager.isEnabled()) {
     return;
   }
 }
+const existingProduct = id
+  ? products.find((item) => String(item.id) === String(id))
+  : null;
+
+const categoryValue =
+  String(formData.get("category") || "").trim() ||
+  String(existingProduct?.category || "").trim();
+
+if (!categoryValue) {
+  alert("Please enter a product category.");
+  return;
+}
   const product = {
     name: String(formData.get("name") || "").trim(),
    price: basePrice,
    stock: baseStock,
-    category:
-      String(formData.get("category") || "").trim() || null,
+   category: categoryValue,
     image_url: productImageUrl || null,
     description:
       String(formData.get("description") || "").trim() || null,
@@ -2146,17 +2158,30 @@ async function viewOrderReceipt(order) {
 async function updateOrderPaymentStatus(id, paymentStatus) {
   try {
     const approvingPayment = paymentStatus === "Approved";
-
+    const rejectingPayment = paymentStatus === "Rejected";
     const { data: order, error: orderError } = await supabaseClient
       .from("orders")
-      .select("id, stock_deducted")
+      .select("id, payment_status, stock_deducted")
       .eq("id", id)
       .single();
 
     if (orderError) {
       throw orderError;
     }
+const reversingApprovedPayment =
+  rejectingPayment &&
+  order.payment_status === "Approved" &&
+  order.stock_deducted;
 
+if (reversingApprovedPayment) {
+  const confirmed = confirm(
+    "Reject this approved payment? The deducted inventory will be restored."
+  );
+
+  if (!confirmed) {
+    return;
+  }
+}
     /*
      * Deduct inventory only when payment is approved
      * and only if this order has not deducted stock before.
@@ -2246,7 +2271,80 @@ async function updateOrderPaymentStatus(id, paymentStatus) {
         }
       }
     }
+/*
+ * Restore inventory when an approved payment is changed to rejected.
+ */
+if (reversingApprovedPayment) {
+  const { data: orderItems, error: itemsError } =
+    await supabaseClient
+      .from("order_items")
+      .select("product_id, variant_id, quantity")
+      .eq("order_id", id);
 
+  if (itemsError) {
+    throw itemsError;
+  }
+
+  for (const item of orderItems || []) {
+    const orderedQuantity = Number(item.quantity || 0);
+
+    if (orderedQuantity < 1) continue;
+
+    if (item.variant_id) {
+      const { data: variant, error: variantError } =
+        await supabaseClient
+          .from("product_variants")
+          .select("id, stock")
+          .eq("id", item.variant_id)
+          .single();
+
+      if (variantError) {
+        throw variantError;
+      }
+
+      const currentStock = Number(variant.stock || 0);
+
+      const { error: variantUpdateError } =
+        await supabaseClient
+          .from("product_variants")
+          .update({
+            stock: currentStock + orderedQuantity,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", item.variant_id);
+
+      if (variantUpdateError) {
+        throw variantUpdateError;
+      }
+    } else {
+      const { data: product, error: productError } =
+        await supabaseClient
+          .from("products")
+          .select("id, stock")
+          .eq("id", item.product_id)
+          .single();
+
+      if (productError) {
+        throw productError;
+      }
+
+      const currentStock = Number(product.stock || 0);
+
+      const { error: productUpdateError } =
+        await supabaseClient
+          .from("products")
+          .update({
+            stock: currentStock + orderedQuantity,
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", item.product_id);
+
+      if (productUpdateError) {
+        throw productUpdateError;
+      }
+    }
+  }
+}
     const updatePayload = {
       payment_status: paymentStatus,
       updated_at: new Date().toISOString()
@@ -2255,7 +2353,9 @@ async function updateOrderPaymentStatus(id, paymentStatus) {
     if (approvingPayment && !order.stock_deducted) {
       updatePayload.stock_deducted = true;
     }
-
+     if (reversingApprovedPayment) {
+  updatePayload.stock_deducted = false;
+}
     const { error: updateError } = await supabaseClient
       .from("orders")
       .update(updatePayload)
@@ -2443,11 +2543,83 @@ function renderOrders(ordersToRender) {
             </p>
 
             <p>
-                ${formatCurrency(order.total)}
-                · ${escapeHtml(order.payment_method || "—")}
-            </p>
-      
-            </article>
+  ${formatCurrency(order.total)}
+  · ${escapeHtml(order.payment_method || "—")}
+</p>
+
+<p class="tiny-note">
+  Payment Status: ${escapeHtml(order.payment_status || "Pending")}
+</p>
+
+<div class="order-card-actions">
+  ${
+    order.receipt_image
+      ? `
+        <button
+          type="button"
+          class="secondary-button"
+          data-order-view-receipt="${escapeHtml(String(order.id))}"
+        >
+          View Receipt
+        </button>
+      `
+      : `
+        <span class="tiny-note">No receipt uploaded</span>
+      `
+  }
+  ${
+  order.receipt_image &&
+  order.payment_status !== "Approved"
+    ? `
+      <button
+        type="button"
+        class="primary-button"
+        data-order-approve="${escapeHtml(String(order.id))}"
+      >
+        Approve Payment
+      </button>
+    `
+    : ""
+}
+
+${
+  order.receipt_image &&
+  order.payment_status !== "Rejected"
+    ? `
+      <button
+        type="button"
+        class="secondary-button"
+        data-order-reject="${escapeHtml(String(order.id))}"
+      >
+        Reject Payment
+      </button>
+    `
+    : ""
+}
+${
+  !order.archived
+    ? `
+      <button
+        type="button"
+        class="secondary-button"
+        data-order-archive="${escapeHtml(String(order.id))}"
+      >
+        Archive Order
+      </button>
+    `
+    : `
+      <button
+        type="button"
+        class="secondary-button"
+        data-order-restore="${escapeHtml(String(order.id))}"
+      >
+        Restore Order
+      </button>
+    `
+}
+</div>
+
+</article>
     `;
   })
   .join("");
