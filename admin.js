@@ -2568,6 +2568,15 @@ function renderOrders(ordersToRender) {
 <p class="tiny-note">
   Payment Status: ${escapeHtml(order.payment_status || "Pending")}
 </p>
+<details class="order-products-details">
+  <summary>
+    ${escapeHtml(productsLabel)}
+  </summary>
+
+  <div class="order-products-body">
+    ${productRows}
+  </div>
+</details>
 
 <div class="order-card-actions">
   ${
