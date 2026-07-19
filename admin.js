@@ -2201,15 +2201,23 @@ if (reversingApprovedPayment) {
 
       for (const item of orderItems || []) {
         const orderedQuantity = Number(item.quantity || 0);
+const variantId =
+  item.variant_id && String(item.variant_id) !== "null"
+    ? item.variant_id
+    : null;
 
+const productId =
+  item.product_id && String(item.product_id) !== "null"
+    ? item.product_id
+    : null;
         if (orderedQuantity < 1) continue;
 
-        if (item.variant_id) {
+        if (variantId) {
           const { data: variant, error: variantError } =
             await supabaseClient
               .from("product_variants")
               .select("id, stock")
-              .eq("id", item.variant_id)
+              .eq("id", variantId)
               .single();
 
           if (variantError) {
@@ -2231,17 +2239,17 @@ if (reversingApprovedPayment) {
                 stock: currentStock - orderedQuantity,
                 updated_at: new Date().toISOString()
               })
-              .eq("id", item.variant_id);
+              .eq("id", variantId);
 
           if (variantUpdateError) {
             throw variantUpdateError;
           }
-        } else {
+        } else if (productId) {
           const { data: product, error: productError } =
             await supabaseClient
               .from("products")
               .select("id, stock")
-              .eq("id", item.product_id)
+              .eq("id", productId)
               .single();
 
           if (productError) {
@@ -2263,7 +2271,7 @@ if (reversingApprovedPayment) {
                 stock: currentStock - orderedQuantity,
                 updated_at: new Date().toISOString()
               })
-              .eq("id", item.product_id);
+              .eq("id", productId);
 
           if (productUpdateError) {
             throw productUpdateError;
@@ -2287,16 +2295,26 @@ if (reversingApprovedPayment) {
 
   for (const item of orderItems || []) {
     const orderedQuantity = Number(item.quantity || 0);
+   
+    const variantId =
+   item.variant_id && String(item.variant_id) !== "null"
+    ? item.variant_id
+    : null;
+
+   const productId =
+   item.product_id && String(item.product_id) !== "null"
+    ? item.product_id
+    : null;
 
     if (orderedQuantity < 1) continue;
 
-    if (item.variant_id) {
-      const { data: variant, error: variantError } =
-        await supabaseClient
-          .from("product_variants")
-          .select("id, stock")
-          .eq("id", item.variant_id)
-          .single();
+    if (variantId) {
+       const { data: variant, error: variantError } =
+  await supabaseClient
+    .from("product_variants")
+    .select("id, stock")
+    .eq("id", variantId)
+    .single();
 
       if (variantError) {
         throw variantError;
@@ -2311,17 +2329,17 @@ if (reversingApprovedPayment) {
             stock: currentStock + orderedQuantity,
             updated_at: new Date().toISOString()
           })
-          .eq("id", item.variant_id);
+          .eq("id", variantId);
 
       if (variantUpdateError) {
         throw variantUpdateError;
       }
-    } else {
+    } else if (productId) {
       const { data: product, error: productError } =
         await supabaseClient
           .from("products")
           .select("id, stock")
-          .eq("id", item.product_id)
+          .eq("id", productId)
           .single();
 
       if (productError) {
@@ -2337,7 +2355,7 @@ if (reversingApprovedPayment) {
             stock: currentStock + orderedQuantity,
             updated_at: new Date().toISOString()
           })
-          .eq("id", item.product_id);
+          .eq("id", productId);
 
       if (productUpdateError) {
         throw productUpdateError;

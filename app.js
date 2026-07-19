@@ -1485,14 +1485,21 @@ zipcode: zipcode || null,
       ? Number(item.unitPrice)
       : Number(product.price || 0);
 
+      const variantId =
+  item.variantId &&
+  String(item.variantId) !== "null" &&
+  String(item.variantId) !== "undefined"
+    ? item.variantId
+    : null;
+
   return {
     order_id: order.id,
     product_id: product.id,
     product_name: product.name,
 
-    variant_id: item.variantId || null,
-    variant_name: item.variantName || null,
-    variant_sku: item.variantSku || null,
+    variant_id: variantId,
+   variant_name: variantId ? item.variantName || null : null,
+   variant_sku: variantId ? item.variantSku || null : null,
 
     unit_price: unitPrice,
     quantity: Number(item.quantity || 0),
