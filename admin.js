@@ -2585,9 +2585,10 @@ function renderOrders(ordersToRender) {
         <span class="tiny-note">No receipt uploaded</span>
       `
   }
-  ${
+ ${
   order.receipt_image &&
-  order.payment_status !== "Approved"
+  order.payment_status !== "Approved" &&
+  !Boolean(order.archived)
     ? `
       <button
         type="button"
@@ -2602,7 +2603,8 @@ function renderOrders(ordersToRender) {
 
 ${
   order.receipt_image &&
-  order.payment_status !== "Rejected"
+  order.payment_status !== "Rejected" &&
+  !Boolean(order.archived)
     ? `
       <button
         type="button"
@@ -2614,26 +2616,32 @@ ${
     `
     : ""
 }
-${
-  !order.archived
-    ? `
-      <button
-        type="button"
-        class="secondary-button"
-        data-order-archive="${escapeHtml(String(order.id))}"
-      >
-        Archive Order
-      </button>
-    `
-    : `
-      <button
-        type="button"
-        class="secondary-button"
-        data-order-restore="${escapeHtml(String(order.id))}"
-      >
-        Restore Order
-      </button>
-    `
+${Boolean(order.archived) ? `
+    <button
+      type="button"
+      class="secondary-button"
+      data-order-restore="${escapeHtml(String(order.id))}"
+    >
+      Restore Order
+    </button>
+
+    <button
+      type="button"
+      class="secondary-button order-delete-btn"
+      data-order-delete-permanent="${escapeHtml(String(order.id))}"
+    >
+      Delete Permanently
+    </button>
+  `
+  : `
+    <button
+      type="button"
+      class="secondary-button"
+      data-order-archive="${escapeHtml(String(order.id))}"
+    >
+      Archive Order
+    </button>
+  `
 }
 </div>
 
