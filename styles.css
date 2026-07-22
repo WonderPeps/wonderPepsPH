@@ -34,6 +34,39 @@ nav{display:flex;gap:14px;align-items:center}
 .cart-button,.icon-button{
   border:0;background:var(--pink-2);color:var(--ink);border-radius:999px;padding:10px 14px;font-weight:700
 }
+.favorite-header-button{
+    position:relative;
+}
+
+.favorite-header-icon{
+    color: var(--pink-3);
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.favorites-badge{
+    position:absolute;
+    top:-4px;
+    right:-4px;
+
+    min-width:18px;
+    height:18px;
+
+    padding:0 5px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:999px;
+
+    background:var(--pink-3);
+    color:var(--white);
+
+    font-size:.7rem;
+    font-weight:700;
+
+    line-height:1;
+}
 .cart-button span{background:var(--pink-3);color:white;border-radius:999px;padding:2px 7px;margin-left:4px}
 .hero{
   max-width:1180px;margin:auto;padding:70px clamp(20px,6vw,80px);

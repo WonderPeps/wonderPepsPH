@@ -57,7 +57,7 @@ function addFavorite(productId) {
   });
 
   saveFavorites();
-
+  updateFavoritesBadge();
   return true;
 }
 
@@ -67,7 +67,7 @@ function removeFavorite(productId) {
   );
 
   saveFavorites();
-
+  updateFavoritesBadge();
   return true;
 }
 
@@ -94,3 +94,19 @@ function getFavoriteProducts() {
 function getFavoriteCount() {
   return favorites.length;
 }
+function updateFavoritesBadge() {
+    const badge = document.getElementById("favoritesCount");
+
+    if (!badge) {
+        return;
+    }
+
+    const count = getFavoriteCount();
+
+    badge.textContent = count;
+
+    badge.hidden = count === 0;
+}
+document.addEventListener("DOMContentLoaded", () => {
+    updateFavoritesBadge();
+});
