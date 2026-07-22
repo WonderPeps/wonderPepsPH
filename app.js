@@ -361,10 +361,19 @@ const displayedStock = hasVariants
         `;
 
       return `
-        <article class="product-card">
-          ${image}
+  <article class="product-card">
 
-          <div class="product-body">
+    <button
+      class="favorite-button"
+      type="button"
+      aria-label="Add to Favorites"
+      data-favorite-product="${product.id}">
+      ${isFavorite(product.id) ? "♥" : "♡"}
+    </button>
+
+    ${image}
+
+    <div class="product-body">
             <h3>${escapeHtml(product.name)}</h3>
 
             <p>
@@ -408,7 +417,7 @@ const displayedStock = hasVariants
         const product = getProductById(
           button.dataset.addProduct
         );
-
+       
         if (!product) return;
 
         const variants = getProductVariants(product.id);
@@ -422,6 +431,24 @@ const displayedStock = hasVariants
     });
 }
 
+ productGrid.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-favorite-product]");
+
+  if (!button) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  const productId = button.dataset.favoriteProduct;
+
+  console.log("Favorite clicked:", productId);
+
+  const added = toggleFavorite(productId);
+
+  button.textContent = added ? "♥" : "♡";
+});
 searchInput.addEventListener("input", (event) => {
   const query = event.target.value.trim().toLowerCase();
 
