@@ -363,13 +363,23 @@ const displayedStock = hasVariants
       return `
   <article class="product-card">
 
-    <button
-      class="favorite-button"
-      type="button"
-      aria-label="Add to Favorites"
-      data-favorite-product="${product.id}">
-      ${isFavorite(product.id) ? "♥" : "♡"}
-    </button>
+<button
+    class="favorite-button ${isFavorite(product.id) ? "is-favorite" : ""}"
+    type="button"
+    aria-label="Add to Favorites"
+    data-favorite-product="${product.id}">
+
+    <svg
+        class="favorite-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true">
+
+        <path
+            d="M12 21C12 21 3 15.5 3 8.8C3 5.6 5.4 3.5 8.2 3.5C10.1 3.5 11.4 4.5 12 5.7C12.6 4.5 13.9 3.5 15.8 3.5C18.6 3.5 21 5.6 21 8.8C21 15.5 12 21 12 21Z" />
+    </svg>
+
+</button>
 
     ${image}
 
@@ -447,7 +457,7 @@ const displayedStock = hasVariants
 
   const added = toggleFavorite(productId);
 
-  button.textContent = added ? "♥" : "♡";
+  button.classList.toggle("is-favorite", added);
 });
 searchInput.addEventListener("input", (event) => {
   const query = event.target.value.trim().toLowerCase();

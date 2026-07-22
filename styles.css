@@ -104,6 +104,45 @@ h2{font-size:clamp(1.8rem,5vw,2.8rem);margin:.2em 0}
 .favorite-button:active{
     transform:scale(.95);
 }
+
+/* ---------- SVG HEART ---------- */
+
+.favorite-icon{
+    width:20px;
+    height:20px;
+    display:block;
+}
+
+.favorite-icon path{
+    fill:transparent;
+    stroke:#3f2d37;
+    stroke-width:2;
+    transition:.25s ease;
+}
+
+.favorite-button.is-favorite .favorite-icon path{
+    fill:var(--pink-3);
+    stroke:var(--pink-3);
+}
+
+.favorite-button.is-favorite{
+    background:var(--pink-2);
+    animation:favorite-pop .25s ease;
+}
+
+@keyframes favorite-pop{
+    0%{
+        transform:scale(.85);
+    }
+
+    60%{
+        transform:scale(1.15);
+    }
+
+    100%{
+        transform:scale(1);
+    }
+}
 .product-image{aspect-ratio:1/1;background:linear-gradient(145deg,#fff,#fce6ef);display:grid;place-items:center;font-size:4rem}
 .product-body{padding:18px}
 .product-body h3{margin:0 0 7px}
