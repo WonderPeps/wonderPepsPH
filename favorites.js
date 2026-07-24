@@ -74,11 +74,21 @@ function removeFavorite(productId) {
 function toggleFavorite(productId) {
   if (isFavorite(productId)) {
     removeFavorite(productId);
+
+    renderFavoritesDrawer();
+
     return false;
   }
 
   addFavorite(productId);
+
+  renderFavoritesDrawer();
+
   return true;
+}
+
+function getFavorites() {
+  return favorites.map(item => String(item.productId));
 }
 
 function getFavoriteProducts() {
@@ -109,4 +119,74 @@ function updateFavoritesBadge() {
 }
 document.addEventListener("DOMContentLoaded", () => {
     updateFavoritesBadge();
+    renderFavoritesDrawer();
 });
+function renderFavoritesDrawer() {
+    const container = document.getElementById("favoritesItems");
+
+    if (!container) {
+        return;
+    }
+
+    const favoriteProducts = getFavoriteProducts();
+    if (!favoriteProducts.length) {
+        container.innerHTML = `
+            <p class="empty">
+                No favorites yet.
+            </p>
+        `;
+        return;
+    }
+
+    container.innerHTML = favoriteProducts
+  .map((product) => `
+    <div class="favorite-item">
+
+      ${
+        product.image_url
+          ? `
+            <img
+              class="favorite-thumb"
+              src="${product.image_url}"
+              alt="${product.name}">
+          `
+          : `
+            <div class="favorite-thumb favorite-thumb-placeholder">
+              ♡
+            </div>
+          `
+      }
+
+      <div class="favorite-details">
+        <strong>${product.name}</strong>
+        <span>${formatCurrency(product.price)}</span>
+      </div>
+
+      <button
+        class="favorite-remove"
+        data-favorite-product="${product.id}">
+        ♥
+      </button>
+
+    </div>
+  `)
+  .join("");
+    container
+    .querySelectorAll(".favorite-remove")
+    .forEach((button) => {
+   button.addEventListener("click", () => {
+
+    removeFavorite(button.dataset.favoriteProduct);
+
+    renderFavoritesDrawer();
+
+    updateFavoritesBadge();
+
+    // Refresh the product cards so the heart icon updates
+    if (typeof renderProducts === "function") {
+        renderProducts(products);
+    }
+
+});
+    });
+}

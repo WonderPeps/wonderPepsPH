@@ -61,6 +61,9 @@ const cartButton = document.querySelector("#cartButton");
 const cartCount = document.querySelector("#cartCount");
 const cartDrawer = document.querySelector("#cartDrawer");
 const closeCart = document.querySelector("#closeCart");
+const favoritesDrawer = document.getElementById("favoritesDrawer");
+const favoritesButton = document.getElementById("favoritesButton");
+const closeFavorites = document.getElementById("closeFavorites");
 const cartItems = document.querySelector("#cartItems");
 const cartSubtotal = document.querySelector("#cartSubtotal");
 const checkoutButton = document.querySelector("#checkoutButton");
@@ -273,8 +276,10 @@ if (heroImage && heroFallback) {
 ------------------------- */
 
 async function loadProducts() {
-  productGrid.innerHTML =
-    '<p class="empty">Loading products...</p>';
+  const grid = productGrid || document.getElementById("favoritesGrid");
+   grid.innerHTML = `
+   <p class="empty">Loading products...</p>
+`;
 
   const [
     { data: productData, error: productError },
@@ -292,9 +297,8 @@ async function loadProducts() {
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
   ]);
-
   if (productError) {
-    productGrid.innerHTML = `
+     grid.innerHTML = `
       <p class="empty">
         Could not load products: ${escapeHtml(productError.message)}
       </p>
@@ -318,24 +322,41 @@ async function loadProducts() {
         String(variant.product_id) === String(product.id)
     )
   }));
+const isFavoritesPage = !!document.getElementById("favoritesGrid");
 
-  renderProducts(products);
+if (isFavoritesPage) {
+  const favoriteIds = getFavorites();
+
+  const favoriteProducts = products.filter((product) =>
+    favoriteIds.includes(String(product.id))
+  );
+
+  renderProducts(favoriteProducts, grid);
+} else {
+  renderProducts(products, grid);
+}
+if (typeof renderFavoritesDrawer === "function") {
+    renderFavoritesDrawer();
 }
 
+if (typeof updateFavoritesBadge === "function") {
+    updateFavoritesBadge();
+}
+}
 function getProductVariants(productId) {
   return productVariants.filter(
     (variant) =>
       String(variant.product_id) === String(productId)
   );
 }
-function renderProducts(list) {
+function renderProducts(list, grid = productGrid) {
   if (!list.length) {
-    productGrid.innerHTML =
+     grid.innerHTML =
       `<p class="empty">No products are available yet.</p>`;
     return;
   }
 
-  productGrid.innerHTML = list
+   grid.innerHTML = list
     .map((product) => {
       const variants = getProductVariants(product.id);
       const hasVariants = variants.length > 0;
@@ -419,8 +440,7 @@ const displayedStock = hasVariants
       `;
     })
     .join("");
-
-  productGrid
+   grid
     .querySelectorAll("[data-add-product]")
     .forEach((button) => {
       button.addEventListener("click", () => {
@@ -439,43 +459,61 @@ const displayedStock = hasVariants
         }
       });
     });
+   }
+   const activeGrid =
+   productGrid || document.getElementById("favoritesGrid");
+
+   if (activeGrid) {
+   activeGrid.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-favorite-product]");
+
+    if (!button) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const productId = button.dataset.favoriteProduct;
+
+   const added = toggleFavorite(productId);
+
+button.classList.toggle("is-favorite", added);
+
+const favoritesGrid = document.getElementById("favoritesGrid");
+
+if (favoritesGrid && !added) {
+  const favoriteIds = getFavorites();
+
+  const favoriteProducts = products.filter((product) =>
+    favoriteIds.includes(String(product.id))
+  );
+
+  renderProducts(favoriteProducts, favoritesGrid);
+}
+  });
 }
 
- productGrid.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-favorite-product]");
+if (searchInput) {
+    searchInput.addEventListener("input", (event) => {
+        const query = event.target.value.trim().toLowerCase();
 
-  if (!button) {
-    return;
-  }
+        const filteredProducts = products.filter((product) => {
+            return (
+                product.name.toLowerCase().includes(query) ||
+                String(product.category || "")
+                    .toLowerCase()
+                    .includes(query) ||
+                String(product.description || "")
+                    .toLowerCase()
+                    .includes(query)
+            );
+        });
 
-  event.preventDefault();
-  event.stopPropagation();
+        renderProducts(filteredProducts);
+    });
+}
 
-  const productId = button.dataset.favoriteProduct;
-
-  console.log("Favorite clicked:", productId);
-
-  const added = toggleFavorite(productId);
-
-  button.classList.toggle("is-favorite", added);
-});
-searchInput.addEventListener("input", (event) => {
-  const query = event.target.value.trim().toLowerCase();
-
-  const filteredProducts = products.filter((product) => {
-    return (
-      product.name.toLowerCase().includes(query) ||
-      String(product.category || "")
-        .toLowerCase()
-        .includes(query) ||
-      String(product.description || "")
-        .toLowerCase()
-        .includes(query)
-    );
-  });
-
-  renderProducts(filteredProducts);
-});
 function resetVariantDialog() {
   activeVariantProduct = null;
   selectedVariant = null;
@@ -1050,10 +1088,21 @@ function closeCartDrawer() {
   cartDrawer.classList.remove("open");
   cartDrawer.setAttribute("aria-hidden", "true");
 }
+function openFavorites() {
+  favoritesDrawer.classList.add("open");
+  favoritesDrawer.setAttribute("aria-hidden", "false");
+}
 
+function closeFavoritesDrawer() {
+  favoritesDrawer.classList.remove("open");
+  favoritesDrawer.setAttribute("aria-hidden", "true");
+}
 cartButton.addEventListener("click", openCart);
 
 closeCart.addEventListener("click", closeCartDrawer);
+favoritesButton.addEventListener("click", openFavorites);
+
+closeFavorites.addEventListener("click", closeFavoritesDrawer);
 
 cartDrawer.addEventListener("click", (event) => {
   if (event.target === cartDrawer) {

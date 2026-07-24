@@ -90,21 +90,14 @@
     <div class="hearts">♡ ♡ ♡</div>
   </div>
 </div>
-    </section>
-
-    <section id="shop" class="section">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">Catalog</p>
-          <h2>Shop products</h2>
-        </div>
-        <input id="searchInput" class="search" type="search" placeholder="Search products" />
-      </div>
-      <div id="productGrid" class="product-grid"></div>
+</section>
+       <section id="shop" class="section">
+    <div id="productGrid" class="product-grid"></div>
     </section>
 
     <section class="section info-grid">
-      <article>
+    <article>
+
         <h3>Payment options</h3>
         <p>GCash, Maya, bank transfer, or Cash on Delivery.</p>
       </article>
@@ -132,6 +125,34 @@
       </div>
     </div>
   </aside>
+
+   <aside
+    id="favoritesDrawer"
+    class="drawer"
+    aria-hidden="true">
+   <div class="drawer-panel">
+
+    <div class="drawer-header">
+        <h2>My Favorites</h2>
+
+        <button
+            id="closeFavorites"
+            class="icon-button"
+            type="button"
+            aria-label="Close favorites">
+
+            ✕
+
+        </button>
+    </div>
+
+    <div id="favoritesItems" class="drawer-body">
+        <p class="empty">
+            No favorites yet.
+        </p>
+    </div>
+</div>
+</aside>
 <!-- =========================
      PRODUCT VARIANT MODAL
 ========================= -->
