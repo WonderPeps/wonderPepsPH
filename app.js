@@ -68,7 +68,7 @@ const closeFavorites = document.getElementById("closeFavorites");
 const cartItems = document.querySelector("#cartItems");
 const cartSubtotal = document.querySelector("#cartSubtotal");
 const checkoutButton = document.querySelector("#checkoutButton");
-
+const closeCheckout = document.querySelector("#closeCheckout");
 const checkoutDialog = document.querySelector("#checkoutDialog");
 const checkoutForm = document.querySelector("#checkoutForm");
 const checkoutTotal = document.querySelector("#checkoutTotal");
@@ -1183,6 +1183,12 @@ checkoutButton.addEventListener("click", () => {
   updateCheckoutTotal();
   checkoutDialog.showModal();
 });
+
+if (closeCheckout) {
+  closeCheckout.addEventListener("click", () => {
+    checkoutDialog.close();
+  });
+}
 
 checkoutForm
   .querySelector('select[name="shipping"]')
