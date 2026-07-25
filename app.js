@@ -9,6 +9,7 @@ const brandLogo = document.querySelector("#brandLogo");
 const brandFallback = document.querySelector("#brandFallback");
 const heroTitle = document.querySelector("#heroTitle");
 const heroSubtitle = document.querySelector("#heroSubtitle");
+const heroEyebrow = document.querySelector("#heroEyebrow");
 const heroImage = document.querySelector("#heroImage");
 const heroFallback = document.querySelector("#heroFallback");
 const footerBrand = document.querySelector("#footerBrand");
@@ -205,6 +206,10 @@ function applyShopSettings(settings) {
       settings.hero_subtitle ||
       "Browse products, add them to your bag, and send your order details in just a few taps.";
   }
+
+  if (heroEyebrow) {
+    heroEyebrow.textContent = settings.hero_eyebrow || "";
+}
 
   if (footerBrand) {
     footerBrand.textContent = `© ${shopName}`;

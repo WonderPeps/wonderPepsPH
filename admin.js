@@ -339,6 +339,7 @@ if (data.hero_image_url) {
 
   deleteHeroImageButton.hidden = true;
 }
+  settingsForm.elements.heroEyebrow.value = data.hero_eyebrow || "";
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
   settingsForm.elements.facebook.value = data.facebook_url || "";
@@ -363,6 +364,7 @@ settingsForm.addEventListener("submit", async (event) => {
     shop_name: String(formData.get("shopName") || "").trim(),
     logo_url: String(formData.get("logoUrl") || "").trim() || null,
     hero_image_url: String(formData.get("heroImageUrl") || "").trim() || null,
+    hero_eyebrow: settingsForm.elements.heroEyebrow.value,
     hero_title: String(formData.get("heroTitle") || "").trim(),
     hero_subtitle: String(formData.get("heroSubtitle") || "").trim(),
     facebook_url:
