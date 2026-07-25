@@ -116,6 +116,7 @@ function clearSavedCart() {
   cart = [];
   localStorage.removeItem(CART_STORAGE_KEY);
 }
+let selectedCategory = "All";
 let products = [];
 let productVariants = [];
 let activeVariantProduct = null;
@@ -334,6 +335,8 @@ if (isFavoritesPage) {
   renderProducts(favoriteProducts, grid);
 } else {
   renderProducts(products, grid);
+
+  renderCategoryFilters();
 }
 if (typeof renderFavoritesDrawer === "function") {
     renderFavoritesDrawer();
@@ -348,6 +351,60 @@ function getProductVariants(productId) {
     (variant) =>
       String(variant.product_id) === String(productId)
   );
+}
+function renderCategoryFilters() {
+
+    const container = document.getElementById("categoryFilters");
+
+    if (!container) return;
+
+    const categories = [
+        "All",
+        ...new Set(
+            products
+                .map(product => product.category)
+                .filter(Boolean)
+        )
+    ];
+
+    container.innerHTML = categories
+        .map(category => `
+            <button
+                class="category-chip ${selectedCategory === category ? "active" : ""}"
+                data-category="${category}">
+                ${category}
+            </button>
+        `)
+        .join("");
+
+    container.querySelectorAll(".category-chip")
+        .forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                selectedCategory = button.dataset.category;
+
+                renderCategoryFilters();
+
+                if (selectedCategory === "All") {
+
+                    renderProducts(products);
+
+                } else {
+
+                    renderProducts(
+                        products.filter(
+                            product =>
+                                product.category === selectedCategory
+                        )
+                    );
+
+                }
+
+            });
+
+        });
+
 }
 function renderProducts(list, grid = productGrid) {
   if (!list.length) {
