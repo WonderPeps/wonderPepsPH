@@ -83,14 +83,25 @@ nav{
 
     line-height:1;
 }
-.cart-button span {
-    background: var(--pink-3);
-    color: white;
-    border-radius: 999px;
-    padding: 2px 5px;
-    margin-left: 3px;
-    min-width: 18px;
-    text-align: center;
+#cartCount{
+    position:absolute;
+    top:-4px;
+    right:-4px;
+
+    min-width:18px;
+    height:18px;
+    padding:0 5px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:999px;
+    background:var(--pink-3);
+    color:white;
+
+    font-size:.7rem;
+    font-weight:700;
+    line-height:1;
 }
 .hero{
     max-width:1200px;
@@ -155,11 +166,16 @@ h2{font-size:clamp(1.8rem,5vw,2.8rem);margin:.2em 0}
     display:flex;
     align-items:center;
     gap:12px;
-    flex-wrap:wrap;
+    flex-wrap:nowrap;
+    overflow-x:auto;
 
     margin-bottom:32px;
 }
+.category-filters::-webkit-scrollbar{
+    display:none;
+}
 .category-chip{
+    flex-shrink:0;
 
     border:none;
 
@@ -1034,20 +1050,30 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 }
 
 @media (max-width: 600px) {
-.cart-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
 
-    padding: 6px 10px;
-    font-size: 13px;
-    line-height: 1;
+.cart-button {
+    position:relative;
+    width:44px;
+    height:44px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    font-size:1.2rem;
+    line-height:1;
 }
 
-  #cartToast {
-    bottom: 18px;
-    width: calc(100% - 32px);
-  }
+.cart-button span {
+    top:-4px;
+    right:-4px;
+}
+
+#cartToast {
+    bottom:18px;
+    width:calc(100% - 32px);
+}
+
 }
 
 /* Fix cart scrolling on mobile */
