@@ -83,7 +83,15 @@ nav{
 
     line-height:1;
 }
-.cart-button span{background:var(--pink-3);color:white;border-radius:999px;padding:2px 7px;margin-left:4px}
+.cart-button span {
+    background: var(--pink-3);
+    color: white;
+    border-radius: 999px;
+    padding: 2px 5px;
+    margin-left: 3px;
+    min-width: 18px;
+    text-align: center;
+}
 .hero{
     max-width:1200px;
 
@@ -1013,11 +1021,22 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 }
 
 @media (max-width: 600px) {
+.cart-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    padding: 6px 10px;
+    font-size: 13px;
+    line-height: 1;
+}
+
   #cartToast {
     bottom: 18px;
     width: calc(100% - 32px);
   }
 }
+
 /* Fix cart scrolling on mobile */
 
 #cartDrawer .drawer-panel {
@@ -1468,7 +1487,7 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
   line-height: 1;
 }
 
-/* Mobile and tablet */
+/* Mobile and tablet drawer */
 
 @media (max-width: 600px) {
   .drawer-header {
@@ -1585,6 +1604,56 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
     height: 140px;
   }
 }
+/* =========================
+   Buyer Store - Mobile
+========================= */
+
+@media (max-width: 600px) {
+
+.hero{
+    display:grid;
+    grid-template-columns:1fr;
+    margin:0 auto;
+    padding:0;
+    gap:0;
+}
+.hero-copy{
+    padding:8px 20px 24px;
+    order:2;
+}
+
+.hero-media{
+    display:block;
+    width:100%;
+    margin:0;
+    grid-column:1 / -1;
+}
+
+.hero-image{
+    display:block;
+    width:100% !important;
+    max-width:none !important;
+    height:260px;
+    aspect-ratio:auto;
+    object-fit:cover;
+    border-radius:0;
+}
+
+.hero h1{
+    font-size:2.2rem;
+}
+
+.hero p{
+    font-size:1rem;
+}
+}
+@media (max-width:600px){
+
+.section{
+    padding:10px 20px;
+}
+
+}
 /* ===========================
    Hero Image
 =========================== */
@@ -1600,7 +1669,7 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
   object-fit: cover;
   display: block;
 
-  border-radius: 34px;
+  border-radius:0;
   background: var(--pink-2);
   box-shadow: var(--shadow);
 }
