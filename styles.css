@@ -54,6 +54,17 @@ nav{
     position:relative;
 }
 
+.cart-icon{
+  width:25px;
+  height:25px;
+  display:block;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
 .favorite-header-icon{
     color: var(--pink-3);
     font-size: 1.1rem;
@@ -465,6 +476,42 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 .search-field{border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:#fff;min-width:220px}
 .chip-toggle{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:999px;background:white}
 .category-list,.customer-list{display:grid;gap:10px}
+.category-drag-item{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  cursor:grab;
+  touch-action:none;
+}
+.category-drag-item:active{
+  cursor:grabbing;
+}
+.category-drag-item.dragging{
+  opacity:.55;
+  transform:scale(.99);
+}
+.category-drag-handle{
+  flex:0 0 auto;
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--pink-2);
+  color:var(--muted);
+  font-size:1.1rem;
+  user-select:none;
+}
+.category-drag-content{
+  flex:1;
+  min-width:0;
+}
+.category-save-status{
+  margin:8px 0 0;
+  color:var(--muted);
+}
+
 .order-details-content{padding:20px;max-width:680px}
 .order-detail-shell{display:grid;gap:16px}
 .order-detail-card{display:grid;gap:14px}

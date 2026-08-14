@@ -25,3 +25,9 @@ The next upgrade is Supabase for:
 - online orders
 - online image storage
 - editing from any device
+
+## Category drag-and-drop
+
+The updated admin Categories section lets you drag categories into any order. The order is stored in `shop_settings.category_order` and automatically controls the customer-facing category buttons.
+
+Before deploying this version, run `category-order-migration.sql` once in the Supabase SQL Editor.
