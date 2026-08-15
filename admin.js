@@ -2517,6 +2517,10 @@ function renderOrders(ordersToRender) {
     })
   : "—";
         const orderItems = orderItemsByOrder[String(order.id)] || [];
+        const orderTotals = orderItems.reduce(
+  (sum, item) => sum + Number(item.line_total || 0),
+  0
+);
         const productsLabel = `Products (${orderItems.length})`;
         const productRows = orderItems.length
           ? orderItems
@@ -2549,10 +2553,9 @@ function renderOrders(ordersToRender) {
     Qty: ${Number(item.quantity || 0)}
   </div>
 </div>
-                  <div class="order-product-prices">
-                    <span>${formatCurrency(item.unit_price || 0)}</span>
-                    <span>${formatCurrency(item.line_total || 0)}</span>
-                  </div>
+<div class="order-product-prices">
+  <span>${formatCurrency(item.line_total || 0)}</span>
+</div>
                 </div>
               `)
               .join("")
@@ -2592,27 +2595,27 @@ function renderOrders(ordersToRender) {
     ${escapeHtml(productsLabel)}
   </summary>
 
-  <div class="order-products-body">
-    ${productRows}
-  </div>
-</details>
+<div class="order-products-body">
+  ${productRows}
 
-<div class="order-total-summary">
-  <div class="order-total-line">
-    <span>Subtotal</span>
-    <span>${formatCurrency(orderTotals)}</span>
-  </div>
+  <div class="order-total-summary">
+    <div class="order-total-line">
+      <span>Subtotal</span>
+      <span>${formatCurrency(orderTotals)}</span>
+    </div>
 
-  <div class="order-total-line">
-    <span>Shipping</span>
-    <span>${formatCurrency(order.shipping_fee || 0)}</span>
-  </div>
+    <div class="order-total-line">
+      <span>Shipping</span>
+      <span>${formatCurrency(order.shipping_fee || 0)}</span>
+    </div>
 
-  <div class="order-grand-total">
-    <span>TOTAL</span>
-    <strong>${formatCurrency(order.total || 0)}</strong>
+    <div class="order-grand-total">
+      <span>TOTAL</span>
+      <strong>${formatCurrency(order.total || 0)}</strong>
+    </div>
   </div>
 </div>
+</details>
 
 <p class="tiny-note">
   Payment Status: ${escapeHtml(order.payment_status || "Pending")}
@@ -2853,8 +2856,7 @@ const shippingAddress = shippingLines.length
                   <div class="tiny-note">Qty ${Number(item.quantity || 0)}</div>
                 </div>
                 <div class="order-product-prices">
-                  <span>${currency(item.unit_price || 0)}</span>
-                  <span>${currency(item.line_total || 0)}</span>
+                <span>${currency(item.line_total || 0)}</span>
                 </div>
               </div>
             `).join("") : `<div class="tiny-note">No products found</div>`}
