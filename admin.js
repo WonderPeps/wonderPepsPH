@@ -2848,7 +2848,12 @@ const shippingAddress = shippingLines.length
             <p>Items: ${totalItems}</p>
             <p>Product total: ${currency(orderTotals)}</p>
             <p>Shipping fee: ${currency(order.shipping_fee || 0)}</p>
-            <p>Order total: ${currency(order.total || 0)}</p>
+
+            <div class="order-total-summary">
+              <span>Total</span>
+              <strong>${currency(order.total || 0)}</strong>
+            </div>
+
             <p>Shipping status: ${escapeHtml(order.status || "Pending")}</p>
             <p>Note: ${escapeHtml(order.notes || "No note provided")}</p>
           </div>
