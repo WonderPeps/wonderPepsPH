@@ -302,6 +302,13 @@ async function loadSettings() {
     return;
   }
 
+  // Load saved category order
+  if (data?.category_order && Array.isArray(data.category_order)) {
+    categoryOrder = data.category_order;
+  } else {
+    categoryOrder = [];
+  }
+
   settingsForm.elements.shopName.value = data.shop_name || "";
   settingsForm.elements.logoUrl.value = data.logo_url || "";
   if (data.logo_url) {
@@ -414,7 +421,7 @@ selectedHeroImageFile = null;
 
 alert("Shop profile saved online.");
 });
-  
+
 /* ------------------------
    MENU ITEMS
 ------------------------ */
@@ -2298,7 +2305,7 @@ if (reversingApprovedPayment) {
 
   for (const item of orderItems || []) {
     const orderedQuantity = Number(item.quantity || 0);
-   
+
     const variantId =
    item.variant_id && String(item.variant_id) !== "null"
     ? item.variant_id
@@ -2679,7 +2686,7 @@ ${Boolean(order.archived) ? `
     `;
   })
   .join("");
-    
+
 
   ordersList
     .querySelectorAll("[data-order-status]")
@@ -2999,24 +3006,66 @@ function renderCustomers() {
 }
 
 function renderCategories() {
-  const categories = Array.from(new Set([
+  const allCategories = Array.from(new Set([
     ...categoryRegistry,
-    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
-  ])).sort();
+    ...products
+      .map((product) => String(product.category || "").trim())
+      .filter(Boolean)
+  ]));
+
+  // Only use saved categories that still actually exist.
+  const savedOrder = Array.isArray(categoryOrder)
+    ? categoryOrder.filter((category) => allCategories.includes(category))
+    : [];
+
+  // Add any categories that are new or not yet saved.
+  const newCategories = allCategories
+    .filter((category) => !savedOrder.includes(category))
+    .sort();
+
+  const displayCategories = [
+    ...savedOrder,
+    ...newCategories
+  ];
 
   if (categoriesList) {
-    categoriesList.innerHTML = categories.length
-      ? categories.map((category) => {
-          const categoryProducts = products.filter((product) => String(product.category || "").trim() === category);
+    categoriesList.innerHTML = displayCategories.length
+      ? displayCategories.map((category) => {
+          const categoryProducts = products.filter(
+            (product) =>
+              String(product.category || "").trim() === category
+          );
+
           return `
-            <div class="customer-card ">
-              <div>
+            <div
+              class="category-card"
+              draggable="true"
+              data-category-name="${escapeHtml(category)}"
+            >
+              <div
+                class="category-drag-handle"
+                aria-label="Drag to reorder"
+              >⋮⋮</div>
+
+              <div class="category-info">
                 <strong>${escapeHtml(category)}</strong>
-                <div class="tiny-note">${categoryProducts.length} products</div>
+                <div class="tiny-note">
+                  ${categoryProducts.length} products
+                </div>
               </div>
+
               <div class="admin-actions">
-                <button class="secondary-button" type="button" data-edit-category="${escapeHtml(category)}">Edit</button>
-                <button class="secondary-button danger" type="button" data-delete-category="${escapeHtml(category)}">Delete</button>
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-edit-category="${escapeHtml(category)}"
+                >Edit</button>
+
+                <button
+                  class="secondary-button danger"
+                  type="button"
+                  data-delete-category="${escapeHtml(category)}"
+                >Delete</button>
               </div>
             </div>
           `;
@@ -3024,15 +3073,127 @@ function renderCategories() {
       : `<p class="empty">Add a category to start organizing products.</p>`;
   }
 
-  categoriesList?.querySelectorAll("[data-edit-category]").forEach((button) => {
-    button.addEventListener("click", () => {
-      editCategory(button.dataset.editCategory);
-    });
-  });
+  categoriesList?.removeEventListener(
+    "click",
+    handleCategoryButtonClick
+  );
 
-  categoriesList?.querySelectorAll("[data-delete-category]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await deleteCategory(button.dataset.deleteCategory);
+  categoriesList?.addEventListener(
+    "click",
+    handleCategoryButtonClick
+  );
+
+  initCategoryDragDrop();
+}
+
+async function saveCategoryOrder(newOrder) {
+  categoryOrder = newOrder;
+
+  const { error } = await supabaseClient
+    .from("shop_settings")
+    .update({ category_order: newOrder, updated_at: new Date().toISOString() })
+    .eq("id", 1);
+
+  if (error) {
+    console.error("Could not save category order:", error);
+    alert("Could not save category order. Please try again.");
+  }
+}
+
+let draggedCategory = null;
+
+function initCategoryDragDrop() {
+  const categoryCards =
+    categoriesList?.querySelectorAll(".category-card") || [];
+
+  categoryCards.forEach((card) => {
+    card.addEventListener("dragstart", (event) => {
+      draggedCategory = card.dataset.categoryName;
+
+      card.classList.add("category-dragging");
+
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", draggedCategory);
+      event.stopPropagation();
+    });
+
+    card.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (
+        draggedCategory &&
+        card.dataset.categoryName !== draggedCategory
+      ) {
+        card.classList.add("category-drag-over");
+        event.dataTransfer.dropEffect = "move";
+      }
+    });
+
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("category-drag-over");
+    });
+
+    card.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const targetCategory = card.dataset.categoryName;
+
+      if (!draggedCategory || targetCategory === draggedCategory) {
+        return;
+      }
+
+      const currentOrder = Array.isArray(categoryOrder)
+        ? [...categoryOrder]
+        : [];
+
+      // Make sure every currently displayed category is represented.
+      const displayedCategories = Array.from(categoryCards).map(
+        (categoryCard) => categoryCard.dataset.categoryName
+      );
+
+      const completeOrder = [
+        ...currentOrder.filter((category) =>
+          displayedCategories.includes(category)
+        ),
+        ...displayedCategories.filter(
+          (category) => !currentOrder.includes(category)
+        )
+      ];
+
+      const draggedPosition =
+        completeOrder.indexOf(draggedCategory);
+
+      const targetPosition =
+        completeOrder.indexOf(targetCategory);
+
+      if (draggedPosition === -1 || targetPosition === -1) {
+        return;
+      }
+
+      const newOrder = [...completeOrder];
+
+      const [movedCategory] = newOrder.splice(draggedPosition, 1);
+
+      const newTargetPosition =
+        newOrder.indexOf(targetCategory);
+
+      newOrder.splice(newTargetPosition, 0, movedCategory);
+
+      await saveCategoryOrder(newOrder);
+      renderCategories();
+    });
+
+    card.addEventListener("dragend", (event) => {
+      card.classList.remove("category-dragging");
+
+      categoryCards.forEach((categoryCard) => {
+        categoryCard.classList.remove("category-drag-over");
+      });
+
+      draggedCategory = null;
+      event.stopPropagation();
     });
   });
 }
@@ -3048,6 +3209,25 @@ function resetCategoryForm() {
   categoryForm.reset();
   categoryForm.elements.id.value = "";
   cancelCategoryEdit.hidden = true;
+}
+
+// Event delegation handler for category buttons - prevents drag interference
+function handleCategoryButtonClick(event) {
+  const editButton = event.target.closest("[data-edit-category]");
+  if (editButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    editCategory(editButton.dataset.editCategory);
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-delete-category]");
+  if (deleteButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    deleteCategory(deleteButton.dataset.deleteCategory);
+    return;
+  }
 }
 
 categoryForm?.addEventListener("submit", async (event) => {
@@ -3090,20 +3270,67 @@ categoryForm?.addEventListener("submit", async (event) => {
 cancelCategoryEdit?.addEventListener("click", resetCategoryForm);
 
 async function deleteCategory(categoryName) {
-  const confirmed = confirm(`Remove category "${categoryName}" from the catalog?`);
+  const confirmed = confirm(
+    `Remove category "${categoryName}"? Its products will be moved to another category.`
+  );
+
   if (!confirmed) return;
 
-  const { error } = await supabaseClient
-    .from("products")
-    .update({ category: null, updated_at: new Date().toISOString() })
-    .eq("category", categoryName);
+  const availableCategories = Array.from(
+    new Set(
+      [
+        ...categoryRegistry,
+        ...products
+          .map((product) => String(product.category || "").trim())
+          .filter(Boolean)
+      ].filter((category) => category && category !== categoryName)
+    )
+  );
 
-  if (error) {
-    alert(`Could not remove category: ${error.message}`);
+  if (availableCategories.length === 0) {
+    alert(
+      "This category cannot be deleted yet because its products need another category."
+    );
     return;
   }
 
-  categoryRegistry = categoryRegistry.filter((item) => item !== categoryName);
+  const targetCategory = prompt(
+    `Move the products from "${categoryName}" to which category?\n\n` +
+    availableCategories.join("\n")
+  );
+
+  if (!targetCategory) return;
+
+  const selectedCategory = targetCategory.trim();
+
+  if (!availableCategories.includes(selectedCategory)) {
+    alert("Please enter the name of one of the existing categories.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("products")
+    .update({
+      category: selectedCategory,
+      updated_at: new Date().toISOString()
+    })
+    .eq("category", categoryName);
+
+  if (error) {
+    alert(`Could not move products: ${error.message}`);
+    return;
+  }
+
+  const newOrder = Array.isArray(categoryOrder)
+    ? categoryOrder.filter((category) => category !== categoryName)
+    : [];
+
+  await saveCategoryOrder(newOrder);
+
+  categoryRegistry = categoryRegistry.filter(
+    (item) => item !== categoryName
+  );
+
   await loadProducts();
 }
 

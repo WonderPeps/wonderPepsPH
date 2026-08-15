@@ -129,6 +129,7 @@ let paymentMethods = [];
 let selectedPaymentMethod = null;
 let paymentStepReceiptFile = null;
 let paymentStepReceiptPreviewUrl = null;
+let storefrontCategoryOrder = [];
 
 /* -------------------------
    HELPERS
@@ -253,6 +254,13 @@ if (heroImage && heroFallback) {
     }
   }
 
+  // Load category order from admin settings
+  if (settings.category_order && Array.isArray(settings.category_order)) {
+    storefrontCategoryOrder = settings.category_order;
+  } else {
+    storefrontCategoryOrder = [];
+  }
+
   const shippingField = document.querySelector(
     'select[name="shipping"]'
   );
@@ -363,14 +371,28 @@ function renderCategoryFilters() {
 
     if (!container) return;
 
-    const categories = [
-        "All",
+    const allCategories = [
         ...new Set(
             products
                 .map(product => product.category)
                 .filter(Boolean)
         )
     ];
+
+    // Use saved category order from admin, or default to alphabetical
+    let orderedCategories = [];
+    if (storefrontCategoryOrder.length > 0) {
+      // Use admin-set order, but only for categories that exist
+      orderedCategories = storefrontCategoryOrder.filter(cat => allCategories.includes(cat));
+      // Add any new categories not in saved order
+      const newCats = allCategories.filter(cat => !orderedCategories.includes(cat));
+      orderedCategories = [...orderedCategories, ...newCats.sort()];
+    } else {
+      // Fallback to alphabetical if no saved order
+      orderedCategories = allCategories.sort();
+    }
+
+    const categories = ["All", ...orderedCategories];
 
     container.innerHTML = categories
         .map(category => `
