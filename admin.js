@@ -2005,6 +2005,7 @@ async function loadOrders() {
 
   renderOrderTabs();
   renderOrders(getFilteredOrders());
+  renderDashboard();
 }
 
 function getOrderReferenceLabel(order) {
@@ -2916,22 +2917,42 @@ const shippingAddress = shippingLines.length
 }
 
 function renderDashboard() {
-  const revenue = orders.reduce((sum, order) => sum + Number(order.total || order.amount_paid || 0), 0);
-  const pendingPayments = orders.filter((order) => String(order.payment_status || "Pending").toLowerCase() === "pending").length;
-  const shippedOrders = orders.filter((order) => ["paid", "confirmed", "shipped", "delivered"].includes(String(order.status || "").toLowerCase())).length;
-  const recentOrders = [...orders]
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const dashboardOrders = orders.filter((order) => {
+    const createdAt = new Date(order.created_at);
+    return !Number.isNaN(createdAt.getTime()) && createdAt >= thirtyDaysAgo;
+  });
+
+  const revenue = dashboardOrders.reduce((sum, order) => sum + Number(order.total || order.amount_paid || 0), 0);
+  const pendingPayments = dashboardOrders.filter((order) => String(order.payment_status || "Pending").toLowerCase() === "pending").length;
+  const shippedOrders = dashboardOrders.filter((order) => ["paid", "confirmed", "shipped", "delivered"].includes(String(order.status || "").toLowerCase())).length;
+  const recentOrders = [...dashboardOrders]
     .sort((first, second) => new Date(second.created_at || 0) - new Date(first.created_at || 0))
     .slice(0, 5);
+  const dashboardOrderIds = new Set(
+    dashboardOrders.map((order) => String(order.id))
+  );
+
   const salesByProduct = Object.values((orderItemsByOrder || {}))
     .flat()
+    .filter((item) => dashboardOrderIds.has(String(item.order_id)))
     .reduce((accumulator, item) => {
       const key = String(item.product_id || item.product_name || "Unknown");
+
       if (!accumulator[key]) {
-        accumulator[key] = { id: item.product_id, name: item.product_name || "Unknown", quantity: 0 };
+        accumulator[key] = {
+          id: item.product_id,
+          name: item.product_name || "Unknown",
+          quantity: 0
+        };
       }
-      accumulator[key].quantity += Number(item.quantity || 0);
+
+            accumulator[key].quantity += Number(item.quantity || 0);
       return accumulator;
     }, {});
+
   const bestSellers = Object.values(salesByProduct)
     .sort((first, second) => second.quantity - first.quantity)
     .slice(0, 4);
@@ -2980,7 +3001,7 @@ function renderDashboard() {
           <div class="dashboard-list-item">
             <div>
               <strong>${escapeHtml(product.name)}</strong>
-              <div class="tiny-note">Best seller this week</div>
+              <div class="tiny-note">Best seller in the last 30 days</div>
             </div>
             <span>${product.quantity} sold</span>
           </div>
