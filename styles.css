@@ -50,6 +50,13 @@ nav{
 .cart-button,.icon-button{
   border:0;background:var(--pink-2);color:var(--ink);border-radius:999px;padding:10px 14px;font-weight:700
 }
+.cart-icon{
+  width:28px;
+  height:28px;
+  display:block;
+  stroke:currentColor;
+  transform:translateY(2px);
+}
 .favorite-header-button{
     position:relative;
 }
@@ -1060,8 +1067,13 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
     align-items:center;
     justify-content:center;
     border-radius:50%;
-    font-size:1.2rem;
     line-height:1;
+}
+
+.cart-icon {
+    width:22px;
+    height:22px;
+    transform:translateY(2px);
 }
 
 .cart-button span {
