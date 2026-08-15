@@ -978,7 +978,9 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
 
 .admin-sidebar{
     position:sticky;
-    top:24px;
+    top:90px;
+    align-self:start;
+    height:fit-content;
     background:#fff;
     border:1px solid #f3d7e4;
     border-radius:20px;
