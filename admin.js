@@ -2582,9 +2582,8 @@ function renderOrders(ordersToRender) {
                 📍 ${shippingAddress}
             </p>
 
-            <p>
-  ${formatCurrency(order.total)}
-  · ${escapeHtml(order.payment_method || "—")}
+<p>
+  ${escapeHtml(order.payment_method || "—")}
 </p>
 
 
@@ -2597,6 +2596,23 @@ function renderOrders(ordersToRender) {
     ${productRows}
   </div>
 </details>
+
+<div class="order-total-summary">
+  <div class="order-total-line">
+    <span>Subtotal</span>
+    <span>${formatCurrency(orderTotals)}</span>
+  </div>
+
+  <div class="order-total-line">
+    <span>Shipping</span>
+    <span>${formatCurrency(order.shipping_fee || 0)}</span>
+  </div>
+
+  <div class="order-grand-total">
+    <span>TOTAL</span>
+    <strong>${formatCurrency(order.total || 0)}</strong>
+  </div>
+</div>
 
 <p class="tiny-note">
   Payment Status: ${escapeHtml(order.payment_status || "Pending")}

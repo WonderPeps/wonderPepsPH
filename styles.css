@@ -494,8 +494,24 @@ footer{display:flex;justify-content:space-between;padding:26px clamp(20px,6vw,80
   border-top:1px solid var(--line);
   font-size:1.1rem;
 }
+.order-total-line{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  margin-top:6px;
+}
 
-.order-total-summary strong{
+.order-grand-total{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--line);
+  font-size:1.1rem;
+}
+
+.order-grand-total strong{
   font-size:1.25rem;
 }
 
