@@ -522,13 +522,24 @@
   background: var(--admin-blush);
 }
 .order-products-details summary {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 15px 16px 10px;
   color: #674352;
   font-size: .92rem;
   font-weight: 800;
-  cursor: default;
+  cursor: pointer;
+  list-style: none;
 }
+.order-products-details summary::-webkit-details-marker { display: none; }
+.order-products-details summary::after {
+  content: "⌄";
+  color: var(--admin-rose);
+  font-size: 1.05rem;
+  transition: transform .18s ease;
+}
+.order-products-details[open] summary::after { transform: rotate(180deg); }
 .order-products-body {
   display: grid;
   gap: 0;
