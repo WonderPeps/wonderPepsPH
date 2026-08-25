@@ -176,9 +176,10 @@
       <div class="admin-section-header">
         <div>
           <h2>Menu</h2>
-          <p class="tiny-note">Manage storefront navigation with the existing menu_items table.</p>
+          <p class="tiny-note">Drag the handle to reorder links. Items are grouped by their editable menu header.</p>
         </div>
       </div>
+      <p id="menuOrderStatus" class="menu-order-status" role="status" aria-live="polite"></p>
       <div id="adminMenuItems" class="admin-products"></div>
     </section>
 
@@ -447,11 +448,18 @@ Hero eyebrow
       <form id="menuForm" class="admin-form">
         <input type="hidden" name="id" />
         <label>
-          Section
-          <select name="section">
-            <option value="SITE">Site</option>
-            <option value="SHOP">Shop</option>
-          </select>
+          Menu header
+          <input
+            name="section"
+            list="menuSectionSuggestions"
+            placeholder="Example: Shop, Community, Contact"
+            required
+          />
+          <datalist id="menuSectionSuggestions">
+            <option value="Shop"></option>
+            <option value="Community"></option>
+            <option value="Contact"></option>
+          </datalist>
         </label>
         <label>
           Menu label

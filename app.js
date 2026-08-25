@@ -7,6 +7,9 @@ const currency = new Intl.NumberFormat("en-PH", {
 const brandName = document.querySelector("#brandName");
 const brandLogo = document.querySelector("#brandLogo");
 const brandFallback = document.querySelector("#brandFallback");
+const menuBrandName = document.querySelector("#menuBrandName");
+const menuBrandLogo = document.querySelector("#menuBrandLogo");
+const menuBrandFallback = document.querySelector("#menuBrandFallback");
 const heroTitle = document.querySelector("#heroTitle");
 const heroSubtitle = document.querySelector("#heroSubtitle");
 const heroEyebrow = document.querySelector("#heroEyebrow");
@@ -200,6 +203,10 @@ function applyShopSettings(settings) {
     );
   }
 
+  if (menuBrandName) {
+    menuBrandName.textContent = shopName;
+  }
+
   if (heroTitle) {
     heroTitle.textContent =
       settings.hero_title || "Soft pink shopping made easy.";
@@ -243,6 +250,17 @@ function applyShopSettings(settings) {
     } else {
       brandLogo.hidden = true;
       brandFallback.hidden = false;
+    }
+  }
+
+  if (menuBrandLogo && menuBrandFallback) {
+    if (settings.logo_url) {
+      menuBrandLogo.src = settings.logo_url;
+      menuBrandLogo.hidden = false;
+      menuBrandFallback.hidden = true;
+    } else {
+      menuBrandLogo.hidden = true;
+      menuBrandFallback.hidden = false;
     }
   }
 if (heroImage && heroFallback) {
@@ -1820,17 +1838,68 @@ async function loadStoreMenuItems() {
     return;
   }
 
-  storeMenuItems.innerHTML = items
-    .map((item) => {
-      const target = item.open_new_tab ? `target="_blank" rel="noopener"` : "";
+  const menuGroups = [];
 
-      return `
-        <a href="${escapeHtml(item.url)}" ${target}>
-          ${escapeHtml(item.label)}
-        </a>
-      `;
-    })
+  items.forEach((item) => {
+    const sectionName = String(item.section || "Menu").trim() || "Menu";
+    let group = menuGroups.find((entry) => entry.name === sectionName);
+
+    if (!group) {
+      group = { name: sectionName, items: [] };
+      menuGroups.push(group);
+    }
+
+    group.items.push(item);
+  });
+
+  storeMenuItems.innerHTML = menuGroups
+    .map((group, groupIndex) => `
+      <section class="store-menu-section" aria-labelledby="menuGroup${groupIndex}">
+        <h3 id="menuGroup${groupIndex}" class="store-menu-heading">
+          ${escapeHtml(group.name)}
+        </h3>
+        <div class="store-menu-links">
+          ${group.items.map((item) => {
+            const target = item.open_new_tab
+              ? `target="_blank" rel="noopener"`
+              : "";
+
+            return `
+              <a class="store-menu-link" href="${escapeHtml(item.url)}" ${target}>
+                <span class="store-menu-icon" aria-hidden="true">
+                  ${getStoreMenuIcon(item)}
+                </span>
+                <span class="store-menu-label">${escapeHtml(item.label)}</span>
+                <span class="store-menu-arrow" aria-hidden="true">›</span>
+              </a>
+            `;
+          }).join("")}
+        </div>
+      </section>
+    `)
     .join("");
+}
+
+function getStoreMenuIcon(item) {
+  const searchableText = `${item.label || ""} ${item.section || ""} ${item.url || ""}`.toLowerCase();
+
+  if (/contact|message|email|mail|messenger/.test(searchableText)) {
+    return `<svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16v11H4z"/><path d="m5 8 7 5 7-5"/></svg>`;
+  }
+
+  if (/community|group|join|facebook/.test(searchableText)) {
+    return `<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M14.5 14c3.1-.6 5.2 1 5.7 4"/></svg>`;
+  }
+
+  if (/faq|help|question/.test(searchableText)) {
+    return `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.5 2c-1 .6-1.3 1.1-1.3 2M12 17h.01"/></svg>`;
+  }
+
+  if (/home|shop|store|catalog|product/.test(searchableText)) {
+    return `<svg viewBox="0 0 24 24" fill="none"><path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 9V6.7a3 3 0 0 1 6 0V9"/></svg>`;
+  }
+
+  return `<svg viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.2-7-9.5A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.5C19 15.8 12 20 12 20Z"/></svg>`;
 }
 
 function openMenuDrawer() {

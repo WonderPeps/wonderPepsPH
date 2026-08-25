@@ -76,6 +76,7 @@ const resetButton = document.querySelector("#resetButton");
 const menuForm = document.querySelector("#menuForm");
 const menuFormTitle = document.querySelector("#menuFormTitle");
 const adminMenuItems = document.querySelector("#adminMenuItems");
+const menuOrderStatus = document.querySelector("#menuOrderStatus");
 const cancelMenuEdit = document.querySelector("#cancelMenuEdit");
 const paymentMethodsContainer = document.querySelector("#paymentMethodsContainer");
 const addPaymentMethodBtn = document.querySelector("#addPaymentMethodBtn");
@@ -467,8 +468,18 @@ function renderMenuItems() {
   adminMenuItems.innerHTML = menuItems
     .map(
       (item) => `
-        <article class="admin-product">
-          <div>
+        <article class="admin-product menu-admin-item" data-menu-id="${item.id}">
+          <button
+            class="menu-drag-handle"
+            type="button"
+            draggable="true"
+            aria-label="Drag ${escapeHtml(item.label)} to reorder"
+            title="Drag to reorder, or use the arrow keys"
+          >
+            <span aria-hidden="true">⋮⋮</span>
+          </button>
+
+          <div class="menu-admin-info">
             <strong>${escapeHtml(item.label)}</strong>
 
             <div class="menu-url">
@@ -476,7 +487,7 @@ function renderMenuItems() {
             </div>
 
             <small>
-              ${escapeHtml(item.section || "SITE")}
+              <span class="menu-section-badge">${escapeHtml(item.section || "Menu")}</span>
               · ${item.is_visible ? "Visible" : "Hidden"}
               · ${item.open_new_tab ? "New tab" : "Same tab"}
             </small>
@@ -519,6 +530,150 @@ function renderMenuItems() {
         deleteMenuItem(button.dataset.menuDelete);
       });
     });
+
+  initMenuItemDragDrop();
+}
+
+let draggedMenuItemId = null;
+
+function setMenuOrderStatus(message, state = "") {
+  if (!menuOrderStatus) return;
+
+  menuOrderStatus.textContent = message;
+  menuOrderStatus.dataset.state = state;
+}
+
+async function saveMenuItemOrder(orderedItems) {
+  menuItems = orderedItems;
+  setMenuOrderStatus("Saving menu order…", "saving");
+
+  for (let index = 0; index < orderedItems.length; index += 1) {
+    const item = orderedItems[index];
+    const sortOrder = (index + 1) * 10;
+
+    const { error } = await supabaseClient
+      .from("menu_items")
+      .update({ sort_order: sortOrder })
+      .eq("id", item.id);
+
+    if (error) {
+      console.error("Could not save menu order:", error);
+      setMenuOrderStatus("Could not save the new order. Please try again.", "error");
+      await loadMenuItems();
+      return;
+    }
+
+    item.sort_order = sortOrder;
+  }
+
+  setMenuOrderStatus("Menu order saved ✓", "saved");
+  renderMenuItems();
+}
+
+async function moveMenuItemByKeyboard(itemId, direction) {
+  const currentIndex = menuItems.findIndex(
+    (item) => String(item.id) === String(itemId)
+  );
+  const targetIndex = currentIndex + direction;
+
+  if (
+    currentIndex < 0 ||
+    targetIndex < 0 ||
+    targetIndex >= menuItems.length
+  ) {
+    return;
+  }
+
+  const reorderedItems = [...menuItems];
+  const [movedItem] = reorderedItems.splice(currentIndex, 1);
+  reorderedItems.splice(targetIndex, 0, movedItem);
+  await saveMenuItemOrder(reorderedItems);
+
+  adminMenuItems
+    ?.querySelector(`[data-menu-id="${CSS.escape(String(itemId))}"] .menu-drag-handle`)
+    ?.focus();
+}
+
+function initMenuItemDragDrop() {
+  const cards = Array.from(
+    adminMenuItems?.querySelectorAll(".menu-admin-item") || []
+  );
+
+  cards.forEach((card) => {
+    const handle = card.querySelector(".menu-drag-handle");
+
+    handle?.addEventListener("dragstart", (event) => {
+      draggedMenuItemId = card.dataset.menuId;
+      card.classList.add("menu-dragging");
+      handle.setAttribute("aria-grabbed", "true");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", draggedMenuItemId);
+    });
+
+    handle?.addEventListener("dragend", () => {
+      draggedMenuItemId = null;
+      handle.removeAttribute("aria-grabbed");
+      cards.forEach((itemCard) => {
+        itemCard.classList.remove("menu-dragging", "menu-drag-over");
+      });
+    });
+
+    handle?.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+
+      event.preventDefault();
+      moveMenuItemByKeyboard(
+        card.dataset.menuId,
+        event.key === "ArrowUp" ? -1 : 1
+      );
+    });
+
+    card.addEventListener("dragover", (event) => {
+      if (!draggedMenuItemId || draggedMenuItemId === card.dataset.menuId) {
+        return;
+      }
+
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      cards.forEach((itemCard) => itemCard.classList.remove("menu-drag-over"));
+      card.classList.add("menu-drag-over");
+    });
+
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("menu-drag-over");
+    });
+
+    card.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      card.classList.remove("menu-drag-over");
+
+      if (!draggedMenuItemId || draggedMenuItemId === card.dataset.menuId) {
+        return;
+      }
+
+      const reorderedItems = [...menuItems];
+      const fromIndex = reorderedItems.findIndex(
+        (item) => String(item.id) === String(draggedMenuItemId)
+      );
+      let targetIndex = reorderedItems.findIndex(
+        (item) => String(item.id) === String(card.dataset.menuId)
+      );
+
+      if (fromIndex < 0 || targetIndex < 0) return;
+
+      const [movedItem] = reorderedItems.splice(fromIndex, 1);
+      targetIndex = reorderedItems.findIndex(
+        (item) => String(item.id) === String(card.dataset.menuId)
+      );
+
+      const cardRect = card.getBoundingClientRect();
+      const placeAfter = event.clientY > cardRect.top + cardRect.height / 2;
+      reorderedItems.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedItem);
+
+      draggedMenuItemId = null;
+      await saveMenuItemOrder(reorderedItems);
+    });
+  });
 }
 menuForm.addEventListener("submit", async (event) => {
   event.preventDefault();

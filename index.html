@@ -57,20 +57,28 @@
   </header>
 <aside id="menuDrawer" class="drawer menu-drawer" aria-hidden="true">
   <div class="drawer-panel">
-    <div class="drawer-header">
-      <h2>Menu</h2>
-
+    <div class="menu-drawer-brand">
+      <div class="menu-brand-identity">
+        <img id="menuBrandLogo" class="menu-brand-logo" alt="Shop logo" hidden />
+        <span id="menuBrandFallback" class="menu-brand-fallback" aria-hidden="true">♡</span>
+        <div>
+          <h2 id="menuBrandName">Wonder Peps PH</h2>
+          <p>Everything lovely, in one place</p>
+        </div>
+      </div>
       <button
         id="closeMenu"
-        class="icon-button"
+        class="icon-button menu-close-button"
         type="button"
         aria-label="Close menu"
       >
-        ×
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18" />
+        </svg>
       </button>
     </div>
 
-    <nav id="storeMenuItems" class="store-menu-items"></nav>
+    <nav id="storeMenuItems" class="store-menu-items" aria-label="Shop menu"></nav>
   </div>
 </aside>
   <main>
