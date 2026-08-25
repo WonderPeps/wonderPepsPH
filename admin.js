@@ -2612,7 +2612,7 @@ function renderOrders(ordersToRender) {
             </section>
 
 
-<details class="order-products-details">
+<details class="order-products-details" open>
   <summary>
     ${escapeHtml(productsLabel)}
   </summary>
