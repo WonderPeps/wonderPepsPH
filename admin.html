@@ -5,26 +5,37 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Wonder Peps PH Admin</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="admin.css" />
 </head>
-<body>
-  <header class="site-header">
-    <a class="brand" href="index.html"><span class="brand-mark">♡</span><span>Wonder Peps <small>ADMIN</small></span></a>
-    <a class="secondary-button" href="index.html">View shop</a>
+<body class="admin-page">
+  <a class="skip-link" href="#dashboardSection">Skip to dashboard</a>
+
+  <header class="site-header admin-site-header">
+    <a class="brand admin-brand" href="index.html" aria-label="Wonder Peps shop home">
+      <span class="brand-mark" aria-hidden="true">♡</span>
+      <span class="admin-brand-copy">Wonder Peps <small>ADMIN STUDIO</small></span>
+    </a>
+    <a class="secondary-button view-shop-button" href="index.html">
+      <span>View storefront</span><span aria-hidden="true">↗</span>
+    </a>
   </header>
 
   <main class="admin-shell">
-  <section id="loginSection" class="admin-card">
-  <h2>Admin login</h2>
+  <section id="loginSection" class="admin-card admin-login-card">
+  <div class="login-icon" aria-hidden="true">♡</div>
+  <p class="eyebrow">Welcome back</p>
+  <h1>Admin login</h1>
+  <p class="login-intro">Sign in to manage your sweet little corner of the internet.</p>
 
   <form id="loginForm" class="admin-form">
     <label>
       Email
-      <input name="email" type="email" required />
+      <input name="email" type="email" autocomplete="email" placeholder="you@example.com" required />
     </label>
 
     <label>
       Password
-      <input name="password" type="password" required />
+      <input name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
     </label>
 
     <button class="primary-button full" type="submit">
@@ -39,21 +50,28 @@
   <div class="admin-layout">
   <aside class="admin-sidebar">
     <div class="admin-sidebar-title">
-      Wonder Peps PH
-      <small>Admin Panel</small>
+      <span class="sidebar-brand-badge" aria-hidden="true">WP</span>
+      <span>Wonder Peps PH</span>
+      <small>Shop control center</small>
     </div>
 
-    <nav class="admin-sidebar-nav">
-      <a href="#dashboardSection">Dashboard</a>
-      <a href="#ordersSection">Orders</a>
-      <a href="#productsSection">Products</a>
-      <a href="#categoriesSection">Categories</a>
-      <a href="#menuSection">Menu</a>
-  
-      <a href="#shopSettingsSection">Shop Settings</a>
-      <a href="#paymentMethodsSection">💳 Payment Methods</a>
-      <a href="#addProductSection">+ Add product</a>
-      <a href="#addMenuSection">+ Add menu</a>
+    <div class="sidebar-session"><span aria-hidden="true"></span> Admin workspace</div>
+
+    <nav class="admin-sidebar-nav" aria-label="Admin sections">
+      <div class="nav-group-label">Overview</div>
+      <a class="active" href="#dashboardSection"><span class="nav-icon" aria-hidden="true">⌂</span><span>Dashboard</span></a>
+      <a href="#ordersSection"><span class="nav-icon" aria-hidden="true">◫</span><span>Orders</span></a>
+
+      <div class="nav-group-label">Catalog</div>
+      <a href="#productsSection"><span class="nav-icon" aria-hidden="true">◇</span><span>Products</span></a>
+      <a href="#categoriesSection"><span class="nav-icon" aria-hidden="true">✿</span><span>Categories</span></a>
+      <a href="#menuSection"><span class="nav-icon" aria-hidden="true">☰</span><span>Menu</span></a>
+
+      <div class="nav-group-label">Store</div>
+      <a href="#shopSettingsSection"><span class="nav-icon" aria-hidden="true">⚙</span><span>Shop settings</span></a>
+      <a href="#paymentMethodsSection"><span class="nav-icon" aria-hidden="true">♡</span><span>Payment methods</span></a>
+      <a href="#addProductSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add product</span></a>
+      <a href="#addMenuSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add menu item</span></a>
     </nav>
 
     <button
@@ -68,12 +86,17 @@
   <div class="admin-main-content">
     <div class="admin-top">
       <div>
-        <p class="eyebrow">Pastel dashboard</p>
-        <h1 style="font-size:clamp(2.2rem,7vw,4rem)">Shop admin</h1>
+        <p class="eyebrow">Wonder Peps workspace</p>
+        <h1>Good day, Admin! <span aria-hidden="true">♡</span></h1>
+        <p class="admin-top-note">Everything you need to keep the shop lovely and running smoothly.</p>
+      </div>
+      <div class="admin-quick-actions" aria-label="Quick actions">
+        <a class="secondary-button" href="#ordersSection">View orders</a>
+        <a class="primary-button" href="#addProductSection"><span aria-hidden="true">＋</span> New product</a>
       </div>
     </div>
 
-    <section id="dashboardSection" class="admin-card admin-panel-section" style="margin-bottom:24px">
+    <section id="dashboardSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2>Dashboard</h2>
@@ -97,7 +120,7 @@
       </div>
     </section>
 
-    <section id="ordersSection" class="admin-card admin-panel-section" style="margin-top:24px">
+    <section id="ordersSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2>Orders</h2>
@@ -111,7 +134,7 @@
       <div id="ordersList"></div>
     </section>
 
-    <section id="productsSection" class="admin-card admin-panel-section" style="margin-top:24px">
+    <section id="productsSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2>Products</h2>
@@ -133,7 +156,7 @@
       <div id="productsPagination" class="pagination"></div>
     </section>
 
-    <section id="categoriesSection" class="admin-card admin-panel-section" style="margin-top:24px">
+    <section id="categoriesSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2>Categories</h2>
@@ -149,7 +172,7 @@
       <div id="categoriesList" class="category-list"></div>
     </section>
 
-    <section id="menuSection" class="admin-card admin-panel-section" style="margin-top:24px">
+    <section id="menuSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2>Menu</h2>
@@ -161,7 +184,7 @@
 
     
 
-    <section id="shopSettingsSection" class="admin-card admin-panel-section" style="margin-top:24px">
+    <section id="shopSettingsSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2>Shop settings</h2>
@@ -268,7 +291,7 @@ Hero eyebrow
       </form>
     </section>
 
-    <section id="paymentMethodsSection" class="admin-card admin-panel-section" style="margin-top:24px">
+    <section id="paymentMethodsSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2>💳 Payment Methods</h2>
@@ -285,7 +308,7 @@ Hero eyebrow
       </div>
     </section>
 
-    <section id="addProductSection" class="admin-card admin-panel-section" style="margin-top:24px">
+    <section id="addProductSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2 id="formTitle">Add product</h2>
@@ -401,7 +424,7 @@ Hero eyebrow
       </form>
     </section>
 
-     <section id="addMenuSection" class="admin-card admin-panel-section" style="margin-top:24px">
+     <section id="addMenuSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
           <h2 id="menuFormTitle">Add menu item</h2>
@@ -530,5 +553,6 @@ Hero eyebrow
 <script src="supabase.js"></script>
 <script src="variants.js"></script>
 <script src="admin.js"></script>
+<script src="admin-ui.js"></script>
 </body>
 </html>
