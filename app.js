@@ -1330,6 +1330,10 @@ function openFavorites() {
   favoritesDrawer.classList.add("open");
   favoritesDrawer.setAttribute("aria-hidden", "false");
 }
+function openFavorites() {
+  favoritesDrawer.classList.add("open");
+  favoritesDrawer.setAttribute("aria-hidden", "false");
+}
 
 function closeFavoritesDrawer() {
   favoritesDrawer.classList.remove("open");
