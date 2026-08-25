@@ -302,6 +302,13 @@ async function loadSettings() {
     return;
   }
 
+  // Load saved category order
+  if (data?.category_order && Array.isArray(data.category_order)) {
+    categoryOrder = data.category_order;
+  } else {
+    categoryOrder = [];
+  }
+
   settingsForm.elements.shopName.value = data.shop_name || "";
   settingsForm.elements.logoUrl.value = data.logo_url || "";
   if (data.logo_url) {
@@ -339,6 +346,7 @@ if (data.hero_image_url) {
 
   deleteHeroImageButton.hidden = true;
 }
+  settingsForm.elements.heroEyebrow.value = data.hero_eyebrow || "";
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
   settingsForm.elements.facebook.value = data.facebook_url || "";
@@ -363,6 +371,7 @@ settingsForm.addEventListener("submit", async (event) => {
     shop_name: String(formData.get("shopName") || "").trim(),
     logo_url: String(formData.get("logoUrl") || "").trim() || null,
     hero_image_url: String(formData.get("heroImageUrl") || "").trim() || null,
+    hero_eyebrow: settingsForm.elements.heroEyebrow.value,
     hero_title: String(formData.get("heroTitle") || "").trim(),
     hero_subtitle: String(formData.get("heroSubtitle") || "").trim(),
     facebook_url:
@@ -412,7 +421,7 @@ selectedHeroImageFile = null;
 
 alert("Shop profile saved online.");
 });
-  
+
 /* ------------------------
    MENU ITEMS
 ------------------------ */
@@ -1137,7 +1146,8 @@ async function loadProducts() {
       `<p>Could not load products: ${escapeHtml(error.message)}</p>`;
     return;
   }
-
+   console.log("data received:", data);
+   console.log("length:", data?.length);
   products = data || [];
   categoryRegistry = Array.from(new Set([
     ...categoryRegistry,
@@ -1995,6 +2005,7 @@ async function loadOrders() {
 
   renderOrderTabs();
   renderOrders(getFilteredOrders());
+  renderDashboard();
 }
 
 function getOrderReferenceLabel(order) {
@@ -2201,15 +2212,23 @@ if (reversingApprovedPayment) {
 
       for (const item of orderItems || []) {
         const orderedQuantity = Number(item.quantity || 0);
+const variantId =
+  item.variant_id && String(item.variant_id) !== "null"
+    ? item.variant_id
+    : null;
 
+const productId =
+  item.product_id && String(item.product_id) !== "null"
+    ? item.product_id
+    : null;
         if (orderedQuantity < 1) continue;
 
-        if (item.variant_id) {
+        if (variantId) {
           const { data: variant, error: variantError } =
             await supabaseClient
               .from("product_variants")
               .select("id, stock")
-              .eq("id", item.variant_id)
+              .eq("id", variantId)
               .single();
 
           if (variantError) {
@@ -2231,17 +2250,17 @@ if (reversingApprovedPayment) {
                 stock: currentStock - orderedQuantity,
                 updated_at: new Date().toISOString()
               })
-              .eq("id", item.variant_id);
+              .eq("id", variantId);
 
           if (variantUpdateError) {
             throw variantUpdateError;
           }
-        } else {
+        } else if (productId) {
           const { data: product, error: productError } =
             await supabaseClient
               .from("products")
               .select("id, stock")
-              .eq("id", item.product_id)
+              .eq("id", productId)
               .single();
 
           if (productError) {
@@ -2263,7 +2282,7 @@ if (reversingApprovedPayment) {
                 stock: currentStock - orderedQuantity,
                 updated_at: new Date().toISOString()
               })
-              .eq("id", item.product_id);
+              .eq("id", productId);
 
           if (productUpdateError) {
             throw productUpdateError;
@@ -2288,15 +2307,25 @@ if (reversingApprovedPayment) {
   for (const item of orderItems || []) {
     const orderedQuantity = Number(item.quantity || 0);
 
+    const variantId =
+   item.variant_id && String(item.variant_id) !== "null"
+    ? item.variant_id
+    : null;
+
+   const productId =
+   item.product_id && String(item.product_id) !== "null"
+    ? item.product_id
+    : null;
+
     if (orderedQuantity < 1) continue;
 
-    if (item.variant_id) {
-      const { data: variant, error: variantError } =
-        await supabaseClient
-          .from("product_variants")
-          .select("id, stock")
-          .eq("id", item.variant_id)
-          .single();
+    if (variantId) {
+       const { data: variant, error: variantError } =
+  await supabaseClient
+    .from("product_variants")
+    .select("id, stock")
+    .eq("id", variantId)
+    .single();
 
       if (variantError) {
         throw variantError;
@@ -2311,17 +2340,17 @@ if (reversingApprovedPayment) {
             stock: currentStock + orderedQuantity,
             updated_at: new Date().toISOString()
           })
-          .eq("id", item.variant_id);
+          .eq("id", variantId);
 
       if (variantUpdateError) {
         throw variantUpdateError;
       }
-    } else {
+    } else if (productId) {
       const { data: product, error: productError } =
         await supabaseClient
           .from("products")
           .select("id, stock")
-          .eq("id", item.product_id)
+          .eq("id", productId)
           .single();
 
       if (productError) {
@@ -2337,7 +2366,7 @@ if (reversingApprovedPayment) {
             stock: currentStock + orderedQuantity,
             updated_at: new Date().toISOString()
           })
-          .eq("id", item.product_id);
+          .eq("id", productId);
 
       if (productUpdateError) {
         throw productUpdateError;
@@ -2476,7 +2505,23 @@ function renderOrders(ordersToRender) {
   ordersList.innerHTML = ordersToRender
     .map(
       (order) => {
+        const orderedAt = order.created_at
+  ? new Date(order.created_at).toLocaleString("en-PH", {
+      timeZone: "Asia/Manila",
+      month: "numeric",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true
+    })
+  : "—";
         const orderItems = orderItemsByOrder[String(order.id)] || [];
+        const orderTotals = orderItems.reduce(
+  (sum, item) => sum + Number(item.line_total || 0),
+  0
+);
         const productsLabel = `Products (${orderItems.length})`;
         const productRows = orderItems.length
           ? orderItems
@@ -2509,10 +2554,9 @@ function renderOrders(ordersToRender) {
     Qty: ${Number(item.quantity || 0)}
   </div>
 </div>
-                  <div class="order-product-prices">
-                    <span>${formatCurrency(item.unit_price || 0)}</span>
-                    <span>${formatCurrency(item.line_total || 0)}</span>
-                  </div>
+<div class="order-product-prices">
+  <span>${formatCurrency(item.line_total || 0)}</span>
+</div>
                 </div>
               `)
               .join("")
@@ -2528,28 +2572,89 @@ function renderOrders(ordersToRender) {
     const shippingAddress = shippingLines.length
         ? shippingLines.map((line) => escapeHtml(line)).join("<br>")
         : escapeHtml(order.address || "—");
+    const paymentStatus = String(order.payment_status || "Pending");
+    const paymentStatusClass = paymentStatus
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-");
 
     return `
         <article class="order-card">
-            <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
+            <header class="order-card-header">
+              <div>
+                <span class="order-card-label">Order</span>
+                <strong class="order-reference">${escapeHtml(getOrderReferenceLabel(order))}</strong>
+              </div>
+              <time class="order-date">${escapeHtml(orderedAt)}</time>
+            </header>
 
-            <p>
-                ${escapeHtml(order.customer_name)}
-                · ${escapeHtml(order.phone)}
-            </p>
+            <div class="order-card-body">
 
-            <p>
-                📍 ${shippingAddress}
-            </p>
+            <section class="order-customer-panel" aria-label="Customer information">
+              <div class="order-customer-row">
+                <span>Customer name</span>
+                <strong>${escapeHtml(order.customer_name || "Guest customer")}</strong>
+              </div>
 
-            <p>
-  ${formatCurrency(order.total)}
-  · ${escapeHtml(order.payment_method || "—")}
-</p>
+              <div class="order-customer-row">
+                <span>Contact number</span>
+                <strong>${escapeHtml(order.phone || "Not provided")}</strong>
+              </div>
 
-<p class="tiny-note">
-  Payment Status: ${escapeHtml(order.payment_status || "Pending")}
-</p>
+              <div class="order-customer-row order-address-row">
+                <span>Full address</span>
+                <address>${shippingAddress}</address>
+              </div>
+
+              <div class="order-customer-row">
+                <span>Payment method</span>
+                <strong>${escapeHtml(order.payment_method || "—")}</strong>
+              </div>
+            </section>
+
+
+<details class="order-products-details">
+  <summary>
+    <div>
+      <span class="order-products-kicker">Order items</span>
+      <strong>${escapeHtml(productsLabel)}</strong>
+    </div>
+    <span class="order-products-total">
+      ${formatCurrency(order.total || 0)}
+      <span class="order-details-arrow" aria-hidden="true">⌄</span>
+    </span>
+  </summary>
+
+<div class="order-products-body">
+  ${productRows}
+
+  <div class="order-total-summary">
+    <div class="order-total-line">
+      <span>Subtotal</span>
+      <span>${formatCurrency(orderTotals)}</span>
+    </div>
+
+    <div class="order-total-line">
+      <span>Shipping</span>
+      <span>${formatCurrency(order.shipping_fee || 0)}</span>
+    </div>
+
+    <div class="order-grand-total">
+      <span>TOTAL</span>
+      <strong>${formatCurrency(order.total || 0)}</strong>
+    </div>
+  </div>
+</div>
+</details>
+
+            </div>
+
+<footer class="order-card-footer">
+  <div class="order-status-summary">
+    <span>Payment status</span>
+    <strong class="order-status-badge status-${escapeHtml(paymentStatusClass)}">
+      ${escapeHtml(paymentStatus)}
+    </strong>
+  </div>
 
 <div class="order-card-actions">
   ${
@@ -2567,9 +2672,10 @@ function renderOrders(ordersToRender) {
         <span class="tiny-note">No receipt uploaded</span>
       `
   }
-  ${
+ ${
   order.receipt_image &&
-  order.payment_status !== "Approved"
+  order.payment_status !== "Approved" &&
+  !Boolean(order.archived)
     ? `
       <button
         type="button"
@@ -2584,7 +2690,8 @@ function renderOrders(ordersToRender) {
 
 ${
   order.receipt_image &&
-  order.payment_status !== "Rejected"
+  order.payment_status !== "Rejected" &&
+  !Boolean(order.archived)
     ? `
       <button
         type="button"
@@ -2596,34 +2703,42 @@ ${
     `
     : ""
 }
-${
-  !order.archived
-    ? `
-      <button
-        type="button"
-        class="secondary-button"
-        data-order-archive="${escapeHtml(String(order.id))}"
-      >
-        Archive Order
-      </button>
-    `
-    : `
-      <button
-        type="button"
-        class="secondary-button"
-        data-order-restore="${escapeHtml(String(order.id))}"
-      >
-        Restore Order
-      </button>
-    `
+${Boolean(order.archived) ? `
+    <button
+      type="button"
+      class="secondary-button"
+      data-order-restore="${escapeHtml(String(order.id))}"
+    >
+      Restore Order
+    </button>
+
+    <button
+      type="button"
+      class="secondary-button order-delete-btn"
+      data-order-delete-permanent="${escapeHtml(String(order.id))}"
+    >
+      Delete Permanently
+    </button>
+  `
+  : `
+    <button
+      type="button"
+      class="secondary-button"
+      data-order-archive="${escapeHtml(String(order.id))}"
+    >
+      Archive Order
+    </button>
+  `
 }
 </div>
+
+</footer>
 
 </article>
     `;
   })
   .join("");
-    
+
 
   ordersList
     .querySelectorAll("[data-order-status]")
@@ -2774,8 +2889,7 @@ const shippingAddress = shippingLines.length
                   <div class="tiny-note">Qty ${Number(item.quantity || 0)}</div>
                 </div>
                 <div class="order-product-prices">
-                  <span>${currency(item.unit_price || 0)}</span>
-                  <span>${currency(item.line_total || 0)}</span>
+                <span>${currency(item.line_total || 0)}</span>
                 </div>
               </div>
             `).join("") : `<div class="tiny-note">No products found</div>`}
@@ -2785,7 +2899,12 @@ const shippingAddress = shippingLines.length
             <p>Items: ${totalItems}</p>
             <p>Product total: ${currency(orderTotals)}</p>
             <p>Shipping fee: ${currency(order.shipping_fee || 0)}</p>
-            <p>Order total: ${currency(order.total || 0)}</p>
+
+            <div class="order-total-summary">
+              <span>Total</span>
+              <strong>${currency(order.total || 0)}</strong>
+            </div>
+
             <p>Shipping status: ${escapeHtml(order.status || "Pending")}</p>
             <p>Note: ${escapeHtml(order.notes || "No note provided")}</p>
           </div>
@@ -2830,22 +2949,42 @@ const shippingAddress = shippingLines.length
 }
 
 function renderDashboard() {
-  const revenue = orders.reduce((sum, order) => sum + Number(order.total || order.amount_paid || 0), 0);
-  const pendingPayments = orders.filter((order) => String(order.payment_status || "Pending").toLowerCase() === "pending").length;
-  const shippedOrders = orders.filter((order) => ["paid", "confirmed", "shipped", "delivered"].includes(String(order.status || "").toLowerCase())).length;
-  const recentOrders = [...orders]
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const dashboardOrders = orders.filter((order) => {
+    const createdAt = new Date(order.created_at);
+    return !Number.isNaN(createdAt.getTime()) && createdAt >= thirtyDaysAgo;
+  });
+
+  const revenue = dashboardOrders.reduce((sum, order) => sum + Number(order.total || order.amount_paid || 0), 0);
+  const pendingPayments = dashboardOrders.filter((order) => String(order.payment_status || "Pending").toLowerCase() === "pending").length;
+  const shippedOrders = dashboardOrders.filter((order) => ["paid", "confirmed", "shipped", "delivered"].includes(String(order.status || "").toLowerCase())).length;
+  const recentOrders = [...dashboardOrders]
     .sort((first, second) => new Date(second.created_at || 0) - new Date(first.created_at || 0))
     .slice(0, 5);
+  const dashboardOrderIds = new Set(
+    dashboardOrders.map((order) => String(order.id))
+  );
+
   const salesByProduct = Object.values((orderItemsByOrder || {}))
     .flat()
+    .filter((item) => dashboardOrderIds.has(String(item.order_id)))
     .reduce((accumulator, item) => {
       const key = String(item.product_id || item.product_name || "Unknown");
+
       if (!accumulator[key]) {
-        accumulator[key] = { id: item.product_id, name: item.product_name || "Unknown", quantity: 0 };
+        accumulator[key] = {
+          id: item.product_id,
+          name: item.product_name || "Unknown",
+          quantity: 0
+        };
       }
-      accumulator[key].quantity += Number(item.quantity || 0);
+
+            accumulator[key].quantity += Number(item.quantity || 0);
       return accumulator;
     }, {});
+
   const bestSellers = Object.values(salesByProduct)
     .sort((first, second) => second.quantity - first.quantity)
     .slice(0, 4);
@@ -2894,7 +3033,7 @@ function renderDashboard() {
           <div class="dashboard-list-item">
             <div>
               <strong>${escapeHtml(product.name)}</strong>
-              <div class="tiny-note">Best seller this week</div>
+              <div class="tiny-note">Best seller in the last 30 days</div>
             </div>
             <span>${product.quantity} sold</span>
           </div>
@@ -2943,24 +3082,66 @@ function renderCustomers() {
 }
 
 function renderCategories() {
-  const categories = Array.from(new Set([
+  const allCategories = Array.from(new Set([
     ...categoryRegistry,
-    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
-  ])).sort();
+    ...products
+      .map((product) => String(product.category || "").trim())
+      .filter(Boolean)
+  ]));
+
+  // Only use saved categories that still actually exist.
+  const savedOrder = Array.isArray(categoryOrder)
+    ? categoryOrder.filter((category) => allCategories.includes(category))
+    : [];
+
+  // Add any categories that are new or not yet saved.
+  const newCategories = allCategories
+    .filter((category) => !savedOrder.includes(category))
+    .sort();
+
+  const displayCategories = [
+    ...savedOrder,
+    ...newCategories
+  ];
 
   if (categoriesList) {
-    categoriesList.innerHTML = categories.length
-      ? categories.map((category) => {
-          const categoryProducts = products.filter((product) => String(product.category || "").trim() === category);
+    categoriesList.innerHTML = displayCategories.length
+      ? displayCategories.map((category) => {
+          const categoryProducts = products.filter(
+            (product) =>
+              String(product.category || "").trim() === category
+          );
+
           return `
-            <div class="customer-card ">
-              <div>
+            <div
+              class="category-card"
+              draggable="true"
+              data-category-name="${escapeHtml(category)}"
+            >
+              <div
+                class="category-drag-handle"
+                aria-label="Drag to reorder"
+              >⋮⋮</div>
+
+              <div class="category-info">
                 <strong>${escapeHtml(category)}</strong>
-                <div class="tiny-note">${categoryProducts.length} products</div>
+                <div class="tiny-note">
+                  ${categoryProducts.length} products
+                </div>
               </div>
+
               <div class="admin-actions">
-                <button class="secondary-button" type="button" data-edit-category="${escapeHtml(category)}">Edit</button>
-                <button class="secondary-button danger" type="button" data-delete-category="${escapeHtml(category)}">Delete</button>
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-edit-category="${escapeHtml(category)}"
+                >Edit</button>
+
+                <button
+                  class="secondary-button danger"
+                  type="button"
+                  data-delete-category="${escapeHtml(category)}"
+                >Delete</button>
               </div>
             </div>
           `;
@@ -2968,15 +3149,127 @@ function renderCategories() {
       : `<p class="empty">Add a category to start organizing products.</p>`;
   }
 
-  categoriesList?.querySelectorAll("[data-edit-category]").forEach((button) => {
-    button.addEventListener("click", () => {
-      editCategory(button.dataset.editCategory);
-    });
-  });
+  categoriesList?.removeEventListener(
+    "click",
+    handleCategoryButtonClick
+  );
 
-  categoriesList?.querySelectorAll("[data-delete-category]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await deleteCategory(button.dataset.deleteCategory);
+  categoriesList?.addEventListener(
+    "click",
+    handleCategoryButtonClick
+  );
+
+  initCategoryDragDrop();
+}
+
+async function saveCategoryOrder(newOrder) {
+  categoryOrder = newOrder;
+
+  const { error } = await supabaseClient
+    .from("shop_settings")
+    .update({ category_order: newOrder, updated_at: new Date().toISOString() })
+    .eq("id", 1);
+
+  if (error) {
+    console.error("Could not save category order:", error);
+    alert("Could not save category order. Please try again.");
+  }
+}
+
+let draggedCategory = null;
+
+function initCategoryDragDrop() {
+  const categoryCards =
+    categoriesList?.querySelectorAll(".category-card") || [];
+
+  categoryCards.forEach((card) => {
+    card.addEventListener("dragstart", (event) => {
+      draggedCategory = card.dataset.categoryName;
+
+      card.classList.add("category-dragging");
+
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", draggedCategory);
+      event.stopPropagation();
+    });
+
+    card.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (
+        draggedCategory &&
+        card.dataset.categoryName !== draggedCategory
+      ) {
+        card.classList.add("category-drag-over");
+        event.dataTransfer.dropEffect = "move";
+      }
+    });
+
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("category-drag-over");
+    });
+
+    card.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const targetCategory = card.dataset.categoryName;
+
+      if (!draggedCategory || targetCategory === draggedCategory) {
+        return;
+      }
+
+      const currentOrder = Array.isArray(categoryOrder)
+        ? [...categoryOrder]
+        : [];
+
+      // Make sure every currently displayed category is represented.
+      const displayedCategories = Array.from(categoryCards).map(
+        (categoryCard) => categoryCard.dataset.categoryName
+      );
+
+      const completeOrder = [
+        ...currentOrder.filter((category) =>
+          displayedCategories.includes(category)
+        ),
+        ...displayedCategories.filter(
+          (category) => !currentOrder.includes(category)
+        )
+      ];
+
+      const draggedPosition =
+        completeOrder.indexOf(draggedCategory);
+
+      const targetPosition =
+        completeOrder.indexOf(targetCategory);
+
+      if (draggedPosition === -1 || targetPosition === -1) {
+        return;
+      }
+
+      const newOrder = [...completeOrder];
+
+      const [movedCategory] = newOrder.splice(draggedPosition, 1);
+
+      const newTargetPosition =
+        newOrder.indexOf(targetCategory);
+
+      newOrder.splice(newTargetPosition, 0, movedCategory);
+
+      await saveCategoryOrder(newOrder);
+      renderCategories();
+    });
+
+    card.addEventListener("dragend", (event) => {
+      card.classList.remove("category-dragging");
+
+      categoryCards.forEach((categoryCard) => {
+        categoryCard.classList.remove("category-drag-over");
+      });
+
+      draggedCategory = null;
+      event.stopPropagation();
     });
   });
 }
@@ -2992,6 +3285,25 @@ function resetCategoryForm() {
   categoryForm.reset();
   categoryForm.elements.id.value = "";
   cancelCategoryEdit.hidden = true;
+}
+
+// Event delegation handler for category buttons - prevents drag interference
+function handleCategoryButtonClick(event) {
+  const editButton = event.target.closest("[data-edit-category]");
+  if (editButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    editCategory(editButton.dataset.editCategory);
+    return;
+  }
+
+  const deleteButton = event.target.closest("[data-delete-category]");
+  if (deleteButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    deleteCategory(deleteButton.dataset.deleteCategory);
+    return;
+  }
 }
 
 categoryForm?.addEventListener("submit", async (event) => {
@@ -3034,20 +3346,67 @@ categoryForm?.addEventListener("submit", async (event) => {
 cancelCategoryEdit?.addEventListener("click", resetCategoryForm);
 
 async function deleteCategory(categoryName) {
-  const confirmed = confirm(`Remove category "${categoryName}" from the catalog?`);
+  const confirmed = confirm(
+    `Remove category "${categoryName}"? Its products will be moved to another category.`
+  );
+
   if (!confirmed) return;
 
-  const { error } = await supabaseClient
-    .from("products")
-    .update({ category: null, updated_at: new Date().toISOString() })
-    .eq("category", categoryName);
+  const availableCategories = Array.from(
+    new Set(
+      [
+        ...categoryRegistry,
+        ...products
+          .map((product) => String(product.category || "").trim())
+          .filter(Boolean)
+      ].filter((category) => category && category !== categoryName)
+    )
+  );
 
-  if (error) {
-    alert(`Could not remove category: ${error.message}`);
+  if (availableCategories.length === 0) {
+    alert(
+      "This category cannot be deleted yet because its products need another category."
+    );
     return;
   }
 
-  categoryRegistry = categoryRegistry.filter((item) => item !== categoryName);
+  const targetCategory = prompt(
+    `Move the products from "${categoryName}" to which category?\n\n` +
+    availableCategories.join("\n")
+  );
+
+  if (!targetCategory) return;
+
+  const selectedCategory = targetCategory.trim();
+
+  if (!availableCategories.includes(selectedCategory)) {
+    alert("Please enter the name of one of the existing categories.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("products")
+    .update({
+      category: selectedCategory,
+      updated_at: new Date().toISOString()
+    })
+    .eq("category", categoryName);
+
+  if (error) {
+    alert(`Could not move products: ${error.message}`);
+    return;
+  }
+
+  const newOrder = Array.isArray(categoryOrder)
+    ? categoryOrder.filter((category) => category !== categoryName)
+    : [];
+
+  await saveCategoryOrder(newOrder);
+
+  categoryRegistry = categoryRegistry.filter(
+    (item) => item !== categoryName
+  );
+
   await loadProducts();
 }
 
