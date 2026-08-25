@@ -300,86 +300,106 @@
         <button id="closeCheckout" class="icon-button" type="button">×</button>
       </div>
 
-      <h3 class="checkout-section-title">Customer Information</h3>
+      <section class="checkout-section-card checkout-customer-card" aria-labelledby="customerInformationTitle">
+        <div class="checkout-section-heading">
+          <span class="checkout-section-icon" aria-hidden="true">♡</span>
+          <div>
+            <h3 id="customerInformationTitle">Customer information</h3>
+            <p>Who should we contact about this order?</p>
+          </div>
+        </div>
 
-<label>
-    Full Name
-    <input name="name" required>
-</label>
+        <div class="checkout-field-grid">
+          <label class="checkout-field-full">
+            Name
+            <input name="name" autocomplete="name" placeholder="Your full name" required>
+          </label>
 
-<label>
-    Mobile Number
-    <input
-        name="phone"
-        inputmode="tel"
-        placeholder="09XXXXXXXXX"
-        required
-    >
-</label>
+          <label>
+            Mobile Number
+            <input
+              name="phone"
+              inputmode="tel"
+              autocomplete="tel"
+              placeholder="09XXXXXXXXX"
+              required
+            >
+          </label>
 
-<label>
-    Email Address (Optional)
-    <input
-        type="email"
-        name="email"
-        placeholder="you@example.com"
-    >
-</label>
+          <label>
+            <span>Email Address <small>Optional</small></span>
+            <input
+              type="email"
+              name="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+            >
+          </label>
+        </div>
+      </section>
 
-<h3 class="checkout-section-title">Shipping Address</h3>
+      <section class="checkout-section-card checkout-address-card" aria-labelledby="shippingAddressTitle">
+        <div class="checkout-section-heading">
+          <span class="checkout-section-icon" aria-hidden="true">⌂</span>
+          <div>
+            <h3 id="shippingAddressTitle">Shipping address</h3>
+            <p>Where should we send your lovely order?</p>
+          </div>
+        </div>
 
-<label>
-    Province
-    <input
-        name="province"
-        placeholder="Laguna"
-        required
-    >
-</label>
+        <div class="checkout-field-grid">
+          <label>
+            Province
+            <input
+              name="province"
+              autocomplete="address-level1"
+              placeholder="Laguna"
+              required
+            >
+          </label>
 
-<label>
-    City / Municipality
-    <input
-        name="city"
-        placeholder="Biñan City"
-        required
-    >
-</label>
+          <label>
+            City / Municipality
+            <input
+              name="city"
+              autocomplete="address-level2"
+              placeholder="Biñan City"
+              required
+            >
+          </label>
 
-<label>
-    Barangay
-    <input
-        name="barangay"
-        placeholder="San Antonio"
-        required
-    >
-</label>
+          <label>
+            Barangay
+            <input
+              name="barangay"
+              autocomplete="address-level3"
+              placeholder="San Antonio"
+              required
+            >
+          </label>
 
-<label>
-    Street Address
-    <input
-        name="street"
-        placeholder="Rose Street"
-        required
-    >
-</label>
+          <label class="checkout-field-full">
+            Full Address
+            <textarea
+              name="street"
+              rows="2"
+              autocomplete="street-address"
+              placeholder="Block, lot, building, subdivision, and street"
+              required
+            ></textarea>
+          </label>
 
-<label>
-    House / Unit No.
-    <input
-        name="house_unit"
-        placeholder="Blk 10 Lot 5"
-        required
-    >
-</label>
-
-<label>
-    ZIP Code (Optional)
-    <input
-        name="zipcode"
-        placeholder="4024"
-    >
-</label>
+          <label>
+            <span>ZIP Code <small>Optional</small></span>
+            <input
+              name="zipcode"
+              inputmode="numeric"
+              autocomplete="postal-code"
+              placeholder="4024"
+            >
+          </label>
+        </div>
+      </section>
       <label>Shipping fee
         <select name="shipping" required>
           <option value="">Choose shipping fee</option>
@@ -402,7 +422,6 @@
         <strong id="checkoutTotal">₱0</strong>
       </div>
       <button id="proceedPaymentButton" class="primary-button full" type="button">Proceed to Payment</button>
-      <p class="tiny-note">Stage 1 stores orders in this browser. In Stage 2, we will connect Supabase so all customer orders appear online in your admin dashboard.</p>
     </form>
   </dialog>
 
