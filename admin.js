@@ -5,6 +5,8 @@ const adminContent = document.querySelector("#adminContent");
 
 const settingsForm = document.querySelector("#settingsForm");
 const productForm = document.querySelector("#productForm");
+const productCategorySelect = document.querySelector("#productCategorySelect");
+const newProductCategoryField = document.querySelector("#newProductCategoryField");
 const hasVariantsToggle = document.querySelector("#hasVariantsToggle");
 const variantManager = document.querySelector("#variantManager");
 const variantRows = document.querySelector("#variantRows");
@@ -78,6 +80,8 @@ const menuFormTitle = document.querySelector("#menuFormTitle");
 const adminMenuItems = document.querySelector("#adminMenuItems");
 const menuOrderStatus = document.querySelector("#menuOrderStatus");
 const cancelMenuEdit = document.querySelector("#cancelMenuEdit");
+const menuSectionChoice = document.querySelector("#menuSectionChoice");
+const newMenuSectionField = document.querySelector("#newMenuSectionField");
 const paymentMethodsContainer = document.querySelector("#paymentMethodsContainer");
 const addPaymentMethodBtn = document.querySelector("#addPaymentMethodBtn");
 const paymentMethodModal = document.querySelector("#paymentMethodModal");
@@ -93,6 +97,8 @@ const paymentMethodQrPreviewImage = document.querySelector("#paymentQrPreviewIma
 const paymentMethodQrPreviewText = document.querySelector("#paymentQrPreviewText");
 const categoryForm = document.querySelector("#categoryForm");
 const cancelCategoryEdit = document.querySelector("#cancelCategoryEdit");
+const categoryProductsEditor = document.querySelector("#categoryProductsEditor");
+const categoryProductsList = document.querySelector("#categoryProductsList");
 const sidebarLogoutButton = document.querySelector("#sidebarLogoutButton");
 
 let menuItems = [];
@@ -356,6 +362,10 @@ if (data.hero_image_url) {
     data.catalog_title || "Find your new favorite";
   settingsForm.elements.catalogSubtitle.value =
     data.catalog_subtitle || "Sweet little picks, chosen just for you.";
+  if (settingsForm.elements.menuTagline) {
+    settingsForm.elements.menuTagline.value =
+      data.menu_tagline || "Everything lovely, in one place";
+  }
   settingsForm.elements.facebook.value = data.facebook_url || "";
   settingsForm.elements.tiktok.value = data.tiktok_url || "";
   settingsForm.elements.shipping90Label.value =
@@ -390,6 +400,9 @@ settingsForm.addEventListener("submit", async (event) => {
     catalog_subtitle:
       String(formData.get("catalogSubtitle") || "").trim() ||
       "Sweet little picks, chosen just for you.",
+    menu_tagline:
+      String(formData.get("menuTagline") || "").trim() ||
+      "Everything lovely, in one place",
     facebook_url:
       String(formData.get("facebook") || "").trim() || null,
     tiktok_url:
@@ -455,64 +468,121 @@ async function loadMenuItems() {
   }
 
   menuItems = data || [];
+  updateMenuSectionChoices();
   renderMenuItems();
 }
+
+function getMenuGroups(items = menuItems) {
+  const groups = [];
+  const bySection = new Map();
+
+  items.forEach((item) => {
+    const section = String(item.section || "Menu").trim() || "Menu";
+    if (!bySection.has(section)) {
+      const group = { section, items: [] };
+      bySection.set(section, group);
+      groups.push(group);
+    }
+    bySection.get(section).items.push(item);
+  });
+
+  return groups;
+}
+
+function updateMenuSectionChoices(selectedValue = "") {
+  if (!menuSectionChoice) return;
+
+  const sections = getMenuGroups().map((group) => group.section);
+  const selected = String(selectedValue || "").trim();
+
+  if (selected && selected !== "__new__" && !sections.includes(selected)) {
+    sections.push(selected);
+  }
+
+  menuSectionChoice.innerHTML = `
+    <option value="">Choose an active menu header</option>
+    ${sections.map((section) => `
+      <option value="${escapeHtml(section)}">${escapeHtml(section)}</option>
+    `).join("")}
+    <option value="__new__">＋ Create new menu header…</option>
+  `;
+  menuSectionChoice.value = selected || "";
+  toggleNewMenuSectionField();
+}
+
+function toggleNewMenuSectionField() {
+  if (!newMenuSectionField || !menuSectionChoice) return;
+  const creatingNew = menuSectionChoice.value === "__new__";
+  newMenuSectionField.hidden = !creatingNew;
+  const input = menuForm?.elements.newSection;
+  if (input) {
+    input.required = creatingNew;
+    if (!creatingNew) input.value = "";
+  }
+}
+
+menuSectionChoice?.addEventListener("change", toggleNewMenuSectionField);
 
 function renderMenuItems() {
   if (!menuItems.length) {
     adminMenuItems.innerHTML =
       `<p class="empty">No menu items yet.</p>`;
+    updateMenuSectionChoices();
     return;
   }
 
-  adminMenuItems.innerHTML = menuItems
-    .map(
-      (item) => `
-        <article class="admin-product menu-admin-item" data-menu-id="${item.id}">
+  adminMenuItems.innerHTML = getMenuGroups()
+    .map((group) => `
+      <section class="menu-admin-group" data-menu-section="${escapeHtml(group.section)}">
+        <header class="menu-admin-group-header">
           <button
-            class="menu-drag-handle"
+            class="menu-group-drag-handle"
             type="button"
             draggable="true"
-            aria-label="Drag ${escapeHtml(item.label)} to reorder"
-            title="Drag to reorder, or use the arrow keys"
-          >
-            <span aria-hidden="true">⋮⋮</span>
-          </button>
-
-          <div class="menu-admin-info">
-            <strong>${escapeHtml(item.label)}</strong>
-
-            <div class="menu-url">
-              ${escapeHtml(item.url)}
-            </div>
-
-            <small>
-              <span class="menu-section-badge">${escapeHtml(item.section || "Menu")}</span>
-              · ${item.is_visible ? "Visible" : "Hidden"}
-              · ${item.open_new_tab ? "New tab" : "Same tab"}
-            </small>
+            aria-label="Drag ${escapeHtml(group.section)} header to reorder"
+            title="Drag this whole menu header to reorder it"
+          ><span aria-hidden="true">⋮⋮</span></button>
+          <div class="menu-admin-group-title">
+            <strong>${escapeHtml(group.section)}</strong>
+            <small>${group.items.length} ${group.items.length === 1 ? "link" : "links"}</small>
           </div>
-
-          <div class="admin-actions">
-            <button
-              class="secondary-button"
-              type="button"
-              data-menu-edit="${item.id}"
+          <button
+            class="secondary-button"
+            type="button"
+            data-menu-section-edit="${escapeHtml(group.section)}"
+          >Rename header</button>
+        </header>
+        <div class="menu-admin-group-items">
+          ${group.items.map((item) => `
+            <article
+              class="admin-product menu-admin-item"
+              data-menu-id="${item.id}"
+              data-menu-section="${escapeHtml(group.section)}"
             >
-              Edit
-            </button>
-
-            <button
-              class="secondary-button danger"
-              type="button"
-              data-menu-delete="${item.id}"
-            >
-              Delete
-            </button>
-          </div>
-        </article>
-      `
-    )
+              <button
+                class="menu-drag-handle"
+                type="button"
+                draggable="true"
+                aria-label="Drag ${escapeHtml(item.label)} to reorder inside ${escapeHtml(group.section)}"
+                title="Drag to reorder inside this header"
+              ><span aria-hidden="true">⋮⋮</span></button>
+              <div class="menu-admin-info">
+                <strong>${escapeHtml(item.label)}</strong>
+                <div class="menu-url">${escapeHtml(item.url)}</div>
+                <small>
+                  ${item.is_visible ? "Visible" : "Hidden"}
+                  · ${item.open_new_tab ? "New tab" : "Same tab"}
+                </small>
+              </div>
+              <div class="admin-actions">
+                <button class="secondary-button" type="button" data-menu-edit="${item.id}">Edit</button>
+                <button class="secondary-button danger" type="button" data-menu-delete="${item.id}">Delete</button>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `)
     .join("");
 
   adminMenuItems
@@ -531,10 +601,20 @@ function renderMenuItems() {
       });
     });
 
+  adminMenuItems
+    .querySelectorAll("[data-menu-section-edit]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        renameMenuSection(button.dataset.menuSectionEdit);
+      });
+    });
+
   initMenuItemDragDrop();
+  initMenuGroupDragDrop();
 }
 
 let draggedMenuItemId = null;
+let draggedMenuSection = null;
 
 function setMenuOrderStatus(message, state = "") {
   if (!menuOrderStatus) return;
@@ -571,33 +651,40 @@ async function saveMenuItemOrder(orderedItems) {
 }
 
 async function moveMenuItemByKeyboard(itemId, direction) {
-  const currentIndex = menuItems.findIndex(
-    (item) => String(item.id) === String(itemId)
+  const item = menuItems.find((entry) => String(entry.id) === String(itemId));
+  if (!item) return;
+
+  const groups = getMenuGroups();
+  const group = groups.find(
+    (entry) => entry.section === String(item.section || "Menu").trim()
+  );
+  if (!group) return;
+
+  const currentIndex = group.items.findIndex(
+    (entry) => String(entry.id) === String(itemId)
   );
   const targetIndex = currentIndex + direction;
 
   if (
     currentIndex < 0 ||
     targetIndex < 0 ||
-    targetIndex >= menuItems.length
+    targetIndex >= group.items.length
   ) {
     return;
   }
 
-  const reorderedItems = [...menuItems];
-  const [movedItem] = reorderedItems.splice(currentIndex, 1);
-  reorderedItems.splice(targetIndex, 0, movedItem);
-  await saveMenuItemOrder(reorderedItems);
+  const [movedItem] = group.items.splice(currentIndex, 1);
+  group.items.splice(targetIndex, 0, movedItem);
+  await saveMenuItemOrder(groups.flatMap((entry) => entry.items));
 
-  adminMenuItems
-    ?.querySelector(`[data-menu-id="${CSS.escape(String(itemId))}"] .menu-drag-handle`)
+  Array.from(adminMenuItems?.querySelectorAll(".menu-admin-item") || [])
+    .find((card) => String(card.dataset.menuId) === String(itemId))
+    ?.querySelector(".menu-drag-handle")
     ?.focus();
 }
 
 function initMenuItemDragDrop() {
-  const cards = Array.from(
-    adminMenuItems?.querySelectorAll(".menu-admin-item") || []
-  );
+  const cards = Array.from(adminMenuItems?.querySelectorAll(".menu-admin-item") || []);
 
   cards.forEach((card) => {
     const handle = card.querySelector(".menu-drag-handle");
@@ -629,7 +716,14 @@ function initMenuItemDragDrop() {
     });
 
     card.addEventListener("dragover", (event) => {
-      if (!draggedMenuItemId || draggedMenuItemId === card.dataset.menuId) {
+      const draggedCard = cards.find(
+        (entry) => String(entry.dataset.menuId) === String(draggedMenuItemId)
+      );
+      if (
+        !draggedMenuItemId ||
+        draggedMenuItemId === card.dataset.menuId ||
+        draggedCard?.dataset.menuSection !== card.dataset.menuSection
+      ) {
         return;
       }
 
@@ -651,39 +745,145 @@ function initMenuItemDragDrop() {
         return;
       }
 
-      const reorderedItems = [...menuItems];
-      const fromIndex = reorderedItems.findIndex(
+      const groups = getMenuGroups();
+      const group = groups.find((entry) => entry.section === card.dataset.menuSection);
+      if (!group) return;
+
+      const fromIndex = group.items.findIndex(
         (item) => String(item.id) === String(draggedMenuItemId)
       );
-      let targetIndex = reorderedItems.findIndex(
+      let targetIndex = group.items.findIndex(
         (item) => String(item.id) === String(card.dataset.menuId)
       );
 
       if (fromIndex < 0 || targetIndex < 0) return;
 
-      const [movedItem] = reorderedItems.splice(fromIndex, 1);
-      targetIndex = reorderedItems.findIndex(
+      const [movedItem] = group.items.splice(fromIndex, 1);
+      targetIndex = group.items.findIndex(
         (item) => String(item.id) === String(card.dataset.menuId)
       );
 
       const cardRect = card.getBoundingClientRect();
       const placeAfter = event.clientY > cardRect.top + cardRect.height / 2;
-      reorderedItems.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedItem);
+      group.items.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedItem);
 
       draggedMenuItemId = null;
-      await saveMenuItemOrder(reorderedItems);
+      await saveMenuItemOrder(groups.flatMap((entry) => entry.items));
     });
   });
+}
+
+async function moveMenuGroupByKeyboard(section, direction) {
+  const groups = getMenuGroups();
+  const currentIndex = groups.findIndex((group) => group.section === section);
+  const targetIndex = currentIndex + direction;
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= groups.length) return;
+
+  const [movedGroup] = groups.splice(currentIndex, 1);
+  groups.splice(targetIndex, 0, movedGroup);
+  await saveMenuItemOrder(groups.flatMap((group) => group.items));
+
+  Array.from(adminMenuItems?.querySelectorAll(".menu-admin-group") || [])
+    .find((group) => group.dataset.menuSection === section)
+    ?.querySelector(".menu-group-drag-handle")
+    ?.focus();
+}
+
+function initMenuGroupDragDrop() {
+  const groups = Array.from(adminMenuItems?.querySelectorAll(".menu-admin-group") || []);
+
+  groups.forEach((group) => {
+    const handle = group.querySelector(".menu-group-drag-handle");
+
+    handle?.addEventListener("dragstart", (event) => {
+      draggedMenuSection = group.dataset.menuSection;
+      group.classList.add("menu-group-dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", draggedMenuSection);
+    });
+
+    handle?.addEventListener("dragend", () => {
+      draggedMenuSection = null;
+      groups.forEach((entry) => entry.classList.remove("menu-group-dragging", "menu-group-drag-over"));
+    });
+
+    handle?.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+      event.preventDefault();
+      moveMenuGroupByKeyboard(
+        group.dataset.menuSection,
+        event.key === "ArrowUp" ? -1 : 1
+      );
+    });
+
+    group.addEventListener("dragover", (event) => {
+      if (!draggedMenuSection || draggedMenuSection === group.dataset.menuSection) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      groups.forEach((entry) => entry.classList.remove("menu-group-drag-over"));
+      group.classList.add("menu-group-drag-over");
+    });
+
+    group.addEventListener("dragleave", (event) => {
+      if (!group.contains(event.relatedTarget)) group.classList.remove("menu-group-drag-over");
+    });
+
+    group.addEventListener("drop", async (event) => {
+      if (!draggedMenuSection || draggedMenuSection === group.dataset.menuSection) return;
+      event.preventDefault();
+      const orderedGroups = getMenuGroups();
+      const fromIndex = orderedGroups.findIndex((entry) => entry.section === draggedMenuSection);
+      let targetIndex = orderedGroups.findIndex((entry) => entry.section === group.dataset.menuSection);
+      if (fromIndex < 0 || targetIndex < 0) return;
+
+      const [movedGroup] = orderedGroups.splice(fromIndex, 1);
+      targetIndex = orderedGroups.findIndex((entry) => entry.section === group.dataset.menuSection);
+      const bounds = group.getBoundingClientRect();
+      const placeAfter = event.clientY > bounds.top + bounds.height / 2;
+      orderedGroups.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedGroup);
+      draggedMenuSection = null;
+      await saveMenuItemOrder(orderedGroups.flatMap((entry) => entry.items));
+    });
+  });
+}
+
+async function renameMenuSection(section) {
+  const newName = prompt(`Rename menu header "${section}" to:`, section);
+  if (newName === null) return;
+  const cleanName = newName.trim();
+  if (!cleanName || cleanName === section) return;
+
+  const { error } = await supabaseClient
+    .from("menu_items")
+    .update({ section: cleanName })
+    .eq("section", section);
+
+  if (error) {
+    alert(`Could not rename menu header: ${error.message}`);
+    return;
+  }
+
+  await loadMenuItems();
+  alert("Menu header renamed.");
 }
 menuForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(menuForm);
+  const sectionChoice = String(formData.get("sectionChoice") || "").trim();
+  const section = sectionChoice === "__new__"
+    ? String(formData.get("newSection") || "").trim()
+    : sectionChoice;
+
+  if (!section) {
+    alert("Please choose an active menu header or create a new one.");
+    return;
+  }
 
   const updates = {
     label: String(formData.get("label") || "").trim(),
     url: String(formData.get("url") || "").trim(),
-    section: String(formData.get("section") || "SITE").trim(),
+    section,
     is_visible: formData.get("isVisible") === "on",
 open_new_tab: formData.get("openNewTab") === "on"
   };
@@ -719,15 +919,16 @@ open_new_tab: formData.get("openNewTab") === "on"
   cancelMenuEdit.hidden = true;
 
   await loadMenuItems();
+  updateMenuSectionChoices();
 });
 function editMenuItem(id) {
-  const item = menuItems.find((m) => m.id === id);
+  const item = menuItems.find((m) => String(m.id) === String(id));
   if (!item) return;
 
   menuForm.elements.id.value = item.id;
   menuForm.elements.label.value = item.label || "";
   menuForm.elements.url.value = item.url || "";
-  menuForm.elements.section.value = item.section || "SITE";
+  updateMenuSectionChoices(item.section || "Menu");
   menuForm.elements.isVisible.checked = item.is_visible;
   menuForm.elements.openNewTab.checked = item.open_new_tab;
 
@@ -743,12 +944,13 @@ function editMenuItem(id) {
 cancelMenuEdit.addEventListener("click", () => {
   menuForm.reset();
   menuForm.elements.id.value = "";
+  updateMenuSectionChoices();
   menuFormTitle.textContent = "Add menu item";
   cancelMenuEdit.hidden = true;
 });
 
 async function deleteMenuItem(id) {
-  const item = menuItems.find((m) => m.id === id);
+  const item = menuItems.find((m) => String(m.id) === String(id));
 
   if (!item) return;
 
@@ -1473,16 +1675,67 @@ function renderProducts() {
 }
 
 function updateCategoryFilterOptions() {
-  const categories = Array.from(new Set([
-    ...categoryRegistry,
-    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
-  ]));
+  const categories = getActiveCategories();
   const currentValue = productsCategoryFilter?.value || "all";
   if (productsCategoryFilter) {
     productsCategoryFilter.innerHTML = `<option value="all">All categories</option>${categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join("")}`;
     productsCategoryFilter.value = currentValue && categories.includes(currentValue) ? currentValue : "all";
   }
+
+  updateProductCategoryChoices(productCategorySelect?.value || "");
 }
+
+function getActiveCategories() {
+  const categories = Array.from(new Set([
+    ...categoryRegistry,
+    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
+  ]));
+
+  const savedOrder = Array.isArray(categoryOrder)
+    ? categoryOrder.filter((category) => categories.includes(category))
+    : [];
+
+  return [
+    ...savedOrder,
+    ...categories.filter((category) => !savedOrder.includes(category)).sort()
+  ];
+}
+
+function updateProductCategoryChoices(selectedValue = "") {
+  if (!productCategorySelect) return;
+
+  const categories = getActiveCategories();
+  const selected = String(selectedValue || "").trim();
+  const options = [...categories];
+
+  if (selected && selected !== "__new__" && !options.includes(selected)) {
+    options.push(selected);
+  }
+
+  productCategorySelect.innerHTML = `
+    <option value="">Choose an active category</option>
+    ${options.map((category) => `
+      <option value="${escapeHtml(category)}">${escapeHtml(category)}</option>
+    `).join("")}
+    <option value="__new__">＋ Create new category…</option>
+  `;
+
+  productCategorySelect.value = selected || "";
+  toggleNewProductCategoryField();
+}
+
+function toggleNewProductCategoryField() {
+  if (!newProductCategoryField || !productCategorySelect) return;
+  const creatingNew = productCategorySelect.value === "__new__";
+  newProductCategoryField.hidden = !creatingNew;
+  const input = productForm?.elements.newCategory;
+  if (input) {
+    input.required = creatingNew;
+    if (!creatingNew) input.value = "";
+  }
+}
+
+productCategorySelect?.addEventListener("change", toggleNewProductCategoryField);
 
 async function toggleProductVisibility(id) {
   const product = products.find((item) => item.id === id);
@@ -1989,16 +2242,13 @@ if (VariantManager.isEnabled()) {
     return;
   }
 }
-const existingProduct = id
-  ? products.find((item) => String(item.id) === String(id))
-  : null;
-
-const categoryValue =
-  String(formData.get("category") || "").trim() ||
-  String(existingProduct?.category || "").trim();
+const categoryChoice = String(formData.get("category") || "").trim();
+const categoryValue = categoryChoice === "__new__"
+  ? String(formData.get("newCategory") || "").trim()
+  : categoryChoice;
 
 if (!categoryValue) {
-  alert("Please enter a product category.");
+  alert("Please choose an active category or create a new one.");
   return;
 }
   const product = {
@@ -2061,7 +2311,7 @@ alert(
 );
 });
 async function editProduct(id) {
-  const product = products.find((item) => item.id === id);
+  const product = products.find((item) => String(item.id) === String(id));
 
   if (!product) return;
 
@@ -2078,7 +2328,7 @@ try {
   productForm.elements.name.value = product.name || "";
   productForm.elements.price.value = product.price ?? 0;
   productForm.elements.stock.value = product.stock ?? 0;
-  productForm.elements.category.value = product.category || "";
+  updateProductCategoryChoices(product.category || "");
   productForm.elements.image.value = product.image_url || "";
   selectedProductImageFile = null;
   productImageFileInput.value = "";
@@ -2097,7 +2347,7 @@ try {
 }
 
 async function deleteProduct(id) {
-  const product = products.find((item) => item.id === id);
+  const product = products.find((item) => String(item.id) === String(id));
 
   const confirmed = confirm(
     `Delete ${product?.name || "this product"}?`
@@ -2126,6 +2376,7 @@ function resetProductForm() {
   productImageUrlInput.value = "";
   showProductImagePreview("");
   productForm.elements.id.value = "";
+  updateProductCategoryChoices("");
   VariantManager.reset();
   formTitle.textContent = "Add product";
   cancelEdit.hidden = true;
@@ -3440,6 +3691,48 @@ function initCategoryDragDrop() {
 async function editCategory(categoryName) {
   categoryForm.elements.id.value = categoryName;
   categoryForm.elements.categoryName.value = categoryName;
+  const categoryProducts = products.filter(
+    (product) => String(product.category || "").trim() === categoryName
+  );
+  const activeCategories = getActiveCategories();
+
+  if (categoryProductsList) {
+    categoryProductsList.innerHTML = categoryProducts.length
+      ? categoryProducts.map((product) => `
+          <article class="category-product-row" data-category-product-row="${product.id}">
+            <div class="category-product-summary">
+              <strong>${escapeHtml(product.name || "Untitled product")}</strong>
+              <small>${formatCurrency(product.price || 0)} · Stock: ${Number(product.stock || 0)}</small>
+            </div>
+            <label>
+              Place in
+              <select data-category-product="${product.id}">
+                <option value="__none__">No category</option>
+                ${activeCategories.map((category) => `
+                  <option
+                    value="${escapeHtml(category)}"
+                    ${category === categoryName ? "selected" : ""}
+                  >${escapeHtml(category)}</option>
+                `).join("")}
+              </select>
+            </label>
+            <button
+              class="secondary-button"
+              type="button"
+              data-edit-category-product="${product.id}"
+            >Edit full product</button>
+          </article>
+        `).join("")
+      : `<p class="empty">No products are currently assigned to this category.</p>`;
+
+    categoryProductsList
+      .querySelectorAll("[data-edit-category-product]")
+      .forEach((button) => {
+        button.addEventListener("click", () => editProduct(button.dataset.editCategoryProduct));
+      });
+  }
+
+  if (categoryProductsEditor) categoryProductsEditor.hidden = false;
   cancelCategoryEdit.hidden = false;
   categoryForm.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -3447,6 +3740,8 @@ async function editCategory(categoryName) {
 function resetCategoryForm() {
   categoryForm.reset();
   categoryForm.elements.id.value = "";
+  if (categoryProductsEditor) categoryProductsEditor.hidden = true;
+  if (categoryProductsList) categoryProductsList.innerHTML = "";
   cancelCategoryEdit.hidden = true;
 }
 
@@ -3481,19 +3776,56 @@ categoryForm?.addEventListener("submit", async (event) => {
   }
 
   if (existingCategory) {
-    const { error } = await supabaseClient
-      .from("products")
-      .update({ category: categoryName, updated_at: new Date().toISOString() })
-      .eq("category", existingCategory);
+    const productAssignments = Array.from(
+      categoryProductsList?.querySelectorAll("[data-category-product]") || []
+    );
 
-    if (error) {
-      alert(`Could not rename category: ${error.message}`);
-      return;
+    for (const select of productAssignments) {
+      const productId = select.dataset.categoryProduct;
+      const chosenCategory = select.value === "__none__"
+        ? null
+        : select.value === existingCategory
+          ? categoryName
+          : select.value;
+
+      const { error } = await supabaseClient
+        .from("products")
+        .update({
+          category: chosenCategory,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", productId);
+
+      if (error) {
+        alert(`Could not update a product in this category: ${error.message}`);
+        return;
+      }
+    }
+
+    if (!productAssignments.length && existingCategory !== categoryName) {
+      const { error } = await supabaseClient
+        .from("products")
+        .update({ category: categoryName, updated_at: new Date().toISOString() })
+        .eq("category", existingCategory);
+
+      if (error) {
+        alert(`Could not rename category: ${error.message}`);
+        return;
+      }
     }
 
     categoryRegistry = categoryRegistry.filter((item) => item !== existingCategory);
     if (!categoryRegistry.includes(categoryName)) {
       categoryRegistry.push(categoryName);
+    }
+
+    if (existingCategory !== categoryName && Array.isArray(categoryOrder)) {
+      const renamedOrder = Array.from(new Set(
+        categoryOrder.map((category) =>
+          category === existingCategory ? categoryName : category
+        )
+      ));
+      await saveCategoryOrder(renamedOrder);
     }
   } else {
     if (!categoryRegistry.includes(categoryName)) {
@@ -3503,7 +3835,7 @@ categoryForm?.addEventListener("submit", async (event) => {
 
   resetCategoryForm();
   await loadProducts();
-  alert(existingCategory ? "Category renamed." : "Category added.");
+  alert(existingCategory ? "Category and product assignments updated." : "Category added.");
 });
 
 cancelCategoryEdit?.addEventListener("click", resetCategoryForm);

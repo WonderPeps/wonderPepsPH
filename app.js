@@ -10,6 +10,7 @@ const brandFallback = document.querySelector("#brandFallback");
 const menuBrandName = document.querySelector("#menuBrandName");
 const menuBrandLogo = document.querySelector("#menuBrandLogo");
 const menuBrandFallback = document.querySelector("#menuBrandFallback");
+const menuBrandTagline = document.querySelector("#menuBrandTagline");
 const heroTitle = document.querySelector("#heroTitle");
 const heroSubtitle = document.querySelector("#heroSubtitle");
 const heroEyebrow = document.querySelector("#heroEyebrow");
@@ -205,6 +206,11 @@ function applyShopSettings(settings) {
 
   if (menuBrandName) {
     menuBrandName.textContent = shopName;
+  }
+
+  if (menuBrandTagline) {
+    menuBrandTagline.textContent =
+      settings.menu_tagline || "Everything lovely, in one place";
   }
 
   if (heroTitle) {

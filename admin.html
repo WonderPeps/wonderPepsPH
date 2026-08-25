@@ -163,11 +163,22 @@
           <p class="tiny-note">Organize product categories using the existing product.category field.</p>
         </div>
       </div>
-      <form id="categoryForm" class="admin-form inline-form">
+      <form id="categoryForm" class="admin-form category-editor-form">
         <input type="hidden" name="id" />
         <label>Category name<input name="categoryName" required /></label>
-        <button class="primary-button" type="submit">Save category</button>
-        <button id="cancelCategoryEdit" class="secondary-button" type="button" hidden>Cancel</button>
+        <div id="categoryProductsEditor" class="category-products-editor" hidden>
+          <div class="category-products-heading">
+            <div>
+              <h3>Products in this category</h3>
+              <p class="tiny-note">Move a product to another active category, remove its category, or open its full editor.</p>
+            </div>
+          </div>
+          <div id="categoryProductsList" class="category-products-list"></div>
+        </div>
+        <div class="category-form-actions">
+          <button class="primary-button" type="submit">Save changes</button>
+          <button id="cancelCategoryEdit" class="secondary-button" type="button" hidden>Cancel</button>
+        </div>
       </form>
       <div id="categoriesList" class="category-list"></div>
     </section>
@@ -196,6 +207,7 @@
         <button class="secondary-button" type="button" data-settings-tab="branding">Branding</button>
         <button class="secondary-button" type="button" data-settings-tab="hero">Hero</button>
         <button class="secondary-button" type="button" data-settings-tab="catalog">Catalog</button>
+        <button class="secondary-button" type="button" data-settings-tab="menu">Menu drawer</button>
         <button class="secondary-button" type="button" data-settings-tab="social">Social</button>
         <button class="secondary-button" type="button" data-settings-tab="shipping">Shipping</button>
         <button class="secondary-button" type="button" data-settings-tab="footer">Footer</button>
@@ -294,6 +306,10 @@ Hero eyebrow
             Catalog subtitle
             <input name="catalogSubtitle" placeholder="Sweet little picks, chosen just for you." />
           </label>
+          <label data-settings-group="menu">
+            Menu subtitle
+            <input name="menuTagline" placeholder="Everything lovely, in one place" />
+          </label>
           <label data-settings-group="social">Facebook link<input name="facebook" placeholder="https://facebook.com/..." /></label>
           <label data-settings-group="social">TikTok link<input name="tiktok" placeholder="https://tiktok.com/@..." /></label>
           <label data-settings-group="shipping">₱90 shipping label<input name="shipping90Label" /></label>
@@ -346,7 +362,13 @@ Hero eyebrow
 
 <label>
     Category
-    <input name="category" />
+    <select id="productCategorySelect" name="category" required>
+      <option value="">Choose an active category</option>
+    </select>
+</label>
+<label id="newProductCategoryField" hidden>
+    New category name
+    <input name="newCategory" placeholder="Example: Peptides" />
 </label>
 
 <!-- =========================
@@ -449,17 +471,13 @@ Hero eyebrow
         <input type="hidden" name="id" />
         <label>
           Menu header
-          <input
-            name="section"
-            list="menuSectionSuggestions"
-            placeholder="Example: Shop, Community, Contact"
-            required
-          />
-          <datalist id="menuSectionSuggestions">
-            <option value="Shop"></option>
-            <option value="Community"></option>
-            <option value="Contact"></option>
-          </datalist>
+          <select id="menuSectionChoice" name="sectionChoice" required>
+            <option value="">Choose an active menu header</option>
+          </select>
+        </label>
+        <label id="newMenuSectionField" hidden>
+          New menu header
+          <input name="newSection" placeholder="Example: Contact" />
         </label>
         <label>
           Menu label
