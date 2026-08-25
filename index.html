@@ -6,131 +6,143 @@
   <meta name="theme-color" content="#f9d8e5" />
   <title>Wonder Peps PH</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="storefront.css" />
 </head>
-<body class="settings-loading">
+<body class="storefront-page settings-loading">
   <header class="site-header">
-    <a class="brand" href="#home">
+    <a class="brand" href="#home" aria-label="Wonder Peps home">
       <img id="brandLogo" class="brand-logo" alt="Shop logo" hidden />
       <span id="brandFallback" class="brand-mark">♡</span>
       <span id="brandName">Wonder Peps <small>PH</small></span>
     </a>
-<nav>
-  <a href="#shop">Shop</a>
+    <nav class="storefront-nav" aria-label="Storefront navigation">
+      <a class="shop-link" href="#shop">Shop</a>
 
-<button
-  id="cartButton"
-  class="cart-button"
-  type="button"
-  aria-label="Open cart"
->
-  <svg class="cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <!-- Basket with grid -->
-    <path d="M4 6h16L19 16H5L4 6Z" fill="none" stroke="currentColor"/>
-    <!-- Basket grid lines -->
-    <line x1="5" y1="8" x2="19" y2="8"/>
-    <line x1="5.5" y1="6" x2="5.5" y2="16"/>
-    <line x1="8" y1="6" x2="8" y2="16"/>
-    <line x1="10.5" y1="6" x2="10.5" y2="16"/>
-    <line x1="13" y1="6" x2="13" y2="16"/>
-    <line x1="15.5" y1="6" x2="15.5" y2="16"/>
-    <line x1="18.5" y1="6" x2="18.5" y2="16"/>
-    <!-- Handle -->
-    <path d="M7 6Q7 2 12 2Q17 2 17 6" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  </svg>
-  <span id="cartCount">0</span>
-</button>
-<button
-    id="favoritesButton"
-    class="icon-button favorite-header-button"
-    type="button"
-    aria-label="Open favorites">
+      <button
+        id="favoritesButton"
+        class="icon-button favorite-header-button"
+        type="button"
+        aria-label="Open favorites"
+      >
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 20.5S4 15.8 4 9.5A4.5 4.5 0 0 1 12 6.7a4.5 4.5 0 0 1 8 2.8c0 6.3-8 11-8 11Z" />
+        </svg>
+        <span id="favoritesCount" class="favorites-badge" hidden>0</span>
+      </button>
 
-    <span class="favorite-header-icon">❤</span>
+      <button
+        id="cartButton"
+        class="cart-button"
+        type="button"
+        aria-label="Open shopping bag"
+      >
+        <svg class="cart-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6.4 8.5h11.2l.8 11H5.6l.8-11Z" />
+          <path d="M9 9V6.8a3 3 0 0 1 6 0V9" />
+        </svg>
+        <span id="cartCount">0</span>
+      </button>
 
-    <span
-        id="favoritesCount"
-        class="favorites-badge"
-        hidden>
-        0
-    </span>
-
-</button>
-  <button
-    id="menuButton"
-    class="icon-button menu-button"
-    type="button"
-    aria-label="Open menu"
-  >
-    ☰
-  </button>
-</nav>
+      <button
+        id="menuButton"
+        class="icon-button menu-button"
+        type="button"
+        aria-label="Open menu"
+      >
+        <svg class="header-icon menu-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 7h14M5 12h14M5 17h14" />
+        </svg>
+      </button>
+    </nav>
   </header>
 <aside id="menuDrawer" class="drawer menu-drawer" aria-hidden="true">
   <div class="drawer-panel">
-    <div class="drawer-header">
-      <h2>Menu</h2>
-
+    <div class="menu-drawer-brand">
+      <div class="menu-brand-identity">
+        <img id="menuBrandLogo" class="menu-brand-logo" alt="Shop logo" hidden />
+        <span id="menuBrandFallback" class="menu-brand-fallback" aria-hidden="true">♡</span>
+        <div>
+          <h2 id="menuBrandName">Wonder Peps PH</h2>
+          <p id="menuBrandTagline">Everything lovely, in one place</p>
+        </div>
+      </div>
       <button
         id="closeMenu"
-        class="icon-button"
+        class="icon-button menu-close-button"
         type="button"
         aria-label="Close menu"
       >
-        ×
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18" />
+        </svg>
       </button>
     </div>
 
-    <nav id="storeMenuItems" class="store-menu-items"></nav>
+    <nav id="storeMenuItems" class="store-menu-items" aria-label="Shop menu"></nav>
   </div>
 </aside>
   <main>
-    <section id="home" class="hero">
+    <section id="home" class="hero" aria-labelledby="heroTitle">
       <div class="hero-media">
-  <img
-    id="heroImage"
-    class="hero-image"
-    alt="Shop hero image"
-    hidden
-  />
-</div>
+        <div class="hero-image-frame">
+          <img
+            id="heroImage"
+            class="hero-image"
+            alt="Wonder Peps featured product"
+            hidden
+          />
+          <div id="heroFallback" class="bunny-card" aria-hidden="true">
+            <div class="ears">◡ ◡</div>
+            <div class="face">◠ ᴥ ◠</div>
+            <div class="hearts">♡ ♡ ♡</div>
+          </div>
+        </div>
+        <span class="hero-sparkle hero-sparkle-one" aria-hidden="true">✦</span>
+        <span class="hero-sparkle hero-sparkle-two" aria-hidden="true">♡</span>
+      </div>
 
       <div class="hero-copy">
         <p id="heroEyebrow" class="eyebrow">
-  Pretty packaging, simple ordering
-</p>
+          Pretty packaging, simple ordering
+        </p>
         <h1 id="heroTitle">Soft pink shopping made easy.</h1>
         <p id="heroSubtitle">Browse products, add them to your bag, and send your order details in just a few taps.</p>
-        <a class="primary-button" href="#shop">Shop now</a>
+        <a class="primary-button hero-button" href="#shop">
+          Shop now
+          <span aria-hidden="true">→</span>
+        </a>
       </div>
+    </section>
 
-  <div id="heroFallback" class="bunny-card" aria-hidden="true">
-    <div class="ears">◡ ◡</div>
-    <div class="face">◠ ᴥ ◠</div>
-    <div class="hearts">♡ ♡ ♡</div>
-  </div>
-</section>
-<section id="shop" class="section">
-
-    <div class="section-heading">
-
+    <section id="shop" class="section catalog-section" aria-labelledby="catalogTitle">
+      <div class="section-heading">
         <div>
-            <p class="eyebrow">CATALOG</p>
-            <h2>Shop products</h2>
+          <p id="catalogEyebrow" class="eyebrow">OUR COLLECTION</p>
+          <h2 id="catalogTitle">Find your new favorite</h2>
+          <p id="catalogSubtitle" class="catalog-subtitle">Sweet little picks, chosen just for you.</p>
         </div>
 
-        <input
+        <label class="search-wrap" for="searchInput">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4 4" />
+          </svg>
+          <input
             id="searchInput"
             class="search"
             type="search"
-            placeholder="Search products">
+            placeholder="Search products"
+            autocomplete="off"
+          />
+        </label>
+      </div>
 
-    </div>
+      <div class="category-area" aria-label="Product categories">
+        <div id="categoryFilters" class="category-filters"></div>
+      </div>
 
-    <div id="categoryFilters" class="category-filters"></div>
-
-    <div id="productGrid" class="product-grid"></div>
-
-</section>
+      <div id="productGrid" class="product-grid"></div>
+    </section>
 
 
   </main>
@@ -288,94 +300,135 @@
         <button id="closeCheckout" class="icon-button" type="button">×</button>
       </div>
 
-      <h3 class="checkout-section-title">Customer Information</h3>
+      <section class="checkout-section-card checkout-customer-card" aria-labelledby="customerInformationTitle">
+        <div class="checkout-section-heading">
+          <span class="checkout-section-icon" aria-hidden="true">♡</span>
+          <div>
+            <h3 id="customerInformationTitle">Customer information</h3>
+            <p>Who should we contact about this order?</p>
+          </div>
+        </div>
 
-<label>
-    Full Name
-    <input name="name" required>
-</label>
+        <div class="checkout-field-grid">
+          <label>
+            Name
+            <input name="name" autocomplete="name" placeholder="Your full name" required>
+          </label>
 
-<label>
-    Mobile Number
-    <input
-        name="phone"
-        inputmode="tel"
-        placeholder="09XXXXXXXXX"
-        required
-    >
-</label>
+          <label>
+            Username
+            <input name="username" autocomplete="username" placeholder="Username in community" required>
+          </label>
 
-<label>
-    Email Address (Optional)
-    <input
-        type="email"
-        name="email"
-        placeholder="you@example.com"
-    >
-</label>
+          <label>
+            Mobile Number
+            <input
+              name="phone"
+              inputmode="tel"
+              autocomplete="tel"
+              placeholder="09XXXXXXXXX"
+              required
+            >
+          </label>
 
-<h3 class="checkout-section-title">Shipping Address</h3>
+          <label>
+            <span>Email Address <small>Optional</small></span>
+            <input
+              type="email"
+              name="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+            >
+          </label>
+        </div>
+      </section>
 
-<label>
-    Province
-    <input
-        name="province"
-        placeholder="Laguna"
-        required
-    >
-</label>
+      <section class="checkout-section-card checkout-address-card" aria-labelledby="shippingAddressTitle">
+        <div class="checkout-section-heading">
+          <span class="checkout-section-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 11.5 12 5l8 6.5" />
+              <path d="M6.5 10.5V20h11v-9.5" />
+              <path d="M10 20v-5h4v5" />
+            </svg>
+          </span>
+          <div>
+            <h3 id="shippingAddressTitle">Shipping address</h3>
+            <p>Where should we send your lovely order?</p>
+          </div>
+        </div>
 
-<label>
-    City / Municipality
-    <input
-        name="city"
-        placeholder="Biñan City"
-        required
-    >
-</label>
+        <div class="checkout-field-grid">
+          <label class="checkout-province-field">
+            Province
+            <input
+              name="province"
+              autocomplete="address-level1"
+              placeholder="Laguna"
+              required
+            >
+          </label>
 
-<label>
-    Barangay
-    <input
-        name="barangay"
-        placeholder="San Antonio"
-        required
-    >
-</label>
+          <label class="checkout-city-field">
+            City / Municipality
+            <input
+              name="city"
+              autocomplete="address-level2"
+              placeholder="Biñan City"
+              required
+            >
+          </label>
 
-<label>
-    Street Address
-    <input
-        name="street"
-        placeholder="Rose Street"
-        required
-    >
-</label>
+          <label class="checkout-barangay-field">
+            Barangay
+            <input
+              name="barangay"
+              autocomplete="address-level3"
+              placeholder="San Antonio"
+              required
+            >
+          </label>
 
-<label>
-    House / Unit No.
-    <input
-        name="house_unit"
-        placeholder="Blk 10 Lot 5"
-        required
-    >
-</label>
+          <label class="checkout-zipcode-field">
+            <span>ZIP Code <small>Optional</small></span>
+            <input
+              name="zipcode"
+              inputmode="numeric"
+              autocomplete="postal-code"
+              placeholder="4024"
+            >
+          </label>
 
-<label>
-    ZIP Code (Optional)
-    <input
-        name="zipcode"
-        placeholder="4024"
-    >
-</label>
-      <label>Shipping fee
-        <select name="shipping" required>
-          <option value="">Choose shipping fee</option>
-          <option value="90">₱90 — Nearby area</option>
-          <option value="120">₱120 — Standard shipping</option>
-          <option value="150">₱150 — Farther area</option>
-        </select>
-      </label>
+          <label class="checkout-field-full">
+            Full Address
+            <textarea
+              name="street"
+              rows="2"
+              autocomplete="street-address"
+              placeholder="Block, lot, building, subdivision, and street"
+              required
+            ></textarea>
+          </label>
+        </div>
+      </section>
+      <section class="checkout-shipping-card" aria-labelledby="shippingFeeTitle">
+        <div class="checkout-section-heading">
+          <span class="checkout-section-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M3.5 7.5h10v9h-10z" />
+              <path d="M13.5 10h3.4l3.6 3.6v2.9h-7z" />
+              <circle cx="7" cy="18" r="1.8" />
+              <circle cx="17.5" cy="18" r="1.8" />
+            </svg>
+          </span>
+          <div>
+            <h3 id="shippingFeeTitle">Shipping fee</h3>
+            <p>Choose the delivery area for your order.</p>
+          </div>
+        </div>
+        <input id="selectedShippingInput" name="shipping" type="hidden">
+        <div id="shippingFeeOptions" class="shipping-fee-selector" aria-live="polite"></div>
+      </section>
       <div>
         <label>Payment method</label>
         <input id="selectedPaymentInput" name="payment" type="hidden" />
@@ -390,7 +443,6 @@
         <strong id="checkoutTotal">₱0</strong>
       </div>
       <button id="proceedPaymentButton" class="primary-button full" type="button">Proceed to Payment</button>
-      <p class="tiny-note">Stage 1 stores orders in this browser. In Stage 2, we will connect Supabase so all customer orders appear online in your admin dashboard.</p>
     </form>
   </dialog>
 

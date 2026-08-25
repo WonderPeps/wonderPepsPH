@@ -69,6 +69,7 @@
 
       <div class="nav-group-label">Store</div>
       <a href="#shopSettingsSection"><span class="nav-icon" aria-hidden="true">⚙</span><span>Shop settings</span></a>
+      <a href="#shippingFeesSection"><span class="nav-icon" aria-hidden="true">♢</span><span>Shipping fees</span></a>
       <a href="#paymentMethodsSection"><span class="nav-icon" aria-hidden="true">♡</span><span>Payment methods</span></a>
       <a href="#addProductSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add product</span></a>
       <a href="#addMenuSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add menu item</span></a>
@@ -163,11 +164,22 @@
           <p class="tiny-note">Organize product categories using the existing product.category field.</p>
         </div>
       </div>
-      <form id="categoryForm" class="admin-form inline-form">
+      <form id="categoryForm" class="admin-form category-editor-form">
         <input type="hidden" name="id" />
         <label>Category name<input name="categoryName" required /></label>
-        <button class="primary-button" type="submit">Save category</button>
-        <button id="cancelCategoryEdit" class="secondary-button" type="button" hidden>Cancel</button>
+        <div id="categoryProductsEditor" class="category-products-editor" hidden>
+          <div class="category-products-heading">
+            <div>
+              <h3>Products in this category</h3>
+              <p class="tiny-note">Move a product to another active category, remove its category, or open its full editor.</p>
+            </div>
+          </div>
+          <div id="categoryProductsList" class="category-products-list"></div>
+        </div>
+        <div class="category-form-actions">
+          <button class="primary-button" type="submit">Save changes</button>
+          <button id="cancelCategoryEdit" class="secondary-button" type="button" hidden>Cancel</button>
+        </div>
       </form>
       <div id="categoriesList" class="category-list"></div>
     </section>
@@ -176,9 +188,10 @@
       <div class="admin-section-header">
         <div>
           <h2>Menu</h2>
-          <p class="tiny-note">Manage storefront navigation with the existing menu_items table.</p>
+          <p class="tiny-note">Drag the handle to reorder links. Items are grouped by their editable menu header.</p>
         </div>
       </div>
+      <p id="menuOrderStatus" class="menu-order-status" role="status" aria-live="polite"></p>
       <div id="adminMenuItems" class="admin-products"></div>
     </section>
 
@@ -188,14 +201,15 @@
       <div class="admin-section-header">
         <div>
           <h2>Shop settings</h2>
-          <p class="tiny-note">Branding, storefront messaging, social links, and shipping labels.</p>
+          <p class="tiny-note">Branding, storefront messaging, and social links.</p>
         </div>
       </div>
       <div class="admin-toolbar">
         <button class="secondary-button" type="button" data-settings-tab="branding">Branding</button>
         <button class="secondary-button" type="button" data-settings-tab="hero">Hero</button>
+        <button class="secondary-button" type="button" data-settings-tab="catalog">Catalog</button>
+        <button class="secondary-button" type="button" data-settings-tab="menu">Menu drawer</button>
         <button class="secondary-button" type="button" data-settings-tab="social">Social</button>
-        <button class="secondary-button" type="button" data-settings-tab="shipping">Shipping</button>
         <button class="secondary-button" type="button" data-settings-tab="footer">Footer</button>
       </div>
       <form id="settingsForm" class="admin-form">
@@ -280,15 +294,60 @@ Hero eyebrow
 </label>
           <label data-settings-group="hero">Hero title<input name="heroTitle" required /></label>
           <label data-settings-group="hero">Hero subtitle<input name="heroSubtitle" required /></label>
+          <label data-settings-group="catalog">
+            Catalog eyebrow
+            <input name="catalogEyebrow" placeholder="OUR COLLECTION" />
+          </label>
+          <label data-settings-group="catalog">
+            Catalog title
+            <input name="catalogTitle" placeholder="Find your new favorite" />
+          </label>
+          <label data-settings-group="catalog">
+            Catalog subtitle
+            <input name="catalogSubtitle" placeholder="Sweet little picks, chosen just for you." />
+          </label>
+          <label data-settings-group="menu">
+            Menu subtitle
+            <input name="menuTagline" placeholder="Everything lovely, in one place" />
+          </label>
           <label data-settings-group="social">Facebook link<input name="facebook" placeholder="https://facebook.com/..." /></label>
           <label data-settings-group="social">TikTok link<input name="tiktok" placeholder="https://tiktok.com/@..." /></label>
-          <label data-settings-group="shipping">₱90 shipping label<input name="shipping90Label" /></label>
-          <label data-settings-group="shipping">₱120 shipping label<input name="shipping120Label" /></label>
-          <label data-settings-group="shipping">₱150 shipping label<input name="shipping150Label" /></label>
           <label data-settings-group="footer">Footer text<input name="footerText" placeholder="Optional footer copy" /></label>
         </div>
         <button class="primary-button" type="submit">Save shop profile</button>
       </form>
+    </section>
+
+    <section id="shippingFeesSection" class="admin-card admin-panel-section">
+      <div class="admin-section-header">
+        <div>
+          <h2>Shipping fees</h2>
+          <p class="tiny-note">Create the cute delivery choices customers see during checkout.</p>
+        </div>
+      </div>
+
+      <form id="shippingFeeForm" class="admin-form shipping-fee-form">
+        <input name="id" type="hidden" />
+        <label>
+          Delivery area or label
+          <input name="label" placeholder="Example: Luzon" required />
+        </label>
+        <label>
+          Fee amount (₱)
+          <input name="amount" type="number" min="0" step="0.01" placeholder="90" required />
+        </label>
+        <label class="shipping-active-toggle">
+          <input name="isActive" type="checkbox" checked />
+          Show this choice at checkout
+        </label>
+        <div class="shipping-fee-form-actions">
+          <button class="primary-button" type="submit">Save shipping fee</button>
+          <button id="cancelShippingFeeEdit" class="secondary-button" type="button" hidden>Cancel editing</button>
+        </div>
+      </form>
+
+      <p id="shippingFeesStatus" class="tiny-note shipping-fees-status" role="status" aria-live="polite"></p>
+      <div id="shippingFeesList" class="shipping-fees-admin-list"></div>
     </section>
 
     <section id="paymentMethodsSection" class="admin-card admin-panel-section">
@@ -332,7 +391,13 @@ Hero eyebrow
 
 <label>
     Category
-    <input name="category" />
+    <select id="productCategorySelect" name="category" required>
+      <option value="">Choose an active category</option>
+    </select>
+</label>
+<label id="newProductCategoryField" hidden>
+    New category name
+    <input name="newCategory" placeholder="Example: Peptides" />
 </label>
 
 <!-- =========================
@@ -418,7 +483,15 @@ Hero eyebrow
                                                                                                                     Choose a JPG, PNG, or WebP image from your gallery. Maximum size: 5 MB.
                                                                                                                       </small>
                                                                                                                       </label>
-        <label>Description<textarea name="description" rows="4"></textarea></label>
+        <label>
+          Product card description
+          <textarea
+            name="description"
+            rows="4"
+            placeholder="Example: A sweet everyday favorite."
+          ></textarea>
+          <small class="tiny-note">This message appears below the product name on the storefront.</small>
+        </label>
         <button class="primary-button full" type="submit">Save product</button>
         <button id="cancelEdit" class="secondary-button full" type="button" hidden>Cancel editing</button>
       </form>
@@ -434,11 +507,14 @@ Hero eyebrow
       <form id="menuForm" class="admin-form">
         <input type="hidden" name="id" />
         <label>
-          Section
-          <select name="section">
-            <option value="SITE">Site</option>
-            <option value="SHOP">Shop</option>
+          Menu header
+          <select id="menuSectionChoice" name="sectionChoice" required>
+            <option value="">Choose an active menu header</option>
           </select>
+        </label>
+        <label id="newMenuSectionField" hidden>
+          New menu header
+          <input name="newSection" placeholder="Example: Contact" />
         </label>
         <label>
           Menu label

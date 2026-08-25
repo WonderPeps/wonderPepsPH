@@ -7,11 +7,18 @@ const currency = new Intl.NumberFormat("en-PH", {
 const brandName = document.querySelector("#brandName");
 const brandLogo = document.querySelector("#brandLogo");
 const brandFallback = document.querySelector("#brandFallback");
+const menuBrandName = document.querySelector("#menuBrandName");
+const menuBrandLogo = document.querySelector("#menuBrandLogo");
+const menuBrandFallback = document.querySelector("#menuBrandFallback");
+const menuBrandTagline = document.querySelector("#menuBrandTagline");
 const heroTitle = document.querySelector("#heroTitle");
 const heroSubtitle = document.querySelector("#heroSubtitle");
 const heroEyebrow = document.querySelector("#heroEyebrow");
 const heroImage = document.querySelector("#heroImage");
 const heroFallback = document.querySelector("#heroFallback");
+const catalogEyebrow = document.querySelector("#catalogEyebrow");
+const catalogTitle = document.querySelector("#catalogTitle");
+const catalogSubtitle = document.querySelector("#catalogSubtitle");
 const footerBrand = document.querySelector("#footerBrand");
 const facebookLink = document.querySelector("#facebookLink");
 const tiktokLink = document.querySelector("#tiktokLink");
@@ -74,6 +81,8 @@ const checkoutForm = document.querySelector("#checkoutForm");
 const checkoutTotal = document.querySelector("#checkoutTotal");
 const paymentMethodsList = document.querySelector("#paymentMethodsList");
 const selectedPaymentInput = document.querySelector("#selectedPaymentInput");
+const selectedShippingInput = document.querySelector("#selectedShippingInput");
+const shippingFeeOptions = document.querySelector("#shippingFeeOptions");
 const proceedPaymentButton = document.querySelector("#proceedPaymentButton");
 const checkoutFormError = document.querySelector("#checkoutFormError");
 const paymentStepDialog = document.querySelector("#paymentStepDialog");
@@ -127,6 +136,8 @@ let variantSourceButton = null;
 let cart = loadSavedCart();
 let paymentMethods = [];
 let selectedPaymentMethod = null;
+let shippingFees = [];
+let selectedShippingFee = null;
 let paymentStepReceiptFile = null;
 let paymentStepReceiptPreviewUrl = null;
 let storefrontCategoryOrder = [];
@@ -166,6 +177,36 @@ function showCheckoutError(message) {
   }
 }
 
+const pageScrollLockOwners = new Set();
+let lockedPageScrollY = 0;
+
+function lockPageScroll(owner) {
+  if (!owner || pageScrollLockOwners.has(owner)) return;
+
+  if (pageScrollLockOwners.size === 0) {
+    lockedPageScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.top = `-${lockedPageScrollY}px`;
+    document.body.classList.add("page-scroll-locked");
+  }
+
+  pageScrollLockOwners.add(owner);
+}
+
+function unlockPageScroll(owner) {
+  if (owner) pageScrollLockOwners.delete(owner);
+  if (pageScrollLockOwners.size > 0) return;
+
+  document.body.classList.remove("page-scroll-locked");
+  document.body.style.top = "";
+
+  const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo(0, lockedPageScrollY);
+  requestAnimationFrame(() => {
+    document.documentElement.style.scrollBehavior = previousScrollBehavior;
+  });
+}
+
 /* -------------------------
    SHOP SETTINGS
 ------------------------- */
@@ -197,6 +238,15 @@ function applyShopSettings(settings) {
     );
   }
 
+  if (menuBrandName) {
+    menuBrandName.textContent = shopName;
+  }
+
+  if (menuBrandTagline) {
+    menuBrandTagline.textContent =
+      settings.menu_tagline || "Everything lovely, in one place";
+  }
+
   if (heroTitle) {
     heroTitle.textContent =
       settings.hero_title || "Soft pink shopping made easy.";
@@ -212,6 +262,22 @@ function applyShopSettings(settings) {
     heroEyebrow.textContent = settings.hero_eyebrow || "";
 }
 
+  if (catalogEyebrow) {
+    catalogEyebrow.textContent =
+      settings.catalog_eyebrow || "OUR COLLECTION";
+  }
+
+  if (catalogTitle) {
+    catalogTitle.textContent =
+      settings.catalog_title || "Find your new favorite";
+  }
+
+  if (catalogSubtitle) {
+    catalogSubtitle.textContent =
+      settings.catalog_subtitle ||
+      "Sweet little picks, chosen just for you.";
+  }
+
   if (footerBrand) {
     footerBrand.textContent = `© ${shopName}`;
   }
@@ -224,6 +290,17 @@ function applyShopSettings(settings) {
     } else {
       brandLogo.hidden = true;
       brandFallback.hidden = false;
+    }
+  }
+
+  if (menuBrandLogo && menuBrandFallback) {
+    if (settings.logo_url) {
+      menuBrandLogo.src = settings.logo_url;
+      menuBrandLogo.hidden = false;
+      menuBrandFallback.hidden = true;
+    } else {
+      menuBrandLogo.hidden = true;
+      menuBrandFallback.hidden = false;
     }
   }
 if (heroImage && heroFallback) {
@@ -261,28 +338,6 @@ if (heroImage && heroFallback) {
     storefrontCategoryOrder = [];
   }
 
-  const shippingField = document.querySelector(
-    'select[name="shipping"]'
-  );
-
-  if (shippingField) {
-    if (shippingField.options[1]) {
-      shippingField.options[1].textContent =
-        `₱90 – ${settings.shipping_90_label || "Nearby area"}`;
-    }
-
-    if (shippingField.options[2]) {
-      shippingField.options[2].textContent =
-        `₱120 – ${
-          settings.shipping_120_label || "Standard shipping"
-        }`;
-    }
-
-    if (shippingField.options[3]) {
-      shippingField.options[3].textContent =
-        `₱150 – ${settings.shipping_150_label || "Farther area"}`;
-    }
-  }
 }
 
 /* -------------------------
@@ -471,7 +526,7 @@ const displayedStock = hasVariants
 <button
     class="favorite-button ${isFavorite(product.id) ? "is-favorite" : ""}"
     type="button"
-    aria-label="Add to Favorites"
+    aria-label="${isFavorite(product.id) ? "Remove from favorites" : "Add to favorites"}"
     data-favorite-product="${product.id}">
 
     <svg
@@ -491,10 +546,8 @@ const displayedStock = hasVariants
     <div class="product-body">
             <h3>${escapeHtml(product.name)}</h3>
 
-            <p>
-              ${escapeHtml(
-                product.description || "Product listing"
-              )}
+            <p class="product-description">
+              ${escapeHtml(String(product.description || "").trim())}
             </p>
 
             <div class="price-row">
@@ -560,9 +613,13 @@ const displayedStock = hasVariants
 
     const productId = button.dataset.favoriteProduct;
 
-   const added = toggleFavorite(productId);
+const added = toggleFavorite(productId);
 
 button.classList.toggle("is-favorite", added);
+button.setAttribute(
+  "aria-label",
+  added ? "Remove from favorites" : "Add to favorites"
+);
 
 const favoritesGrid = document.getElementById("favoritesGrid");
 
@@ -994,13 +1051,107 @@ return total + itemPrice * Number(item.quantity || 0);
 }
 
 function getSelectedShippingFee() {
-  const shippingField = checkoutForm?.querySelector(
-    'select[name="shipping"]'
+  return selectedShippingFee
+    ? Number(selectedShippingFee.amount || 0)
+    : Number(selectedShippingInput?.value || 0);
+}
+
+function updateProceedPaymentAvailability() {
+  if (!proceedPaymentButton) return;
+  proceedPaymentButton.disabled = !paymentMethods.length || !shippingFees.length;
+}
+
+async function loadShippingFees() {
+  if (!shippingFeeOptions) return;
+
+  shippingFeeOptions.innerHTML = `<p class="empty">Loading shipping choices…</p>`;
+
+  const { data, error } = await supabaseClient
+    .from("shipping_fees")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    shippingFees = [];
+    selectedShippingFee = null;
+    if (selectedShippingInput) selectedShippingInput.value = "";
+    shippingFeeOptions.innerHTML = `
+      <div class="shipping-fee-empty">
+        <strong>Shipping choices are unavailable.</strong>
+        <span>Please try again shortly.</span>
+      </div>
+    `;
+    updateProceedPaymentAvailability();
+    console.error("Could not load shipping fees:", error.message);
+    return;
+  }
+
+  shippingFees = data || [];
+  selectedShippingFee = null;
+  if (selectedShippingInput) selectedShippingInput.value = "";
+  renderShippingFees();
+  updateProceedPaymentAvailability();
+}
+
+function renderShippingFees() {
+  if (!shippingFeeOptions) return;
+
+  if (!shippingFees.length) {
+    shippingFeeOptions.innerHTML = `
+      <div class="shipping-fee-empty">
+        <strong>No shipping choices are available yet.</strong>
+        <span>Please contact the shop before checking out.</span>
+      </div>
+    `;
+    updateProceedPaymentAvailability();
+    return;
+  }
+
+  shippingFeeOptions.innerHTML = shippingFees
+    .map((fee) => {
+      const isSelected = selectedShippingFee &&
+        String(selectedShippingFee.id) === String(fee.id);
+
+      return `
+        <button
+          class="shipping-fee-option${isSelected ? " selected" : ""}"
+          type="button"
+          data-shipping-select="${fee.id}"
+          aria-pressed="${isSelected ? "true" : "false"}"
+        >
+          <span class="shipping-fee-check" aria-hidden="true">${isSelected ? "✓" : "♡"}</span>
+          <span class="shipping-fee-label">${escapeHtml(fee.label || "Delivery area")}</span>
+          <strong>${formatCurrency(fee.amount || 0)}</strong>
+        </button>
+      `;
+    })
+    .join("");
+
+  shippingFeeOptions
+    .querySelectorAll("[data-shipping-select]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        selectShippingFee(button.dataset.shippingSelect);
+      });
+    });
+}
+
+function selectShippingFee(feeId) {
+  const fee = shippingFees.find(
+    (item) => String(item.id) === String(feeId)
   );
 
-  return shippingField
-    ? Number(shippingField.value || 0)
-    : 0;
+  if (!fee) return;
+  selectedShippingFee = fee;
+  if (selectedShippingInput) {
+    selectedShippingInput.value = String(Number(fee.amount || 0));
+    selectedShippingInput.dataset.shippingId = String(fee.id);
+  }
+  renderShippingFees();
+  clearCheckoutFormError();
+  updateCheckoutTotal();
 }
 
 function updateCheckoutTotal() {
@@ -1164,6 +1315,7 @@ cartItems
 }
 
 function openCart() {
+  lockPageScroll("cart");
   cartDrawer.classList.add("open");
   cartDrawer.setAttribute("aria-hidden", "false");
 }
@@ -1171,6 +1323,12 @@ function openCart() {
 function closeCartDrawer() {
   cartDrawer.classList.remove("open");
   cartDrawer.setAttribute("aria-hidden", "true");
+  unlockPageScroll("cart");
+}
+function openFavorites() {
+  lockPageScroll("favorites");
+  favoritesDrawer.classList.add("open");
+  favoritesDrawer.setAttribute("aria-hidden", "false");
 }
 function openFavorites() {
   favoritesDrawer.classList.add("open");
@@ -1180,6 +1338,7 @@ function openFavorites() {
 function closeFavoritesDrawer() {
   favoritesDrawer.classList.remove("open");
   favoritesDrawer.setAttribute("aria-hidden", "true");
+  unlockPageScroll("favorites");
 }
 cartButton.addEventListener("click", openCart);
 
@@ -1194,6 +1353,12 @@ cartDrawer.addEventListener("click", (event) => {
   }
 });
 
+favoritesDrawer.addEventListener("click", (event) => {
+  if (event.target === favoritesDrawer) {
+    closeFavoritesDrawer();
+  }
+});
+
 checkoutButton.addEventListener("click", () => {
   if (!cart.length) {
     alert("Your bag is empty.");
@@ -1201,6 +1366,7 @@ checkoutButton.addEventListener("click", () => {
   }
 
   clearCheckoutFormError();
+  lockPageScroll("checkout-flow");
   closeCartDrawer();
   updateCheckoutTotal();
   checkoutDialog.showModal();
@@ -1209,12 +1375,9 @@ checkoutButton.addEventListener("click", () => {
 if (closeCheckout) {
   closeCheckout.addEventListener("click", () => {
     checkoutDialog.close();
+    unlockPageScroll("checkout-flow");
   });
 }
-
-checkoutForm
-  .querySelector('select[name="shipping"]')
-  ?.addEventListener("change", updateCheckoutTotal);
 /* -------------------------
    CHECKOUT AND ORDERS
 ------------------------- */
@@ -1258,9 +1421,7 @@ async function loadPaymentMethods() {
         <p class="tiny-note">We could not load payment options right now. Please try again shortly.</p>
       </div>
     `;
-    if (proceedPaymentButton) {
-      proceedPaymentButton.disabled = true;
-    }
+    updateProceedPaymentAvailability();
     return;
   }
 
@@ -1284,9 +1445,7 @@ function renderPaymentMethods() {
         <p class="tiny-note">Payment options will appear here once they are enabled in the admin dashboard.</p>
       </div>
     `;
-    if (proceedPaymentButton) {
-      proceedPaymentButton.disabled = true;
-    }
+    updateProceedPaymentAvailability();
     return;
   }
 
@@ -1313,9 +1472,7 @@ function renderPaymentMethods() {
     })
     .join("");
 
-  if (proceedPaymentButton) {
-    proceedPaymentButton.disabled = false;
-  }
+  updateProceedPaymentAvailability();
 
   paymentMethodsList
     .querySelectorAll("[data-payment-select]")
@@ -1448,6 +1605,12 @@ async function deleteUploadedReceipt(storagePath) {
 }
 
 function openPaymentStep() {
+  if (!selectedShippingFee) {
+    showCheckoutError("Please choose a shipping fee to continue.");
+    shippingFeeOptions?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   if (!selectedPaymentMethod) {
     showCheckoutError("Please choose a payment method to continue.");
     return;
@@ -1532,11 +1695,17 @@ function openPaymentStep() {
 function resetCheckoutState() {
   checkoutForm.reset();
   selectedPaymentMethod = null;
+  selectedShippingFee = null;
   clearPaymentStepReceiptState();
   showPaymentStepFeedback("");
   if (selectedPaymentInput) {
     selectedPaymentInput.value = "";
   }
+  if (selectedShippingInput) {
+    selectedShippingInput.value = "";
+    delete selectedShippingInput.dataset.shippingId;
+  }
+  renderShippingFees();
   renderPaymentMethods();
   clearCheckoutFormError();
 }
@@ -1563,6 +1732,7 @@ async function submitOrder() {
     const shippingFee = getSelectedShippingFee();
     const subtotal = calculateSubtotal();
     const customerName = String(formData.get("name") || "").trim();
+const customerUsername = String(formData.get("username") || "").trim();
 const phone = String(formData.get("phone") || "").trim();
 const email = String(formData.get("email") || "").trim();
 
@@ -1617,6 +1787,7 @@ const formattedAddress = [
     const orderData = {
       order_ref: reference,
       customer_name: customerName,
+customer_username: customerUsername || null,
 phone,
 email: email || null,
 
@@ -1748,28 +1919,39 @@ proceedPaymentButton?.addEventListener("click", () => {
 
 closeSuccess.addEventListener("click", () => {
   successDialog.close();
+  unlockPageScroll("checkout-flow");
 });
 
 successDialog.addEventListener("click", (event) => {
   if (event.target === successDialog) {
     successDialog.close();
+    unlockPageScroll("checkout-flow");
   }
 });
 
 checkoutDialog.addEventListener("click", (event) => {
   if (event.target === checkoutDialog) {
     checkoutDialog.close();
+    unlockPageScroll("checkout-flow");
   }
 });
 
 paymentStepDialog.addEventListener("click", (event) => {
   if (event.target === paymentStepDialog) {
     paymentStepDialog.close();
+    unlockPageScroll("checkout-flow");
   }
 });
 
 paymentStepCloseButton?.addEventListener("click", () => {
   paymentStepDialog.close();
+  unlockPageScroll("checkout-flow");
+});
+
+[checkoutDialog, paymentStepDialog, successDialog].forEach((dialog) => {
+  dialog?.addEventListener("cancel", () => {
+    unlockPageScroll("checkout-flow");
+  });
 });
 /* ------------------------
    STOREFRONT MENU
@@ -1797,20 +1979,72 @@ async function loadStoreMenuItems() {
     return;
   }
 
-  storeMenuItems.innerHTML = items
-    .map((item) => {
-      const target = item.open_new_tab ? `target="_blank" rel="noopener"` : "";
+  const menuGroups = [];
 
-      return `
-        <a href="${escapeHtml(item.url)}" ${target}>
-          ${escapeHtml(item.label)}
-        </a>
-      `;
-    })
+  items.forEach((item) => {
+    const sectionName = String(item.section || "Menu").trim() || "Menu";
+    let group = menuGroups.find((entry) => entry.name === sectionName);
+
+    if (!group) {
+      group = { name: sectionName, items: [] };
+      menuGroups.push(group);
+    }
+
+    group.items.push(item);
+  });
+
+  storeMenuItems.innerHTML = menuGroups
+    .map((group, groupIndex) => `
+      <section class="store-menu-section" aria-labelledby="menuGroup${groupIndex}">
+        <h3 id="menuGroup${groupIndex}" class="store-menu-heading">
+          ${escapeHtml(group.name)}
+        </h3>
+        <div class="store-menu-links">
+          ${group.items.map((item) => {
+            const target = item.open_new_tab
+              ? `target="_blank" rel="noopener"`
+              : "";
+
+            return `
+              <a class="store-menu-link" href="${escapeHtml(item.url)}" ${target}>
+                <span class="store-menu-icon" aria-hidden="true">
+                  ${getStoreMenuIcon(item)}
+                </span>
+                <span class="store-menu-label">${escapeHtml(item.label)}</span>
+                <span class="store-menu-arrow" aria-hidden="true">›</span>
+              </a>
+            `;
+          }).join("")}
+        </div>
+      </section>
+    `)
     .join("");
 }
 
+function getStoreMenuIcon(item) {
+  const searchableText = `${item.label || ""} ${item.section || ""} ${item.url || ""}`.toLowerCase();
+
+  if (/contact|message|email|mail|messenger/.test(searchableText)) {
+    return `<svg viewBox="0 0 24 24" fill="none"><path d="M4 6.5h16v11H4z"/><path d="m5 8 7 5 7-5"/></svg>`;
+  }
+
+  if (/community|group|join|facebook/.test(searchableText)) {
+    return `<svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.3"/><path d="M3.5 19c.4-4 2.2-6 5.5-6s5.1 2 5.5 6M14.5 14c3.1-.6 5.2 1 5.7 4"/></svg>`;
+  }
+
+  if (/faq|help|question/.test(searchableText)) {
+    return `<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.3 2.3 0 1 1 3.5 2c-1 .6-1.3 1.1-1.3 2M12 17h.01"/></svg>`;
+  }
+
+  if (/home|shop|store|catalog|product/.test(searchableText)) {
+    return `<svg viewBox="0 0 24 24" fill="none"><path d="M6 8h12l1 12H5L6 8Z"/><path d="M9 9V6.7a3 3 0 0 1 6 0V9"/></svg>`;
+  }
+
+  return `<svg viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.2-7-9.5A3.8 3.8 0 0 1 12 8a3.8 3.8 0 0 1 7 2.5C19 15.8 12 20 12 20Z"/></svg>`;
+}
+
 function openMenuDrawer() {
+  lockPageScroll("menu");
   menuDrawer.classList.add("open");
   menuDrawer.setAttribute("aria-hidden", "false");
 }
@@ -1818,6 +2052,7 @@ function openMenuDrawer() {
 function closeMenuDrawer() {
   menuDrawer.classList.remove("open");
   menuDrawer.setAttribute("aria-hidden", "true");
+  unlockPageScroll("menu");
 }
 
 menuButton.addEventListener("click", openMenuDrawer);
@@ -1842,7 +2077,8 @@ async function initializeStorefront() {
             loadShopSettings(),
             loadProducts(),
             loadStoreMenuItems(),
-            loadPaymentMethods()
+            loadPaymentMethods(),
+            loadShippingFees()
         ]);
     } finally {
         document.body.classList.remove("settings-loading");

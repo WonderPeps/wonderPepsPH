@@ -5,6 +5,8 @@ const adminContent = document.querySelector("#adminContent");
 
 const settingsForm = document.querySelector("#settingsForm");
 const productForm = document.querySelector("#productForm");
+const productCategorySelect = document.querySelector("#productCategorySelect");
+const newProductCategoryField = document.querySelector("#newProductCategoryField");
 const hasVariantsToggle = document.querySelector("#hasVariantsToggle");
 const variantManager = document.querySelector("#variantManager");
 const variantRows = document.querySelector("#variantRows");
@@ -76,7 +78,10 @@ const resetButton = document.querySelector("#resetButton");
 const menuForm = document.querySelector("#menuForm");
 const menuFormTitle = document.querySelector("#menuFormTitle");
 const adminMenuItems = document.querySelector("#adminMenuItems");
+const menuOrderStatus = document.querySelector("#menuOrderStatus");
 const cancelMenuEdit = document.querySelector("#cancelMenuEdit");
+const menuSectionChoice = document.querySelector("#menuSectionChoice");
+const newMenuSectionField = document.querySelector("#newMenuSectionField");
 const paymentMethodsContainer = document.querySelector("#paymentMethodsContainer");
 const addPaymentMethodBtn = document.querySelector("#addPaymentMethodBtn");
 const paymentMethodModal = document.querySelector("#paymentMethodModal");
@@ -92,7 +97,13 @@ const paymentMethodQrPreviewImage = document.querySelector("#paymentQrPreviewIma
 const paymentMethodQrPreviewText = document.querySelector("#paymentQrPreviewText");
 const categoryForm = document.querySelector("#categoryForm");
 const cancelCategoryEdit = document.querySelector("#cancelCategoryEdit");
+const categoryProductsEditor = document.querySelector("#categoryProductsEditor");
+const categoryProductsList = document.querySelector("#categoryProductsList");
 const sidebarLogoutButton = document.querySelector("#sidebarLogoutButton");
+const shippingFeeForm = document.querySelector("#shippingFeeForm");
+const shippingFeesList = document.querySelector("#shippingFeesList");
+const shippingFeesStatus = document.querySelector("#shippingFeesStatus");
+const cancelShippingFeeEdit = document.querySelector("#cancelShippingFeeEdit");
 
 let menuItems = [];
 let products = [];
@@ -112,6 +123,7 @@ let paymentMethodQrFile = null;
 let paymentMethodQrPreviewUrl = null;
 let paymentMethodCurrentQrUrl = null;
 let paymentMethodRemoveQr = false;
+let shippingFees = [];
 
 /* -------------------------
    LOGIN AND ADMIN CHECK
@@ -186,6 +198,7 @@ async function showAdmin() {
     loadProducts(),
     loadMenuItems(),
     loadPaymentMethods(),
+    loadShippingFees(),
     loadOrders()
   ]);
 }
@@ -240,6 +253,14 @@ loginForm.addEventListener("submit", async (event) => {
 ------------------------- */
 
 function setupAdminUI() {
+  if (sidebarLogoutButton && !sidebarLogoutButton.dataset.bound) {
+    sidebarLogoutButton.dataset.bound = "true";
+    sidebarLogoutButton.addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+      await showLogin("You have been logged out.");
+    });
+  }
+
   document.querySelectorAll("[data-settings-tab]").forEach((button) => {
     button.addEventListener("click", () => {
       setActiveSettingsTab(button.dataset.settingsTab);
@@ -349,14 +370,18 @@ if (data.hero_image_url) {
   settingsForm.elements.heroEyebrow.value = data.hero_eyebrow || "";
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
+  settingsForm.elements.catalogEyebrow.value =
+    data.catalog_eyebrow || "OUR COLLECTION";
+  settingsForm.elements.catalogTitle.value =
+    data.catalog_title || "Find your new favorite";
+  settingsForm.elements.catalogSubtitle.value =
+    data.catalog_subtitle || "Sweet little picks, chosen just for you.";
+  if (settingsForm.elements.menuTagline) {
+    settingsForm.elements.menuTagline.value =
+      data.menu_tagline || "Everything lovely, in one place";
+  }
   settingsForm.elements.facebook.value = data.facebook_url || "";
   settingsForm.elements.tiktok.value = data.tiktok_url || "";
-  settingsForm.elements.shipping90Label.value =
-    data.shipping_90_label || "";
-  settingsForm.elements.shipping120Label.value =
-    data.shipping_120_label || "";
-  settingsForm.elements.shipping150Label.value =
-    data.shipping_150_label || "";
   if (settingsForm.elements.footerText) {
     settingsForm.elements.footerText.value = data.footer_text || "";
   }
@@ -374,16 +399,22 @@ settingsForm.addEventListener("submit", async (event) => {
     hero_eyebrow: settingsForm.elements.heroEyebrow.value,
     hero_title: String(formData.get("heroTitle") || "").trim(),
     hero_subtitle: String(formData.get("heroSubtitle") || "").trim(),
+    catalog_eyebrow:
+      String(formData.get("catalogEyebrow") || "").trim() ||
+      "OUR COLLECTION",
+    catalog_title:
+      String(formData.get("catalogTitle") || "").trim() ||
+      "Find your new favorite",
+    catalog_subtitle:
+      String(formData.get("catalogSubtitle") || "").trim() ||
+      "Sweet little picks, chosen just for you.",
+    menu_tagline:
+      String(formData.get("menuTagline") || "").trim() ||
+      "Everything lovely, in one place",
     facebook_url:
       String(formData.get("facebook") || "").trim() || null,
     tiktok_url:
       String(formData.get("tiktok") || "").trim() || null,
-    shipping_90_label:
-      String(formData.get("shipping90Label") || "").trim(),
-    shipping_120_label:
-      String(formData.get("shipping120Label") || "").trim(),
-    shipping_150_label:
-      String(formData.get("shipping150Label") || "").trim(),
     footer_text:
       String(formData.get("footerText") || "").trim() || null,
     updated_at: new Date().toISOString()
@@ -423,6 +454,241 @@ alert("Shop profile saved online.");
 });
 
 /* ------------------------
+   SHIPPING FEES
+------------------------ */
+
+function setShippingFeesStatus(message = "", state = "") {
+  if (!shippingFeesStatus) return;
+  shippingFeesStatus.textContent = message;
+  shippingFeesStatus.dataset.state = state;
+}
+
+function resetShippingFeeForm() {
+  if (!shippingFeeForm) return;
+  shippingFeeForm.reset();
+  shippingFeeForm.elements.id.value = "";
+  shippingFeeForm.elements.isActive.checked = true;
+  cancelShippingFeeEdit.hidden = true;
+}
+
+async function loadShippingFees() {
+  if (!shippingFeesList) return;
+
+  shippingFeesList.innerHTML = `<p class="empty">Loading shipping fees…</p>`;
+
+  const { data, error } = await supabaseClient
+    .from("shipping_fees")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    shippingFees = [];
+    shippingFeesList.innerHTML = `
+      <div class="shipping-fees-setup-note">
+        <strong>Shipping fees are not connected yet.</strong>
+        <p>Run <code>buyer-checkout-settings.sql</code> once in Supabase, then refresh this page.</p>
+      </div>
+    `;
+    setShippingFeesStatus(error.message, "error");
+    return;
+  }
+
+  shippingFees = data || [];
+  setShippingFeesStatus("");
+  renderShippingFees();
+}
+
+function renderShippingFees() {
+  if (!shippingFeesList) return;
+
+  if (!shippingFees.length) {
+    shippingFeesList.innerHTML = `
+      <p class="empty">No shipping fees yet. Add your first delivery choice above.</p>
+    `;
+    return;
+  }
+
+  shippingFeesList.innerHTML = shippingFees
+    .map((fee, index) => `
+      <article class="shipping-fee-admin-card${fee.is_active ? "" : " is-hidden"}" data-shipping-fee-id="${fee.id}">
+        <div class="shipping-fee-admin-order" aria-label="Shipping fee position">${index + 1}</div>
+        <div class="shipping-fee-admin-copy">
+          <strong>${escapeHtml(fee.label || "Delivery area")}</strong>
+          <span>${formatCurrency(fee.amount || 0)}</span>
+          <small>${fee.is_active ? "Visible at checkout" : "Hidden from checkout"}</small>
+        </div>
+        <div class="admin-actions shipping-fee-actions">
+          <button class="secondary-button" type="button" data-shipping-move="up" data-shipping-id="${fee.id}" ${index === 0 ? "disabled" : ""} aria-label="Move ${escapeHtml(fee.label)} up">↑</button>
+          <button class="secondary-button" type="button" data-shipping-move="down" data-shipping-id="${fee.id}" ${index === shippingFees.length - 1 ? "disabled" : ""} aria-label="Move ${escapeHtml(fee.label)} down">↓</button>
+          <button class="secondary-button" type="button" data-shipping-edit="${fee.id}">Edit</button>
+          <button class="secondary-button" type="button" data-shipping-toggle="${fee.id}">${fee.is_active ? "Hide" : "Show"}</button>
+          <button class="secondary-button danger" type="button" data-shipping-delete="${fee.id}">Delete</button>
+        </div>
+      </article>
+    `)
+    .join("");
+}
+
+function editShippingFee(feeId) {
+  const fee = shippingFees.find((item) => String(item.id) === String(feeId));
+  if (!fee || !shippingFeeForm) return;
+
+  shippingFeeForm.elements.id.value = fee.id;
+  shippingFeeForm.elements.label.value = fee.label || "";
+  shippingFeeForm.elements.amount.value = Number(fee.amount || 0);
+  shippingFeeForm.elements.isActive.checked = Boolean(fee.is_active);
+  cancelShippingFeeEdit.hidden = false;
+  shippingFeeForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  shippingFeeForm.elements.label.focus({ preventScroll: true });
+}
+
+async function toggleShippingFee(feeId) {
+  const fee = shippingFees.find((item) => String(item.id) === String(feeId));
+  if (!fee) return;
+
+  setShippingFeesStatus("Saving shipping fee…", "saving");
+  const { error } = await supabaseClient
+    .from("shipping_fees")
+    .update({
+      is_active: !fee.is_active,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", fee.id);
+
+  if (error) {
+    setShippingFeesStatus(`Could not update shipping fee: ${error.message}`, "error");
+    return;
+  }
+
+  await loadShippingFees();
+  setShippingFeesStatus("Shipping fee updated ✓", "saved");
+}
+
+async function deleteShippingFee(feeId) {
+  const fee = shippingFees.find((item) => String(item.id) === String(feeId));
+  if (!fee) return;
+  if (!confirm(`Delete the shipping fee “${fee.label}”?`)) return;
+
+  setShippingFeesStatus("Deleting shipping fee…", "saving");
+  const { error } = await supabaseClient
+    .from("shipping_fees")
+    .delete()
+    .eq("id", fee.id);
+
+  if (error) {
+    setShippingFeesStatus(`Could not delete shipping fee: ${error.message}`, "error");
+    return;
+  }
+
+  resetShippingFeeForm();
+  await loadShippingFees();
+  setShippingFeesStatus("Shipping fee deleted ✓", "saved");
+}
+
+async function moveShippingFee(feeId, direction) {
+  const currentIndex = shippingFees.findIndex(
+    (item) => String(item.id) === String(feeId)
+  );
+  const targetIndex = currentIndex + (direction === "up" ? -1 : 1);
+
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= shippingFees.length) {
+    return;
+  }
+
+  const reordered = [...shippingFees];
+  const [movedFee] = reordered.splice(currentIndex, 1);
+  reordered.splice(targetIndex, 0, movedFee);
+  setShippingFeesStatus("Saving shipping fee order…", "saving");
+
+  for (let index = 0; index < reordered.length; index += 1) {
+    const { error } = await supabaseClient
+      .from("shipping_fees")
+      .update({
+        sort_order: (index + 1) * 10,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", reordered[index].id);
+
+    if (error) {
+      setShippingFeesStatus(`Could not reorder shipping fees: ${error.message}`, "error");
+      await loadShippingFees();
+      return;
+    }
+  }
+
+  await loadShippingFees();
+  setShippingFeesStatus("Shipping fee order saved ✓", "saved");
+}
+
+shippingFeeForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const formData = new FormData(shippingFeeForm);
+  const id = String(formData.get("id") || "").trim();
+  const label = String(formData.get("label") || "").trim();
+  const amount = Number(formData.get("amount"));
+
+  if (!label || !Number.isFinite(amount) || amount < 0) {
+    setShippingFeesStatus("Enter a delivery label and a valid fee amount.", "error");
+    return;
+  }
+
+  const values = {
+    label,
+    amount,
+    is_active: formData.get("isActive") === "on",
+    updated_at: new Date().toISOString()
+  };
+
+  setShippingFeesStatus("Saving shipping fee…", "saving");
+
+  let error;
+  if (id) {
+    ({ error } = await supabaseClient
+      .from("shipping_fees")
+      .update(values)
+      .eq("id", id));
+  } else {
+    values.sort_order = shippingFees.length
+      ? Math.max(...shippingFees.map((fee) => Number(fee.sort_order || 0))) + 10
+      : 10;
+    ({ error } = await supabaseClient
+      .from("shipping_fees")
+      .insert(values));
+  }
+
+  if (error) {
+    setShippingFeesStatus(`Could not save shipping fee: ${error.message}`, "error");
+    return;
+  }
+
+  resetShippingFeeForm();
+  await loadShippingFees();
+  setShippingFeesStatus("Shipping fee saved ✓", "saved");
+});
+
+cancelShippingFeeEdit?.addEventListener("click", () => {
+  resetShippingFeeForm();
+  setShippingFeesStatus("");
+});
+
+shippingFeesList?.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+
+  if (button.dataset.shippingEdit) {
+    editShippingFee(button.dataset.shippingEdit);
+  } else if (button.dataset.shippingToggle) {
+    toggleShippingFee(button.dataset.shippingToggle);
+  } else if (button.dataset.shippingDelete) {
+    deleteShippingFee(button.dataset.shippingDelete);
+  } else if (button.dataset.shippingMove) {
+    moveShippingFee(button.dataset.shippingId, button.dataset.shippingMove);
+  }
+});
+
+/* ------------------------
    MENU ITEMS
 ------------------------ */
 
@@ -439,54 +705,121 @@ async function loadMenuItems() {
   }
 
   menuItems = data || [];
+  updateMenuSectionChoices();
   renderMenuItems();
 }
+
+function getMenuGroups(items = menuItems) {
+  const groups = [];
+  const bySection = new Map();
+
+  items.forEach((item) => {
+    const section = String(item.section || "Menu").trim() || "Menu";
+    if (!bySection.has(section)) {
+      const group = { section, items: [] };
+      bySection.set(section, group);
+      groups.push(group);
+    }
+    bySection.get(section).items.push(item);
+  });
+
+  return groups;
+}
+
+function updateMenuSectionChoices(selectedValue = "") {
+  if (!menuSectionChoice) return;
+
+  const sections = getMenuGroups().map((group) => group.section);
+  const selected = String(selectedValue || "").trim();
+
+  if (selected && selected !== "__new__" && !sections.includes(selected)) {
+    sections.push(selected);
+  }
+
+  menuSectionChoice.innerHTML = `
+    <option value="">Choose an active menu header</option>
+    ${sections.map((section) => `
+      <option value="${escapeHtml(section)}">${escapeHtml(section)}</option>
+    `).join("")}
+    <option value="__new__">＋ Create new menu header…</option>
+  `;
+  menuSectionChoice.value = selected || "";
+  toggleNewMenuSectionField();
+}
+
+function toggleNewMenuSectionField() {
+  if (!newMenuSectionField || !menuSectionChoice) return;
+  const creatingNew = menuSectionChoice.value === "__new__";
+  newMenuSectionField.hidden = !creatingNew;
+  const input = menuForm?.elements.newSection;
+  if (input) {
+    input.required = creatingNew;
+    if (!creatingNew) input.value = "";
+  }
+}
+
+menuSectionChoice?.addEventListener("change", toggleNewMenuSectionField);
 
 function renderMenuItems() {
   if (!menuItems.length) {
     adminMenuItems.innerHTML =
       `<p class="empty">No menu items yet.</p>`;
+    updateMenuSectionChoices();
     return;
   }
 
-  adminMenuItems.innerHTML = menuItems
-    .map(
-      (item) => `
-        <article class="admin-product">
-          <div>
-            <strong>${escapeHtml(item.label)}</strong>
-
-            <div class="menu-url">
-              ${escapeHtml(item.url)}
-            </div>
-
-            <small>
-              ${escapeHtml(item.section || "SITE")}
-              · ${item.is_visible ? "Visible" : "Hidden"}
-              · ${item.open_new_tab ? "New tab" : "Same tab"}
-            </small>
+  adminMenuItems.innerHTML = getMenuGroups()
+    .map((group) => `
+      <section class="menu-admin-group" data-menu-section="${escapeHtml(group.section)}">
+        <header class="menu-admin-group-header">
+          <button
+            class="menu-group-drag-handle"
+            type="button"
+            draggable="true"
+            aria-label="Drag ${escapeHtml(group.section)} header to reorder"
+            title="Drag this whole menu header to reorder it"
+          ><span aria-hidden="true">⋮⋮</span></button>
+          <div class="menu-admin-group-title">
+            <strong>${escapeHtml(group.section)}</strong>
+            <small>${group.items.length} ${group.items.length === 1 ? "link" : "links"}</small>
           </div>
-
-          <div class="admin-actions">
-            <button
-              class="secondary-button"
-              type="button"
-              data-menu-edit="${item.id}"
+          <button
+            class="secondary-button"
+            type="button"
+            data-menu-section-edit="${escapeHtml(group.section)}"
+          >Rename header</button>
+        </header>
+        <div class="menu-admin-group-items">
+          ${group.items.map((item) => `
+            <article
+              class="admin-product menu-admin-item"
+              data-menu-id="${item.id}"
+              data-menu-section="${escapeHtml(group.section)}"
             >
-              Edit
-            </button>
-
-            <button
-              class="secondary-button danger"
-              type="button"
-              data-menu-delete="${item.id}"
-            >
-              Delete
-            </button>
-          </div>
-        </article>
-      `
-    )
+              <button
+                class="menu-drag-handle"
+                type="button"
+                draggable="true"
+                aria-label="Drag ${escapeHtml(item.label)} to reorder inside ${escapeHtml(group.section)}"
+                title="Drag to reorder inside this header"
+              ><span aria-hidden="true">⋮⋮</span></button>
+              <div class="menu-admin-info">
+                <strong>${escapeHtml(item.label)}</strong>
+                <div class="menu-url">${escapeHtml(item.url)}</div>
+                <small>
+                  ${item.is_visible ? "Visible" : "Hidden"}
+                  · ${item.open_new_tab ? "New tab" : "Same tab"}
+                </small>
+              </div>
+              <div class="admin-actions">
+                <button class="secondary-button" type="button" data-menu-edit="${item.id}">Edit</button>
+                <button class="secondary-button danger" type="button" data-menu-delete="${item.id}">Delete</button>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+    `)
     .join("");
 
   adminMenuItems
@@ -504,16 +837,290 @@ function renderMenuItems() {
         deleteMenuItem(button.dataset.menuDelete);
       });
     });
+
+  adminMenuItems
+    .querySelectorAll("[data-menu-section-edit]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        renameMenuSection(button.dataset.menuSectionEdit);
+      });
+    });
+
+  initMenuItemDragDrop();
+  initMenuGroupDragDrop();
+}
+
+let draggedMenuItemId = null;
+let draggedMenuSection = null;
+
+function setMenuOrderStatus(message, state = "") {
+  if (!menuOrderStatus) return;
+
+  menuOrderStatus.textContent = message;
+  menuOrderStatus.dataset.state = state;
+}
+
+async function saveMenuItemOrder(orderedItems) {
+  menuItems = orderedItems;
+  setMenuOrderStatus("Saving menu order…", "saving");
+
+  for (let index = 0; index < orderedItems.length; index += 1) {
+    const item = orderedItems[index];
+    const sortOrder = (index + 1) * 10;
+
+    const { error } = await supabaseClient
+      .from("menu_items")
+      .update({ sort_order: sortOrder })
+      .eq("id", item.id);
+
+    if (error) {
+      console.error("Could not save menu order:", error);
+      setMenuOrderStatus("Could not save the new order. Please try again.", "error");
+      await loadMenuItems();
+      return;
+    }
+
+    item.sort_order = sortOrder;
+  }
+
+  setMenuOrderStatus("Menu order saved ✓", "saved");
+  renderMenuItems();
+}
+
+async function moveMenuItemByKeyboard(itemId, direction) {
+  const item = menuItems.find((entry) => String(entry.id) === String(itemId));
+  if (!item) return;
+
+  const groups = getMenuGroups();
+  const group = groups.find(
+    (entry) => entry.section === String(item.section || "Menu").trim()
+  );
+  if (!group) return;
+
+  const currentIndex = group.items.findIndex(
+    (entry) => String(entry.id) === String(itemId)
+  );
+  const targetIndex = currentIndex + direction;
+
+  if (
+    currentIndex < 0 ||
+    targetIndex < 0 ||
+    targetIndex >= group.items.length
+  ) {
+    return;
+  }
+
+  const [movedItem] = group.items.splice(currentIndex, 1);
+  group.items.splice(targetIndex, 0, movedItem);
+  await saveMenuItemOrder(groups.flatMap((entry) => entry.items));
+
+  Array.from(adminMenuItems?.querySelectorAll(".menu-admin-item") || [])
+    .find((card) => String(card.dataset.menuId) === String(itemId))
+    ?.querySelector(".menu-drag-handle")
+    ?.focus();
+}
+
+function initMenuItemDragDrop() {
+  const cards = Array.from(adminMenuItems?.querySelectorAll(".menu-admin-item") || []);
+
+  cards.forEach((card) => {
+    const handle = card.querySelector(".menu-drag-handle");
+
+    handle?.addEventListener("dragstart", (event) => {
+      draggedMenuItemId = card.dataset.menuId;
+      card.classList.add("menu-dragging");
+      handle.setAttribute("aria-grabbed", "true");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", draggedMenuItemId);
+    });
+
+    handle?.addEventListener("dragend", () => {
+      draggedMenuItemId = null;
+      handle.removeAttribute("aria-grabbed");
+      cards.forEach((itemCard) => {
+        itemCard.classList.remove("menu-dragging", "menu-drag-over");
+      });
+    });
+
+    handle?.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+
+      event.preventDefault();
+      moveMenuItemByKeyboard(
+        card.dataset.menuId,
+        event.key === "ArrowUp" ? -1 : 1
+      );
+    });
+
+    card.addEventListener("dragover", (event) => {
+      const draggedCard = cards.find(
+        (entry) => String(entry.dataset.menuId) === String(draggedMenuItemId)
+      );
+      if (
+        !draggedMenuItemId ||
+        draggedMenuItemId === card.dataset.menuId ||
+        draggedCard?.dataset.menuSection !== card.dataset.menuSection
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      cards.forEach((itemCard) => itemCard.classList.remove("menu-drag-over"));
+      card.classList.add("menu-drag-over");
+    });
+
+    card.addEventListener("dragleave", () => {
+      card.classList.remove("menu-drag-over");
+    });
+
+    card.addEventListener("drop", async (event) => {
+      event.preventDefault();
+      card.classList.remove("menu-drag-over");
+
+      if (!draggedMenuItemId || draggedMenuItemId === card.dataset.menuId) {
+        return;
+      }
+
+      const groups = getMenuGroups();
+      const group = groups.find((entry) => entry.section === card.dataset.menuSection);
+      if (!group) return;
+
+      const fromIndex = group.items.findIndex(
+        (item) => String(item.id) === String(draggedMenuItemId)
+      );
+      let targetIndex = group.items.findIndex(
+        (item) => String(item.id) === String(card.dataset.menuId)
+      );
+
+      if (fromIndex < 0 || targetIndex < 0) return;
+
+      const [movedItem] = group.items.splice(fromIndex, 1);
+      targetIndex = group.items.findIndex(
+        (item) => String(item.id) === String(card.dataset.menuId)
+      );
+
+      const cardRect = card.getBoundingClientRect();
+      const placeAfter = event.clientY > cardRect.top + cardRect.height / 2;
+      group.items.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedItem);
+
+      draggedMenuItemId = null;
+      await saveMenuItemOrder(groups.flatMap((entry) => entry.items));
+    });
+  });
+}
+
+async function moveMenuGroupByKeyboard(section, direction) {
+  const groups = getMenuGroups();
+  const currentIndex = groups.findIndex((group) => group.section === section);
+  const targetIndex = currentIndex + direction;
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= groups.length) return;
+
+  const [movedGroup] = groups.splice(currentIndex, 1);
+  groups.splice(targetIndex, 0, movedGroup);
+  await saveMenuItemOrder(groups.flatMap((group) => group.items));
+
+  Array.from(adminMenuItems?.querySelectorAll(".menu-admin-group") || [])
+    .find((group) => group.dataset.menuSection === section)
+    ?.querySelector(".menu-group-drag-handle")
+    ?.focus();
+}
+
+function initMenuGroupDragDrop() {
+  const groups = Array.from(adminMenuItems?.querySelectorAll(".menu-admin-group") || []);
+
+  groups.forEach((group) => {
+    const handle = group.querySelector(".menu-group-drag-handle");
+
+    handle?.addEventListener("dragstart", (event) => {
+      draggedMenuSection = group.dataset.menuSection;
+      group.classList.add("menu-group-dragging");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", draggedMenuSection);
+    });
+
+    handle?.addEventListener("dragend", () => {
+      draggedMenuSection = null;
+      groups.forEach((entry) => entry.classList.remove("menu-group-dragging", "menu-group-drag-over"));
+    });
+
+    handle?.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+      event.preventDefault();
+      moveMenuGroupByKeyboard(
+        group.dataset.menuSection,
+        event.key === "ArrowUp" ? -1 : 1
+      );
+    });
+
+    group.addEventListener("dragover", (event) => {
+      if (!draggedMenuSection || draggedMenuSection === group.dataset.menuSection) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      groups.forEach((entry) => entry.classList.remove("menu-group-drag-over"));
+      group.classList.add("menu-group-drag-over");
+    });
+
+    group.addEventListener("dragleave", (event) => {
+      if (!group.contains(event.relatedTarget)) group.classList.remove("menu-group-drag-over");
+    });
+
+    group.addEventListener("drop", async (event) => {
+      if (!draggedMenuSection || draggedMenuSection === group.dataset.menuSection) return;
+      event.preventDefault();
+      const orderedGroups = getMenuGroups();
+      const fromIndex = orderedGroups.findIndex((entry) => entry.section === draggedMenuSection);
+      let targetIndex = orderedGroups.findIndex((entry) => entry.section === group.dataset.menuSection);
+      if (fromIndex < 0 || targetIndex < 0) return;
+
+      const [movedGroup] = orderedGroups.splice(fromIndex, 1);
+      targetIndex = orderedGroups.findIndex((entry) => entry.section === group.dataset.menuSection);
+      const bounds = group.getBoundingClientRect();
+      const placeAfter = event.clientY > bounds.top + bounds.height / 2;
+      orderedGroups.splice(targetIndex + (placeAfter ? 1 : 0), 0, movedGroup);
+      draggedMenuSection = null;
+      await saveMenuItemOrder(orderedGroups.flatMap((entry) => entry.items));
+    });
+  });
+}
+
+async function renameMenuSection(section) {
+  const newName = prompt(`Rename menu header "${section}" to:`, section);
+  if (newName === null) return;
+  const cleanName = newName.trim();
+  if (!cleanName || cleanName === section) return;
+
+  const { error } = await supabaseClient
+    .from("menu_items")
+    .update({ section: cleanName })
+    .eq("section", section);
+
+  if (error) {
+    alert(`Could not rename menu header: ${error.message}`);
+    return;
+  }
+
+  await loadMenuItems();
+  alert("Menu header renamed.");
 }
 menuForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(menuForm);
+  const sectionChoice = String(formData.get("sectionChoice") || "").trim();
+  const section = sectionChoice === "__new__"
+    ? String(formData.get("newSection") || "").trim()
+    : sectionChoice;
+
+  if (!section) {
+    alert("Please choose an active menu header or create a new one.");
+    return;
+  }
 
   const updates = {
     label: String(formData.get("label") || "").trim(),
     url: String(formData.get("url") || "").trim(),
-    section: String(formData.get("section") || "SITE").trim(),
+    section,
     is_visible: formData.get("isVisible") === "on",
 open_new_tab: formData.get("openNewTab") === "on"
   };
@@ -549,15 +1156,16 @@ open_new_tab: formData.get("openNewTab") === "on"
   cancelMenuEdit.hidden = true;
 
   await loadMenuItems();
+  updateMenuSectionChoices();
 });
 function editMenuItem(id) {
-  const item = menuItems.find((m) => m.id === id);
+  const item = menuItems.find((m) => String(m.id) === String(id));
   if (!item) return;
 
   menuForm.elements.id.value = item.id;
   menuForm.elements.label.value = item.label || "";
   menuForm.elements.url.value = item.url || "";
-  menuForm.elements.section.value = item.section || "SITE";
+  updateMenuSectionChoices(item.section || "Menu");
   menuForm.elements.isVisible.checked = item.is_visible;
   menuForm.elements.openNewTab.checked = item.open_new_tab;
 
@@ -573,12 +1181,13 @@ function editMenuItem(id) {
 cancelMenuEdit.addEventListener("click", () => {
   menuForm.reset();
   menuForm.elements.id.value = "";
+  updateMenuSectionChoices();
   menuFormTitle.textContent = "Add menu item";
   cancelMenuEdit.hidden = true;
 });
 
 async function deleteMenuItem(id) {
-  const item = menuItems.find((m) => m.id === id);
+  const item = menuItems.find((m) => String(m.id) === String(id));
 
   if (!item) return;
 
@@ -1303,16 +1912,67 @@ function renderProducts() {
 }
 
 function updateCategoryFilterOptions() {
-  const categories = Array.from(new Set([
-    ...categoryRegistry,
-    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
-  ]));
+  const categories = getActiveCategories();
   const currentValue = productsCategoryFilter?.value || "all";
   if (productsCategoryFilter) {
     productsCategoryFilter.innerHTML = `<option value="all">All categories</option>${categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join("")}`;
     productsCategoryFilter.value = currentValue && categories.includes(currentValue) ? currentValue : "all";
   }
+
+  updateProductCategoryChoices(productCategorySelect?.value || "");
 }
+
+function getActiveCategories() {
+  const categories = Array.from(new Set([
+    ...categoryRegistry,
+    ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
+  ]));
+
+  const savedOrder = Array.isArray(categoryOrder)
+    ? categoryOrder.filter((category) => categories.includes(category))
+    : [];
+
+  return [
+    ...savedOrder,
+    ...categories.filter((category) => !savedOrder.includes(category)).sort()
+  ];
+}
+
+function updateProductCategoryChoices(selectedValue = "") {
+  if (!productCategorySelect) return;
+
+  const categories = getActiveCategories();
+  const selected = String(selectedValue || "").trim();
+  const options = [...categories];
+
+  if (selected && selected !== "__new__" && !options.includes(selected)) {
+    options.push(selected);
+  }
+
+  productCategorySelect.innerHTML = `
+    <option value="">Choose an active category</option>
+    ${options.map((category) => `
+      <option value="${escapeHtml(category)}">${escapeHtml(category)}</option>
+    `).join("")}
+    <option value="__new__">＋ Create new category…</option>
+  `;
+
+  productCategorySelect.value = selected || "";
+  toggleNewProductCategoryField();
+}
+
+function toggleNewProductCategoryField() {
+  if (!newProductCategoryField || !productCategorySelect) return;
+  const creatingNew = productCategorySelect.value === "__new__";
+  newProductCategoryField.hidden = !creatingNew;
+  const input = productForm?.elements.newCategory;
+  if (input) {
+    input.required = creatingNew;
+    if (!creatingNew) input.value = "";
+  }
+}
+
+productCategorySelect?.addEventListener("change", toggleNewProductCategoryField);
 
 async function toggleProductVisibility(id) {
   const product = products.find((item) => item.id === id);
@@ -1819,16 +2479,13 @@ if (VariantManager.isEnabled()) {
     return;
   }
 }
-const existingProduct = id
-  ? products.find((item) => String(item.id) === String(id))
-  : null;
-
-const categoryValue =
-  String(formData.get("category") || "").trim() ||
-  String(existingProduct?.category || "").trim();
+const categoryChoice = String(formData.get("category") || "").trim();
+const categoryValue = categoryChoice === "__new__"
+  ? String(formData.get("newCategory") || "").trim()
+  : categoryChoice;
 
 if (!categoryValue) {
-  alert("Please enter a product category.");
+  alert("Please choose an active category or create a new one.");
   return;
 }
   const product = {
@@ -1891,7 +2548,7 @@ alert(
 );
 });
 async function editProduct(id) {
-  const product = products.find((item) => item.id === id);
+  const product = products.find((item) => String(item.id) === String(id));
 
   if (!product) return;
 
@@ -1908,7 +2565,7 @@ try {
   productForm.elements.name.value = product.name || "";
   productForm.elements.price.value = product.price ?? 0;
   productForm.elements.stock.value = product.stock ?? 0;
-  productForm.elements.category.value = product.category || "";
+  updateProductCategoryChoices(product.category || "");
   productForm.elements.image.value = product.image_url || "";
   selectedProductImageFile = null;
   productImageFileInput.value = "";
@@ -1927,7 +2584,7 @@ try {
 }
 
 async function deleteProduct(id) {
-  const product = products.find((item) => item.id === id);
+  const product = products.find((item) => String(item.id) === String(id));
 
   const confirmed = confirm(
     `Delete ${product?.name || "this product"}?`
@@ -1956,6 +2613,7 @@ function resetProductForm() {
   productImageUrlInput.value = "";
   showProductImagePreview("");
   productForm.elements.id.value = "";
+  updateProductCategoryChoices("");
   VariantManager.reset();
   formTitle.textContent = "Add product";
   cancelEdit.hidden = true;
@@ -2572,23 +3230,54 @@ function renderOrders(ordersToRender) {
     const shippingAddress = shippingLines.length
         ? shippingLines.map((line) => escapeHtml(line)).join("<br>")
         : escapeHtml(order.address || "—");
+    const paymentStatus = String(order.payment_status || "Pending");
+    const paymentStatusClass = paymentStatus
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-");
 
     return `
         <article class="order-card">
-            <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
+            <header class="order-card-header">
+              <div>
+                <span class="order-card-label">Order</span>
+                <strong class="order-reference">${escapeHtml(getOrderReferenceLabel(order))}</strong>
+              </div>
+              <time class="order-date">${escapeHtml(orderedAt)}</time>
+            </header>
 
-            <p>
-                ${escapeHtml(order.customer_name)}
-                · ${escapeHtml(order.phone)}
-            </p>
+            <div class="order-card-body">
 
-            <p>
-                📍 ${shippingAddress}
-            </p>
+            <section class="order-customer-panel" aria-label="Customer information">
+              <div class="order-customer-row">
+                <span>Customer name</span>
+                <strong>${escapeHtml(order.customer_name || "Guest customer")}</strong>
+              </div>
 
-<p>
-  ${escapeHtml(order.payment_method || "—")}
-</p>
+              <div class="order-customer-row">
+                <span>Username</span>
+                <strong>${escapeHtml(order.customer_username || "Not provided")}</strong>
+              </div>
+
+              <div class="order-customer-row">
+                <span>Contact number</span>
+                <strong>${escapeHtml(order.phone || "Not provided")}</strong>
+              </div>
+
+              <div class="order-customer-row">
+                <span>Email address</span>
+                <strong>${escapeHtml(order.email || "Not provided")}</strong>
+              </div>
+
+              <div class="order-customer-row order-address-row">
+                <span>Full address</span>
+                <address>${shippingAddress}</address>
+              </div>
+
+              <div class="order-customer-row">
+                <span>Payment method</span>
+                <strong>${escapeHtml(order.payment_method || "—")}</strong>
+              </div>
+            </section>
 
 
 <details class="order-products-details">
@@ -2618,9 +3307,15 @@ function renderOrders(ordersToRender) {
 </div>
 </details>
 
-<p class="tiny-note">
-  Payment Status: ${escapeHtml(order.payment_status || "Pending")}
-</p>
+            </div>
+
+<footer class="order-card-footer">
+  <div class="order-status-summary">
+    <span>Payment status</span>
+    <strong class="order-status-badge status-${escapeHtml(paymentStatusClass)}">
+      ${escapeHtml(paymentStatus)}
+    </strong>
+  </div>
 
 <div class="order-card-actions">
   ${
@@ -2698,9 +3393,7 @@ ${Boolean(order.archived) ? `
 }
 </div>
 
-<p class="tiny-note">
-  ${escapeHtml(orderedAt)}
-</p>
+</footer>
 
 </article>
     `;
@@ -3245,6 +3938,48 @@ function initCategoryDragDrop() {
 async function editCategory(categoryName) {
   categoryForm.elements.id.value = categoryName;
   categoryForm.elements.categoryName.value = categoryName;
+  const categoryProducts = products.filter(
+    (product) => String(product.category || "").trim() === categoryName
+  );
+  const activeCategories = getActiveCategories();
+
+  if (categoryProductsList) {
+    categoryProductsList.innerHTML = categoryProducts.length
+      ? categoryProducts.map((product) => `
+          <article class="category-product-row" data-category-product-row="${product.id}">
+            <div class="category-product-summary">
+              <strong>${escapeHtml(product.name || "Untitled product")}</strong>
+              <small>${formatCurrency(product.price || 0)} · Stock: ${Number(product.stock || 0)}</small>
+            </div>
+            <label>
+              Place in
+              <select data-category-product="${product.id}">
+                <option value="__none__">No category</option>
+                ${activeCategories.map((category) => `
+                  <option
+                    value="${escapeHtml(category)}"
+                    ${category === categoryName ? "selected" : ""}
+                  >${escapeHtml(category)}</option>
+                `).join("")}
+              </select>
+            </label>
+            <button
+              class="secondary-button"
+              type="button"
+              data-edit-category-product="${product.id}"
+            >Edit full product</button>
+          </article>
+        `).join("")
+      : `<p class="empty">No products are currently assigned to this category.</p>`;
+
+    categoryProductsList
+      .querySelectorAll("[data-edit-category-product]")
+      .forEach((button) => {
+        button.addEventListener("click", () => editProduct(button.dataset.editCategoryProduct));
+      });
+  }
+
+  if (categoryProductsEditor) categoryProductsEditor.hidden = false;
   cancelCategoryEdit.hidden = false;
   categoryForm.scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -3252,6 +3987,8 @@ async function editCategory(categoryName) {
 function resetCategoryForm() {
   categoryForm.reset();
   categoryForm.elements.id.value = "";
+  if (categoryProductsEditor) categoryProductsEditor.hidden = true;
+  if (categoryProductsList) categoryProductsList.innerHTML = "";
   cancelCategoryEdit.hidden = true;
 }
 
@@ -3286,19 +4023,56 @@ categoryForm?.addEventListener("submit", async (event) => {
   }
 
   if (existingCategory) {
-    const { error } = await supabaseClient
-      .from("products")
-      .update({ category: categoryName, updated_at: new Date().toISOString() })
-      .eq("category", existingCategory);
+    const productAssignments = Array.from(
+      categoryProductsList?.querySelectorAll("[data-category-product]") || []
+    );
 
-    if (error) {
-      alert(`Could not rename category: ${error.message}`);
-      return;
+    for (const select of productAssignments) {
+      const productId = select.dataset.categoryProduct;
+      const chosenCategory = select.value === "__none__"
+        ? null
+        : select.value === existingCategory
+          ? categoryName
+          : select.value;
+
+      const { error } = await supabaseClient
+        .from("products")
+        .update({
+          category: chosenCategory,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", productId);
+
+      if (error) {
+        alert(`Could not update a product in this category: ${error.message}`);
+        return;
+      }
+    }
+
+    if (!productAssignments.length && existingCategory !== categoryName) {
+      const { error } = await supabaseClient
+        .from("products")
+        .update({ category: categoryName, updated_at: new Date().toISOString() })
+        .eq("category", existingCategory);
+
+      if (error) {
+        alert(`Could not rename category: ${error.message}`);
+        return;
+      }
     }
 
     categoryRegistry = categoryRegistry.filter((item) => item !== existingCategory);
     if (!categoryRegistry.includes(categoryName)) {
       categoryRegistry.push(categoryName);
+    }
+
+    if (existingCategory !== categoryName && Array.isArray(categoryOrder)) {
+      const renamedOrder = Array.from(new Set(
+        categoryOrder.map((category) =>
+          category === existingCategory ? categoryName : category
+        )
+      ));
+      await saveCategoryOrder(renamedOrder);
     }
   } else {
     if (!categoryRegistry.includes(categoryName)) {
@@ -3308,7 +4082,7 @@ categoryForm?.addEventListener("submit", async (event) => {
 
   resetCategoryForm();
   await loadProducts();
-  alert(existingCategory ? "Category renamed." : "Category added.");
+  alert(existingCategory ? "Category and product assignments updated." : "Category added.");
 });
 
 cancelCategoryEdit?.addEventListener("click", resetCategoryForm);
