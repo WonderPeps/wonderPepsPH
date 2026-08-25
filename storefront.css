@@ -631,6 +631,32 @@ body.storefront-page.page-scroll-locked {
   backdrop-filter: blur(4px);
 }
 
+.storefront-page #cartDrawer,
+.storefront-page #favoritesDrawer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100svh;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.storefront-page #cartDrawer.open,
+.storefront-page #favoritesDrawer.open {
+  display: flex;
+  align-items: stretch;
+}
+
+.storefront-page #cartDrawer .drawer-panel,
+.storefront-page #favoritesDrawer .drawer-panel {
+  height: 100dvh;
+  min-height: 100svh;
+  max-height: 100dvh;
+  margin-left: auto;
+  overflow: hidden;
+}
+
 .storefront-page .drawer-panel {
   width: min(460px, 100%);
   padding: 25px;
@@ -640,11 +666,15 @@ body.storefront-page.page-scroll-locked {
 }
 
 .storefront-page #favoritesItems {
+  flex: 1;
+  min-height: 0;
   display: grid;
   align-content: start;
   gap: 12px;
   padding: 8px 1px 24px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .storefront-page .favorite-item {

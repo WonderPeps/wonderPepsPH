@@ -1317,6 +1317,7 @@ cartItems
 }
 
 function openCart() {
+  lockPageScroll("cart");
   cartDrawer.classList.add("open");
   cartDrawer.setAttribute("aria-hidden", "false");
 }
@@ -1324,8 +1325,10 @@ function openCart() {
 function closeCartDrawer() {
   cartDrawer.classList.remove("open");
   cartDrawer.setAttribute("aria-hidden", "true");
+  unlockPageScroll("cart");
 }
 function openFavorites() {
+  lockPageScroll("favorites");
   favoritesDrawer.classList.add("open");
   favoritesDrawer.setAttribute("aria-hidden", "false");
 }
@@ -1333,6 +1336,7 @@ function openFavorites() {
 function closeFavoritesDrawer() {
   favoritesDrawer.classList.remove("open");
   favoritesDrawer.setAttribute("aria-hidden", "true");
+  unlockPageScroll("favorites");
 }
 cartButton.addEventListener("click", openCart);
 
@@ -1347,6 +1351,12 @@ cartDrawer.addEventListener("click", (event) => {
   }
 });
 
+favoritesDrawer.addEventListener("click", (event) => {
+  if (event.target === favoritesDrawer) {
+    closeFavoritesDrawer();
+  }
+});
+
 checkoutButton.addEventListener("click", () => {
   if (!cart.length) {
     alert("Your bag is empty.");
@@ -1354,9 +1364,9 @@ checkoutButton.addEventListener("click", () => {
   }
 
   clearCheckoutFormError();
+  lockPageScroll("checkout-flow");
   closeCartDrawer();
   updateCheckoutTotal();
-  lockPageScroll("checkout-flow");
   checkoutDialog.showModal();
 });
 
