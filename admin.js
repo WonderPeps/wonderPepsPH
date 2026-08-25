@@ -2614,14 +2614,7 @@ function renderOrders(ordersToRender) {
 
 <details class="order-products-details">
   <summary>
-    <div>
-      <span class="order-products-kicker">Order items</span>
-      <strong>${escapeHtml(productsLabel)}</strong>
-    </div>
-    <span class="order-products-total">
-      ${formatCurrency(order.total || 0)}
-      <span class="order-details-arrow" aria-hidden="true">⌄</span>
-    </span>
+    ${escapeHtml(productsLabel)}
   </summary>
 
 <div class="order-products-body">
