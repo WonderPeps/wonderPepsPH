@@ -2578,32 +2578,19 @@ function renderOrders(ordersToRender) {
             <strong class="order-reference">${escapeHtml(getOrderReferenceLabel(order))}</strong>
 
             <section class="order-customer-panel" aria-label="Customer information">
-              <div class="order-customer-heading">
-                <span class="order-customer-avatar" aria-hidden="true">
-                  ${escapeHtml(String(order.customer_name || "C").trim().charAt(0).toUpperCase() || "C")}
-                </span>
-                <div>
-                  <span class="order-detail-label">Customer</span>
-                  <strong>${escapeHtml(order.customer_name || "Guest customer")}</strong>
-                </div>
+              <div class="order-customer-row">
+                <span>Customer name</span>
+                <strong>${escapeHtml(order.customer_name || "Guest customer")}</strong>
               </div>
 
-              <div class="order-customer-details">
-                <div class="order-customer-detail">
-                  <span class="order-detail-icon" aria-hidden="true">☎</span>
-                  <div>
-                    <span class="order-detail-label">Contact number</span>
-                    <strong>${escapeHtml(order.phone || "Not provided")}</strong>
-                  </div>
-                </div>
+              <div class="order-customer-row">
+                <span>Contact number</span>
+                <strong>${escapeHtml(order.phone || "Not provided")}</strong>
+              </div>
 
-                <div class="order-customer-detail order-address-detail">
-                  <span class="order-detail-icon" aria-hidden="true">⌂</span>
-                  <div>
-                    <span class="order-detail-label">Delivery address</span>
-                    <address>${shippingAddress}</address>
-                  </div>
-                </div>
+              <div class="order-customer-row order-address-row">
+                <span>Full address</span>
+                <address>${shippingAddress}</address>
               </div>
             </section>
 
