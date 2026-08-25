@@ -349,6 +349,12 @@ if (data.hero_image_url) {
   settingsForm.elements.heroEyebrow.value = data.hero_eyebrow || "";
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
+  settingsForm.elements.catalogEyebrow.value =
+    data.catalog_eyebrow || "OUR COLLECTION";
+  settingsForm.elements.catalogTitle.value =
+    data.catalog_title || "Find your new favorite";
+  settingsForm.elements.catalogSubtitle.value =
+    data.catalog_subtitle || "Sweet little picks, chosen just for you.";
   settingsForm.elements.facebook.value = data.facebook_url || "";
   settingsForm.elements.tiktok.value = data.tiktok_url || "";
   settingsForm.elements.shipping90Label.value =
@@ -374,6 +380,15 @@ settingsForm.addEventListener("submit", async (event) => {
     hero_eyebrow: settingsForm.elements.heroEyebrow.value,
     hero_title: String(formData.get("heroTitle") || "").trim(),
     hero_subtitle: String(formData.get("heroSubtitle") || "").trim(),
+    catalog_eyebrow:
+      String(formData.get("catalogEyebrow") || "").trim() ||
+      "OUR COLLECTION",
+    catalog_title:
+      String(formData.get("catalogTitle") || "").trim() ||
+      "Find your new favorite",
+    catalog_subtitle:
+      String(formData.get("catalogSubtitle") || "").trim() ||
+      "Sweet little picks, chosen just for you.",
     facebook_url:
       String(formData.get("facebook") || "").trim() || null,
     tiktok_url:

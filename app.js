@@ -12,6 +12,9 @@ const heroSubtitle = document.querySelector("#heroSubtitle");
 const heroEyebrow = document.querySelector("#heroEyebrow");
 const heroImage = document.querySelector("#heroImage");
 const heroFallback = document.querySelector("#heroFallback");
+const catalogEyebrow = document.querySelector("#catalogEyebrow");
+const catalogTitle = document.querySelector("#catalogTitle");
+const catalogSubtitle = document.querySelector("#catalogSubtitle");
 const footerBrand = document.querySelector("#footerBrand");
 const facebookLink = document.querySelector("#facebookLink");
 const tiktokLink = document.querySelector("#tiktokLink");
@@ -211,6 +214,22 @@ function applyShopSettings(settings) {
   if (heroEyebrow) {
     heroEyebrow.textContent = settings.hero_eyebrow || "";
 }
+
+  if (catalogEyebrow) {
+    catalogEyebrow.textContent =
+      settings.catalog_eyebrow || "OUR COLLECTION";
+  }
+
+  if (catalogTitle) {
+    catalogTitle.textContent =
+      settings.catalog_title || "Find your new favorite";
+  }
+
+  if (catalogSubtitle) {
+    catalogSubtitle.textContent =
+      settings.catalog_subtitle ||
+      "Sweet little picks, chosen just for you.";
+  }
 
   if (footerBrand) {
     footerBrand.textContent = `© ${shopName}`;

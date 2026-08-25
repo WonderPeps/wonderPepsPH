@@ -409,32 +409,33 @@ body.storefront-page {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 11px 20px;
+  min-height: 50px;
+  padding: 13px 23px;
   border: 1px solid #f3d6e2;
   border-radius: 999px;
   color: #644553;
   background: linear-gradient(180deg, #fff8fb, #ffeaf3);
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.98rem;
   font-weight: 750;
   white-space: nowrap;
   scroll-snap-align: start;
   box-shadow: 0 6px 16px rgba(109, 51, 75, 0.06);
   cursor: pointer;
   appearance: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .storefront-page .category-chip::before {
   content: "♡";
   display: grid;
-  width: 21px;
-  height: 21px;
+  width: 24px;
+  height: 24px;
   place-items: center;
   border-radius: 50%;
   color: var(--store-pink);
   background: #fff;
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   line-height: 1;
 }
 
@@ -442,7 +443,7 @@ body.storefront-page {
   border-color: var(--store-line);
   color: var(--store-pink-dark);
   background: #fff;
-  box-shadow: 0 8px 18px rgba(109, 51, 75, 0.08);
+  box-shadow: none;
   transform: translateY(-2px);
 }
 
@@ -450,13 +451,25 @@ body.storefront-page {
   border-color: var(--store-pink);
   color: #fff;
   background: linear-gradient(135deg, #e25a8d, #cf3f78);
-  box-shadow: 0 9px 21px rgba(207, 63, 120, 0.24);
+  box-shadow: none;
+  transform: none;
 }
 
 .storefront-page .category-chip.active::before {
   content: "♥";
   color: var(--store-pink);
   background: #fff;
+}
+
+.storefront-page .category-chip:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.storefront-page .category-chip:focus-visible {
+  outline: 2px solid rgba(223, 79, 134, 0.38);
+  outline-offset: 2px;
+  box-shadow: none;
 }
 
 /* Products */
@@ -909,9 +922,14 @@ body.storefront-page {
   }
 
   .storefront-page .category-chip {
-    min-height: 42px;
-    padding: 10px 17px;
-    font-size: 0.85rem;
+    min-height: 52px;
+    padding: 13px 22px;
+    font-size: 1rem;
+  }
+
+  .storefront-page .category-chip:hover {
+    box-shadow: none;
+    transform: none;
   }
 
   .storefront-page .product-grid {
