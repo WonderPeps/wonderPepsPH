@@ -6,34 +6,54 @@
   <meta name="theme-color" content="#f9d8e5" />
   <title>Wonder Peps PH</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="storefront.css" />
 </head>
-<body class="settings-loading">
+<body class="storefront-page settings-loading">
   <header class="site-header">
-    <a class="brand" href="#home">
+    <a class="brand" href="#home" aria-label="Wonder Peps home">
       <img id="brandLogo" class="brand-logo" alt="Shop logo" hidden />
       <span id="brandFallback" class="brand-mark">♡</span>
       <span id="brandName">Wonder Peps <small>PH</small></span>
     </a>
-<nav>
-  <a href="#shop">Shop</a>
+    <nav class="storefront-nav" aria-label="Storefront navigation">
+      <a class="shop-link" href="#shop">Shop</a>
 
-  <button
-    id="cartButton"
-    class="cart-button"
-    type="button"
-  >
-    Bag <span id="cartCount">0</span>
-  </button>
+      <button
+        id="favoritesButton"
+        class="icon-button favorite-header-button"
+        type="button"
+        aria-label="Open favorites"
+      >
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 20.5S4 15.8 4 9.5A4.5 4.5 0 0 1 12 6.7a4.5 4.5 0 0 1 8 2.8c0 6.3-8 11-8 11Z" />
+        </svg>
+        <span id="favoritesCount" class="favorites-badge" hidden>0</span>
+      </button>
 
-  <button
-    id="menuButton"
-    class="icon-button menu-button"
-    type="button"
-    aria-label="Open menu"
-  >
-    ☰
-  </button>
-</nav>
+      <button
+        id="cartButton"
+        class="cart-button"
+        type="button"
+        aria-label="Open shopping bag"
+      >
+        <svg class="cart-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M6.4 8.5h11.2l.8 11H5.6l.8-11Z" />
+          <path d="M9 9V6.8a3 3 0 0 1 6 0V9" />
+        </svg>
+        <span id="cartCount">0</span>
+      </button>
+
+      <button
+        id="menuButton"
+        class="icon-button menu-button"
+        type="button"
+        aria-label="Open menu"
+      >
+        <svg class="header-icon menu-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M5 7h14M5 12h14M5 17h14" />
+        </svg>
+      </button>
+    </nav>
   </header>
 <aside id="menuDrawer" class="drawer menu-drawer" aria-hidden="true">
   <div class="drawer-panel">
@@ -54,54 +74,69 @@
   </div>
 </aside>
   <main>
-    <section id="home" class="hero">
-      <div>
-        <p class="eyebrow">Pretty packaging, simple ordering</p>
+    <section id="home" class="hero" aria-labelledby="heroTitle">
+      <div class="hero-media">
+        <div class="hero-image-frame">
+          <img
+            id="heroImage"
+            class="hero-image"
+            alt="Wonder Peps featured product"
+            hidden
+          />
+          <div id="heroFallback" class="bunny-card" aria-hidden="true">
+            <div class="ears">◡ ◡</div>
+            <div class="face">◠ ᴥ ◠</div>
+            <div class="hearts">♡ ♡ ♡</div>
+          </div>
+        </div>
+        <span class="hero-sparkle hero-sparkle-one" aria-hidden="true">✦</span>
+        <span class="hero-sparkle hero-sparkle-two" aria-hidden="true">♡</span>
+      </div>
+
+      <div class="hero-copy">
+        <p id="heroEyebrow" class="eyebrow">
+          Pretty packaging, simple ordering
+        </p>
         <h1 id="heroTitle">Soft pink shopping made easy.</h1>
         <p id="heroSubtitle">Browse products, add them to your bag, and send your order details in just a few taps.</p>
-        <a class="primary-button" href="#shop">Shop now</a>
+        <a class="primary-button hero-button" href="#shop">
+          Shop now
+          <span aria-hidden="true">→</span>
+        </a>
       </div>
-      <div class="hero-media">
-  <img
-    id="heroImage"
-    class="hero-image"
-    alt="Shop hero image"
-    hidden
-  />
-
-  <div id="heroFallback" class="bunny-card" aria-hidden="true">
-    <div class="ears">◡ ◡</div>
-    <div class="face">◠ ᴥ ◠</div>
-    <div class="hearts">♡ ♡ ♡</div>
-  </div>
-</div>
     </section>
 
-    <section id="shop" class="section">
+    <section id="shop" class="section catalog-section" aria-labelledby="catalogTitle">
       <div class="section-heading">
         <div>
-          <p class="eyebrow">Catalog</p>
-          <h2>Shop products</h2>
+          <p class="eyebrow">OUR COLLECTION</p>
+          <h2 id="catalogTitle">Find your new favorite</h2>
+          <p class="catalog-subtitle">Sweet little picks, chosen just for you.</p>
         </div>
-        <input id="searchInput" class="search" type="search" placeholder="Search products" />
+
+        <label class="search-wrap" for="searchInput">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5" />
+            <path d="m16 16 4 4" />
+          </svg>
+          <input
+            id="searchInput"
+            class="search"
+            type="search"
+            placeholder="Search products"
+            autocomplete="off"
+          />
+        </label>
       </div>
+
+      <div class="category-area" aria-label="Product categories">
+        <div id="categoryFilters" class="category-filters"></div>
+      </div>
+
       <div id="productGrid" class="product-grid"></div>
     </section>
 
-    <section class="section info-grid">
-      <article>
-        <h3>Payment options</h3>
-        <p>GCash, Maya, bank transfer, or Cash on Delivery.</p>
-      </article>
-      <article>
-        <h3>Order confirmation</h3>
-        <p>Every checkout receives a unique order reference.</p>
-      </article>
-      <article>
-        <h3>Mobile friendly</h3>
-        <p>Designed to be easy to use on Android phones.</p>
-      </article>
-    </section>
+
   </main>
 
   <aside id="cartDrawer" class="drawer" aria-hidden="true">
@@ -117,6 +152,34 @@
       </div>
     </div>
   </aside>
+
+   <aside
+    id="favoritesDrawer"
+    class="drawer"
+    aria-hidden="true">
+   <div class="drawer-panel">
+
+    <div class="drawer-header">
+        <h2>My Favorites</h2>
+
+        <button
+            id="closeFavorites"
+            class="icon-button"
+            type="button"
+            aria-label="Close favorites">
+
+            ✕
+
+        </button>
+    </div>
+
+    <div id="favoritesItems" class="drawer-body">
+        <p class="empty">
+            No favorites yet.
+        </p>
+    </div>
+</div>
+</aside>
 <!-- =========================
      PRODUCT VARIANT MODAL
 ========================= -->
@@ -368,8 +431,10 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase.js"></script>
+<script src="variants.js"></script>
+<script src="favorites.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
