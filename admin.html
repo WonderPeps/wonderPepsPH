@@ -69,6 +69,7 @@
 
       <div class="nav-group-label">Store</div>
       <a href="#shopSettingsSection"><span class="nav-icon" aria-hidden="true">⚙</span><span>Shop settings</span></a>
+      <a href="#shippingFeesSection"><span class="nav-icon" aria-hidden="true">♢</span><span>Shipping fees</span></a>
       <a href="#paymentMethodsSection"><span class="nav-icon" aria-hidden="true">♡</span><span>Payment methods</span></a>
       <a href="#addProductSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add product</span></a>
       <a href="#addMenuSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add menu item</span></a>
@@ -200,7 +201,7 @@
       <div class="admin-section-header">
         <div>
           <h2>Shop settings</h2>
-          <p class="tiny-note">Branding, storefront messaging, social links, and shipping labels.</p>
+          <p class="tiny-note">Branding, storefront messaging, and social links.</p>
         </div>
       </div>
       <div class="admin-toolbar">
@@ -209,7 +210,6 @@
         <button class="secondary-button" type="button" data-settings-tab="catalog">Catalog</button>
         <button class="secondary-button" type="button" data-settings-tab="menu">Menu drawer</button>
         <button class="secondary-button" type="button" data-settings-tab="social">Social</button>
-        <button class="secondary-button" type="button" data-settings-tab="shipping">Shipping</button>
         <button class="secondary-button" type="button" data-settings-tab="footer">Footer</button>
       </div>
       <form id="settingsForm" class="admin-form">
@@ -312,13 +312,42 @@ Hero eyebrow
           </label>
           <label data-settings-group="social">Facebook link<input name="facebook" placeholder="https://facebook.com/..." /></label>
           <label data-settings-group="social">TikTok link<input name="tiktok" placeholder="https://tiktok.com/@..." /></label>
-          <label data-settings-group="shipping">₱90 shipping label<input name="shipping90Label" /></label>
-          <label data-settings-group="shipping">₱120 shipping label<input name="shipping120Label" /></label>
-          <label data-settings-group="shipping">₱150 shipping label<input name="shipping150Label" /></label>
           <label data-settings-group="footer">Footer text<input name="footerText" placeholder="Optional footer copy" /></label>
         </div>
         <button class="primary-button" type="submit">Save shop profile</button>
       </form>
+    </section>
+
+    <section id="shippingFeesSection" class="admin-card admin-panel-section">
+      <div class="admin-section-header">
+        <div>
+          <h2>Shipping fees</h2>
+          <p class="tiny-note">Create the cute delivery choices customers see during checkout.</p>
+        </div>
+      </div>
+
+      <form id="shippingFeeForm" class="admin-form shipping-fee-form">
+        <input name="id" type="hidden" />
+        <label>
+          Delivery area or label
+          <input name="label" placeholder="Example: Luzon" required />
+        </label>
+        <label>
+          Fee amount (₱)
+          <input name="amount" type="number" min="0" step="0.01" placeholder="90" required />
+        </label>
+        <label class="shipping-active-toggle">
+          <input name="isActive" type="checkbox" checked />
+          Show this choice at checkout
+        </label>
+        <div class="shipping-fee-form-actions">
+          <button class="primary-button" type="submit">Save shipping fee</button>
+          <button id="cancelShippingFeeEdit" class="secondary-button" type="button" hidden>Cancel editing</button>
+        </div>
+      </form>
+
+      <p id="shippingFeesStatus" class="tiny-note shipping-fees-status" role="status" aria-live="polite"></p>
+      <div id="shippingFeesList" class="shipping-fees-admin-list"></div>
     </section>
 
     <section id="paymentMethodsSection" class="admin-card admin-panel-section">

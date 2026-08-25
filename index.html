@@ -310,9 +310,14 @@
         </div>
 
         <div class="checkout-field-grid">
-          <label class="checkout-field-full">
+          <label>
             Name
             <input name="name" autocomplete="name" placeholder="Your full name" required>
+          </label>
+
+          <label>
+            Username
+            <input name="username" autocomplete="username" placeholder="Username in community" required>
           </label>
 
           <label>
@@ -340,7 +345,13 @@
 
       <section class="checkout-section-card checkout-address-card" aria-labelledby="shippingAddressTitle">
         <div class="checkout-section-heading">
-          <span class="checkout-section-icon" aria-hidden="true">⌂</span>
+          <span class="checkout-section-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 11.5 12 5l8 6.5" />
+              <path d="M6.5 10.5V20h11v-9.5" />
+              <path d="M10 20v-5h4v5" />
+            </svg>
+          </span>
           <div>
             <h3 id="shippingAddressTitle">Shipping address</h3>
             <p>Where should we send your lovely order?</p>
@@ -348,7 +359,7 @@
         </div>
 
         <div class="checkout-field-grid">
-          <label>
+          <label class="checkout-province-field">
             Province
             <input
               name="province"
@@ -358,7 +369,7 @@
             >
           </label>
 
-          <label>
+          <label class="checkout-city-field">
             City / Municipality
             <input
               name="city"
@@ -368,13 +379,23 @@
             >
           </label>
 
-          <label>
+          <label class="checkout-barangay-field">
             Barangay
             <input
               name="barangay"
               autocomplete="address-level3"
               placeholder="San Antonio"
               required
+            >
+          </label>
+
+          <label class="checkout-zipcode-field">
+            <span>ZIP Code <small>Optional</small></span>
+            <input
+              name="zipcode"
+              inputmode="numeric"
+              autocomplete="postal-code"
+              placeholder="4024"
             >
           </label>
 
@@ -388,26 +409,26 @@
               required
             ></textarea>
           </label>
-
-          <label>
-            <span>ZIP Code <small>Optional</small></span>
-            <input
-              name="zipcode"
-              inputmode="numeric"
-              autocomplete="postal-code"
-              placeholder="4024"
-            >
-          </label>
         </div>
       </section>
-      <label>Shipping fee
-        <select name="shipping" required>
-          <option value="">Choose shipping fee</option>
-          <option value="90">₱90 — Nearby area</option>
-          <option value="120">₱120 — Standard shipping</option>
-          <option value="150">₱150 — Farther area</option>
-        </select>
-      </label>
+      <section class="checkout-shipping-card" aria-labelledby="shippingFeeTitle">
+        <div class="checkout-section-heading">
+          <span class="checkout-section-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M3.5 7.5h10v9h-10z" />
+              <path d="M13.5 10h3.4l3.6 3.6v2.9h-7z" />
+              <circle cx="7" cy="18" r="1.8" />
+              <circle cx="17.5" cy="18" r="1.8" />
+            </svg>
+          </span>
+          <div>
+            <h3 id="shippingFeeTitle">Shipping fee</h3>
+            <p>Choose the delivery area for your order.</p>
+          </div>
+        </div>
+        <input id="selectedShippingInput" name="shipping" type="hidden">
+        <div id="shippingFeeOptions" class="shipping-fee-selector" aria-live="polite"></div>
+      </section>
       <div>
         <label>Payment method</label>
         <input id="selectedPaymentInput" name="payment" type="hidden" />

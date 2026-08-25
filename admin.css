@@ -1110,3 +1110,142 @@ html { font-size: 112.5%; }
     width: 100%;
   }
 }
+/* Shipping fee editor */
+.admin-page .shipping-fee-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(180px, .55fr);
+  gap: 14px;
+  margin: 18px 0 20px;
+  padding: 18px;
+  border: 1px solid #f0cfdd;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fffafd, #fff2f7);
+}
+
+.admin-page .shipping-active-toggle,
+.admin-page .shipping-fee-form-actions {
+  grid-column: 1 / -1;
+}
+
+.admin-page .shipping-active-toggle {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+
+.admin-page .shipping-active-toggle input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+}
+
+.admin-page .shipping-fee-form-actions,
+.admin-page .shipping-fee-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.admin-page .shipping-fees-status {
+  min-height: 1.5em;
+  margin: 0 0 10px;
+}
+
+.admin-page .shipping-fees-status[data-state="error"] {
+  color: #b4234b;
+}
+
+.admin-page .shipping-fees-status[data-state="saved"] {
+  color: #287756;
+}
+
+.admin-page .shipping-fees-admin-list {
+  display: grid;
+  gap: 11px;
+}
+
+.admin-page .shipping-fee-admin-card {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #f0cfdd;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(104, 56, 76, .055);
+}
+
+.admin-page .shipping-fee-admin-card.is-hidden {
+  opacity: .68;
+  background: #fffafd;
+}
+
+.admin-page .shipping-fee-admin-order {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 14px;
+  color: #bb3268;
+  background: #fff0f6;
+  font-weight: 900;
+}
+
+.admin-page .shipping-fee-admin-copy {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 14px;
+}
+
+.admin-page .shipping-fee-admin-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-page .shipping-fee-admin-copy > span {
+  color: #bb3268;
+  font-weight: 900;
+}
+
+.admin-page .shipping-fee-admin-copy small {
+  grid-column: 1 / -1;
+  color: #8d6f7b;
+}
+
+.admin-page .shipping-fee-actions .secondary-button {
+  min-width: 42px;
+}
+
+.admin-page .shipping-fees-setup-note {
+  padding: 18px;
+  border: 1px dashed #e4a8c0;
+  border-radius: 18px;
+  color: #76510a;
+  background: #fff8e8;
+}
+
+.admin-page .shipping-fees-setup-note p {
+  margin: 6px 0 0;
+}
+
+@media (max-width: 760px) {
+  .admin-page .shipping-fee-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .shipping-active-toggle,
+  .admin-page .shipping-fee-form-actions {
+    grid-column: auto;
+  }
+
+  .admin-page .shipping-fee-admin-card {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .admin-page .shipping-fee-actions {
+    grid-column: 1 / -1;
+  }
+}

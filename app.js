@@ -81,6 +81,8 @@ const checkoutForm = document.querySelector("#checkoutForm");
 const checkoutTotal = document.querySelector("#checkoutTotal");
 const paymentMethodsList = document.querySelector("#paymentMethodsList");
 const selectedPaymentInput = document.querySelector("#selectedPaymentInput");
+const selectedShippingInput = document.querySelector("#selectedShippingInput");
+const shippingFeeOptions = document.querySelector("#shippingFeeOptions");
 const proceedPaymentButton = document.querySelector("#proceedPaymentButton");
 const checkoutFormError = document.querySelector("#checkoutFormError");
 const paymentStepDialog = document.querySelector("#paymentStepDialog");
@@ -134,6 +136,8 @@ let variantSourceButton = null;
 let cart = loadSavedCart();
 let paymentMethods = [];
 let selectedPaymentMethod = null;
+let shippingFees = [];
+let selectedShippingFee = null;
 let paymentStepReceiptFile = null;
 let paymentStepReceiptPreviewUrl = null;
 let storefrontCategoryOrder = [];
@@ -171,6 +175,36 @@ function showCheckoutError(message) {
   } else {
     alert(message);
   }
+}
+
+const pageScrollLockOwners = new Set();
+let lockedPageScrollY = 0;
+
+function lockPageScroll(owner) {
+  if (!owner || pageScrollLockOwners.has(owner)) return;
+
+  if (pageScrollLockOwners.size === 0) {
+    lockedPageScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.style.top = `-${lockedPageScrollY}px`;
+    document.body.classList.add("page-scroll-locked");
+  }
+
+  pageScrollLockOwners.add(owner);
+}
+
+function unlockPageScroll(owner) {
+  if (owner) pageScrollLockOwners.delete(owner);
+  if (pageScrollLockOwners.size > 0) return;
+
+  document.body.classList.remove("page-scroll-locked");
+  document.body.style.top = "";
+
+  const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo(0, lockedPageScrollY);
+  requestAnimationFrame(() => {
+    document.documentElement.style.scrollBehavior = previousScrollBehavior;
+  });
 }
 
 /* -------------------------
@@ -304,28 +338,6 @@ if (heroImage && heroFallback) {
     storefrontCategoryOrder = [];
   }
 
-  const shippingField = document.querySelector(
-    'select[name="shipping"]'
-  );
-
-  if (shippingField) {
-    if (shippingField.options[1]) {
-      shippingField.options[1].textContent =
-        `₱90 – ${settings.shipping_90_label || "Nearby area"}`;
-    }
-
-    if (shippingField.options[2]) {
-      shippingField.options[2].textContent =
-        `₱120 – ${
-          settings.shipping_120_label || "Standard shipping"
-        }`;
-    }
-
-    if (shippingField.options[3]) {
-      shippingField.options[3].textContent =
-        `₱150 – ${settings.shipping_150_label || "Farther area"}`;
-    }
-  }
 }
 
 /* -------------------------
@@ -1041,13 +1053,107 @@ return total + itemPrice * Number(item.quantity || 0);
 }
 
 function getSelectedShippingFee() {
-  const shippingField = checkoutForm?.querySelector(
-    'select[name="shipping"]'
+  return selectedShippingFee
+    ? Number(selectedShippingFee.amount || 0)
+    : Number(selectedShippingInput?.value || 0);
+}
+
+function updateProceedPaymentAvailability() {
+  if (!proceedPaymentButton) return;
+  proceedPaymentButton.disabled = !paymentMethods.length || !shippingFees.length;
+}
+
+async function loadShippingFees() {
+  if (!shippingFeeOptions) return;
+
+  shippingFeeOptions.innerHTML = `<p class="empty">Loading shipping choices…</p>`;
+
+  const { data, error } = await supabaseClient
+    .from("shipping_fees")
+    .select("*")
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    shippingFees = [];
+    selectedShippingFee = null;
+    if (selectedShippingInput) selectedShippingInput.value = "";
+    shippingFeeOptions.innerHTML = `
+      <div class="shipping-fee-empty">
+        <strong>Shipping choices are unavailable.</strong>
+        <span>Please try again shortly.</span>
+      </div>
+    `;
+    updateProceedPaymentAvailability();
+    console.error("Could not load shipping fees:", error.message);
+    return;
+  }
+
+  shippingFees = data || [];
+  selectedShippingFee = null;
+  if (selectedShippingInput) selectedShippingInput.value = "";
+  renderShippingFees();
+  updateProceedPaymentAvailability();
+}
+
+function renderShippingFees() {
+  if (!shippingFeeOptions) return;
+
+  if (!shippingFees.length) {
+    shippingFeeOptions.innerHTML = `
+      <div class="shipping-fee-empty">
+        <strong>No shipping choices are available yet.</strong>
+        <span>Please contact the shop before checking out.</span>
+      </div>
+    `;
+    updateProceedPaymentAvailability();
+    return;
+  }
+
+  shippingFeeOptions.innerHTML = shippingFees
+    .map((fee) => {
+      const isSelected = selectedShippingFee &&
+        String(selectedShippingFee.id) === String(fee.id);
+
+      return `
+        <button
+          class="shipping-fee-option${isSelected ? " selected" : ""}"
+          type="button"
+          data-shipping-select="${fee.id}"
+          aria-pressed="${isSelected ? "true" : "false"}"
+        >
+          <span class="shipping-fee-check" aria-hidden="true">${isSelected ? "✓" : "♡"}</span>
+          <span class="shipping-fee-label">${escapeHtml(fee.label || "Delivery area")}</span>
+          <strong>${formatCurrency(fee.amount || 0)}</strong>
+        </button>
+      `;
+    })
+    .join("");
+
+  shippingFeeOptions
+    .querySelectorAll("[data-shipping-select]")
+    .forEach((button) => {
+      button.addEventListener("click", () => {
+        selectShippingFee(button.dataset.shippingSelect);
+      });
+    });
+}
+
+function selectShippingFee(feeId) {
+  const fee = shippingFees.find(
+    (item) => String(item.id) === String(feeId)
   );
 
-  return shippingField
-    ? Number(shippingField.value || 0)
-    : 0;
+  if (!fee) return;
+  selectedShippingFee = fee;
+  if (selectedShippingInput) {
+    selectedShippingInput.value = String(Number(fee.amount || 0));
+    selectedShippingInput.dataset.shippingId = String(fee.id);
+  }
+  renderShippingFees();
+  clearCheckoutFormError();
+  updateCheckoutTotal();
 }
 
 function updateCheckoutTotal() {
@@ -1250,18 +1356,16 @@ checkoutButton.addEventListener("click", () => {
   clearCheckoutFormError();
   closeCartDrawer();
   updateCheckoutTotal();
+  lockPageScroll("checkout-flow");
   checkoutDialog.showModal();
 });
 
 if (closeCheckout) {
   closeCheckout.addEventListener("click", () => {
     checkoutDialog.close();
+    unlockPageScroll("checkout-flow");
   });
 }
-
-checkoutForm
-  .querySelector('select[name="shipping"]')
-  ?.addEventListener("change", updateCheckoutTotal);
 /* -------------------------
    CHECKOUT AND ORDERS
 ------------------------- */
@@ -1305,9 +1409,7 @@ async function loadPaymentMethods() {
         <p class="tiny-note">We could not load payment options right now. Please try again shortly.</p>
       </div>
     `;
-    if (proceedPaymentButton) {
-      proceedPaymentButton.disabled = true;
-    }
+    updateProceedPaymentAvailability();
     return;
   }
 
@@ -1331,9 +1433,7 @@ function renderPaymentMethods() {
         <p class="tiny-note">Payment options will appear here once they are enabled in the admin dashboard.</p>
       </div>
     `;
-    if (proceedPaymentButton) {
-      proceedPaymentButton.disabled = true;
-    }
+    updateProceedPaymentAvailability();
     return;
   }
 
@@ -1360,9 +1460,7 @@ function renderPaymentMethods() {
     })
     .join("");
 
-  if (proceedPaymentButton) {
-    proceedPaymentButton.disabled = false;
-  }
+  updateProceedPaymentAvailability();
 
   paymentMethodsList
     .querySelectorAll("[data-payment-select]")
@@ -1495,6 +1593,12 @@ async function deleteUploadedReceipt(storagePath) {
 }
 
 function openPaymentStep() {
+  if (!selectedShippingFee) {
+    showCheckoutError("Please choose a shipping fee to continue.");
+    shippingFeeOptions?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   if (!selectedPaymentMethod) {
     showCheckoutError("Please choose a payment method to continue.");
     return;
@@ -1579,11 +1683,17 @@ function openPaymentStep() {
 function resetCheckoutState() {
   checkoutForm.reset();
   selectedPaymentMethod = null;
+  selectedShippingFee = null;
   clearPaymentStepReceiptState();
   showPaymentStepFeedback("");
   if (selectedPaymentInput) {
     selectedPaymentInput.value = "";
   }
+  if (selectedShippingInput) {
+    selectedShippingInput.value = "";
+    delete selectedShippingInput.dataset.shippingId;
+  }
+  renderShippingFees();
   renderPaymentMethods();
   clearCheckoutFormError();
 }
@@ -1610,6 +1720,7 @@ async function submitOrder() {
     const shippingFee = getSelectedShippingFee();
     const subtotal = calculateSubtotal();
     const customerName = String(formData.get("name") || "").trim();
+const customerUsername = String(formData.get("username") || "").trim();
 const phone = String(formData.get("phone") || "").trim();
 const email = String(formData.get("email") || "").trim();
 
@@ -1664,6 +1775,7 @@ const formattedAddress = [
     const orderData = {
       order_ref: reference,
       customer_name: customerName,
+customer_username: customerUsername || null,
 phone,
 email: email || null,
 
@@ -1795,28 +1907,39 @@ proceedPaymentButton?.addEventListener("click", () => {
 
 closeSuccess.addEventListener("click", () => {
   successDialog.close();
+  unlockPageScroll("checkout-flow");
 });
 
 successDialog.addEventListener("click", (event) => {
   if (event.target === successDialog) {
     successDialog.close();
+    unlockPageScroll("checkout-flow");
   }
 });
 
 checkoutDialog.addEventListener("click", (event) => {
   if (event.target === checkoutDialog) {
     checkoutDialog.close();
+    unlockPageScroll("checkout-flow");
   }
 });
 
 paymentStepDialog.addEventListener("click", (event) => {
   if (event.target === paymentStepDialog) {
     paymentStepDialog.close();
+    unlockPageScroll("checkout-flow");
   }
 });
 
 paymentStepCloseButton?.addEventListener("click", () => {
   paymentStepDialog.close();
+  unlockPageScroll("checkout-flow");
+});
+
+[checkoutDialog, paymentStepDialog, successDialog].forEach((dialog) => {
+  dialog?.addEventListener("cancel", () => {
+    unlockPageScroll("checkout-flow");
+  });
 });
 /* ------------------------
    STOREFRONT MENU
@@ -1909,6 +2032,7 @@ function getStoreMenuIcon(item) {
 }
 
 function openMenuDrawer() {
+  lockPageScroll("menu");
   menuDrawer.classList.add("open");
   menuDrawer.setAttribute("aria-hidden", "false");
 }
@@ -1916,6 +2040,7 @@ function openMenuDrawer() {
 function closeMenuDrawer() {
   menuDrawer.classList.remove("open");
   menuDrawer.setAttribute("aria-hidden", "true");
+  unlockPageScroll("menu");
 }
 
 menuButton.addEventListener("click", openMenuDrawer);
@@ -1940,7 +2065,8 @@ async function initializeStorefront() {
             loadShopSettings(),
             loadProducts(),
             loadStoreMenuItems(),
-            loadPaymentMethods()
+            loadPaymentMethods(),
+            loadShippingFees()
         ]);
     } finally {
         document.body.classList.remove("settings-loading");

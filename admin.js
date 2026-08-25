@@ -100,6 +100,10 @@ const cancelCategoryEdit = document.querySelector("#cancelCategoryEdit");
 const categoryProductsEditor = document.querySelector("#categoryProductsEditor");
 const categoryProductsList = document.querySelector("#categoryProductsList");
 const sidebarLogoutButton = document.querySelector("#sidebarLogoutButton");
+const shippingFeeForm = document.querySelector("#shippingFeeForm");
+const shippingFeesList = document.querySelector("#shippingFeesList");
+const shippingFeesStatus = document.querySelector("#shippingFeesStatus");
+const cancelShippingFeeEdit = document.querySelector("#cancelShippingFeeEdit");
 
 let menuItems = [];
 let products = [];
@@ -119,6 +123,7 @@ let paymentMethodQrFile = null;
 let paymentMethodQrPreviewUrl = null;
 let paymentMethodCurrentQrUrl = null;
 let paymentMethodRemoveQr = false;
+let shippingFees = [];
 
 /* -------------------------
    LOGIN AND ADMIN CHECK
@@ -193,6 +198,7 @@ async function showAdmin() {
     loadProducts(),
     loadMenuItems(),
     loadPaymentMethods(),
+    loadShippingFees(),
     loadOrders()
   ]);
 }
@@ -247,6 +253,14 @@ loginForm.addEventListener("submit", async (event) => {
 ------------------------- */
 
 function setupAdminUI() {
+  if (sidebarLogoutButton && !sidebarLogoutButton.dataset.bound) {
+    sidebarLogoutButton.dataset.bound = "true";
+    sidebarLogoutButton.addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+      await showLogin("You have been logged out.");
+    });
+  }
+
   document.querySelectorAll("[data-settings-tab]").forEach((button) => {
     button.addEventListener("click", () => {
       setActiveSettingsTab(button.dataset.settingsTab);
@@ -368,12 +382,6 @@ if (data.hero_image_url) {
   }
   settingsForm.elements.facebook.value = data.facebook_url || "";
   settingsForm.elements.tiktok.value = data.tiktok_url || "";
-  settingsForm.elements.shipping90Label.value =
-    data.shipping_90_label || "";
-  settingsForm.elements.shipping120Label.value =
-    data.shipping_120_label || "";
-  settingsForm.elements.shipping150Label.value =
-    data.shipping_150_label || "";
   if (settingsForm.elements.footerText) {
     settingsForm.elements.footerText.value = data.footer_text || "";
   }
@@ -407,12 +415,6 @@ settingsForm.addEventListener("submit", async (event) => {
       String(formData.get("facebook") || "").trim() || null,
     tiktok_url:
       String(formData.get("tiktok") || "").trim() || null,
-    shipping_90_label:
-      String(formData.get("shipping90Label") || "").trim(),
-    shipping_120_label:
-      String(formData.get("shipping120Label") || "").trim(),
-    shipping_150_label:
-      String(formData.get("shipping150Label") || "").trim(),
     footer_text:
       String(formData.get("footerText") || "").trim() || null,
     updated_at: new Date().toISOString()
@@ -449,6 +451,241 @@ selectedShopLogoFile = null;
 selectedHeroImageFile = null;
 
 alert("Shop profile saved online.");
+});
+
+/* ------------------------
+   SHIPPING FEES
+------------------------ */
+
+function setShippingFeesStatus(message = "", state = "") {
+  if (!shippingFeesStatus) return;
+  shippingFeesStatus.textContent = message;
+  shippingFeesStatus.dataset.state = state;
+}
+
+function resetShippingFeeForm() {
+  if (!shippingFeeForm) return;
+  shippingFeeForm.reset();
+  shippingFeeForm.elements.id.value = "";
+  shippingFeeForm.elements.isActive.checked = true;
+  cancelShippingFeeEdit.hidden = true;
+}
+
+async function loadShippingFees() {
+  if (!shippingFeesList) return;
+
+  shippingFeesList.innerHTML = `<p class="empty">Loading shipping fees…</p>`;
+
+  const { data, error } = await supabaseClient
+    .from("shipping_fees")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    shippingFees = [];
+    shippingFeesList.innerHTML = `
+      <div class="shipping-fees-setup-note">
+        <strong>Shipping fees are not connected yet.</strong>
+        <p>Run <code>buyer-checkout-settings.sql</code> once in Supabase, then refresh this page.</p>
+      </div>
+    `;
+    setShippingFeesStatus(error.message, "error");
+    return;
+  }
+
+  shippingFees = data || [];
+  setShippingFeesStatus("");
+  renderShippingFees();
+}
+
+function renderShippingFees() {
+  if (!shippingFeesList) return;
+
+  if (!shippingFees.length) {
+    shippingFeesList.innerHTML = `
+      <p class="empty">No shipping fees yet. Add your first delivery choice above.</p>
+    `;
+    return;
+  }
+
+  shippingFeesList.innerHTML = shippingFees
+    .map((fee, index) => `
+      <article class="shipping-fee-admin-card${fee.is_active ? "" : " is-hidden"}" data-shipping-fee-id="${fee.id}">
+        <div class="shipping-fee-admin-order" aria-label="Shipping fee position">${index + 1}</div>
+        <div class="shipping-fee-admin-copy">
+          <strong>${escapeHtml(fee.label || "Delivery area")}</strong>
+          <span>${formatCurrency(fee.amount || 0)}</span>
+          <small>${fee.is_active ? "Visible at checkout" : "Hidden from checkout"}</small>
+        </div>
+        <div class="admin-actions shipping-fee-actions">
+          <button class="secondary-button" type="button" data-shipping-move="up" data-shipping-id="${fee.id}" ${index === 0 ? "disabled" : ""} aria-label="Move ${escapeHtml(fee.label)} up">↑</button>
+          <button class="secondary-button" type="button" data-shipping-move="down" data-shipping-id="${fee.id}" ${index === shippingFees.length - 1 ? "disabled" : ""} aria-label="Move ${escapeHtml(fee.label)} down">↓</button>
+          <button class="secondary-button" type="button" data-shipping-edit="${fee.id}">Edit</button>
+          <button class="secondary-button" type="button" data-shipping-toggle="${fee.id}">${fee.is_active ? "Hide" : "Show"}</button>
+          <button class="secondary-button danger" type="button" data-shipping-delete="${fee.id}">Delete</button>
+        </div>
+      </article>
+    `)
+    .join("");
+}
+
+function editShippingFee(feeId) {
+  const fee = shippingFees.find((item) => String(item.id) === String(feeId));
+  if (!fee || !shippingFeeForm) return;
+
+  shippingFeeForm.elements.id.value = fee.id;
+  shippingFeeForm.elements.label.value = fee.label || "";
+  shippingFeeForm.elements.amount.value = Number(fee.amount || 0);
+  shippingFeeForm.elements.isActive.checked = Boolean(fee.is_active);
+  cancelShippingFeeEdit.hidden = false;
+  shippingFeeForm.scrollIntoView({ behavior: "smooth", block: "center" });
+  shippingFeeForm.elements.label.focus({ preventScroll: true });
+}
+
+async function toggleShippingFee(feeId) {
+  const fee = shippingFees.find((item) => String(item.id) === String(feeId));
+  if (!fee) return;
+
+  setShippingFeesStatus("Saving shipping fee…", "saving");
+  const { error } = await supabaseClient
+    .from("shipping_fees")
+    .update({
+      is_active: !fee.is_active,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", fee.id);
+
+  if (error) {
+    setShippingFeesStatus(`Could not update shipping fee: ${error.message}`, "error");
+    return;
+  }
+
+  await loadShippingFees();
+  setShippingFeesStatus("Shipping fee updated ✓", "saved");
+}
+
+async function deleteShippingFee(feeId) {
+  const fee = shippingFees.find((item) => String(item.id) === String(feeId));
+  if (!fee) return;
+  if (!confirm(`Delete the shipping fee “${fee.label}”?`)) return;
+
+  setShippingFeesStatus("Deleting shipping fee…", "saving");
+  const { error } = await supabaseClient
+    .from("shipping_fees")
+    .delete()
+    .eq("id", fee.id);
+
+  if (error) {
+    setShippingFeesStatus(`Could not delete shipping fee: ${error.message}`, "error");
+    return;
+  }
+
+  resetShippingFeeForm();
+  await loadShippingFees();
+  setShippingFeesStatus("Shipping fee deleted ✓", "saved");
+}
+
+async function moveShippingFee(feeId, direction) {
+  const currentIndex = shippingFees.findIndex(
+    (item) => String(item.id) === String(feeId)
+  );
+  const targetIndex = currentIndex + (direction === "up" ? -1 : 1);
+
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= shippingFees.length) {
+    return;
+  }
+
+  const reordered = [...shippingFees];
+  const [movedFee] = reordered.splice(currentIndex, 1);
+  reordered.splice(targetIndex, 0, movedFee);
+  setShippingFeesStatus("Saving shipping fee order…", "saving");
+
+  for (let index = 0; index < reordered.length; index += 1) {
+    const { error } = await supabaseClient
+      .from("shipping_fees")
+      .update({
+        sort_order: (index + 1) * 10,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", reordered[index].id);
+
+    if (error) {
+      setShippingFeesStatus(`Could not reorder shipping fees: ${error.message}`, "error");
+      await loadShippingFees();
+      return;
+    }
+  }
+
+  await loadShippingFees();
+  setShippingFeesStatus("Shipping fee order saved ✓", "saved");
+}
+
+shippingFeeForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const formData = new FormData(shippingFeeForm);
+  const id = String(formData.get("id") || "").trim();
+  const label = String(formData.get("label") || "").trim();
+  const amount = Number(formData.get("amount"));
+
+  if (!label || !Number.isFinite(amount) || amount < 0) {
+    setShippingFeesStatus("Enter a delivery label and a valid fee amount.", "error");
+    return;
+  }
+
+  const values = {
+    label,
+    amount,
+    is_active: formData.get("isActive") === "on",
+    updated_at: new Date().toISOString()
+  };
+
+  setShippingFeesStatus("Saving shipping fee…", "saving");
+
+  let error;
+  if (id) {
+    ({ error } = await supabaseClient
+      .from("shipping_fees")
+      .update(values)
+      .eq("id", id));
+  } else {
+    values.sort_order = shippingFees.length
+      ? Math.max(...shippingFees.map((fee) => Number(fee.sort_order || 0))) + 10
+      : 10;
+    ({ error } = await supabaseClient
+      .from("shipping_fees")
+      .insert(values));
+  }
+
+  if (error) {
+    setShippingFeesStatus(`Could not save shipping fee: ${error.message}`, "error");
+    return;
+  }
+
+  resetShippingFeeForm();
+  await loadShippingFees();
+  setShippingFeesStatus("Shipping fee saved ✓", "saved");
+});
+
+cancelShippingFeeEdit?.addEventListener("click", () => {
+  resetShippingFeeForm();
+  setShippingFeesStatus("");
+});
+
+shippingFeesList?.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+
+  if (button.dataset.shippingEdit) {
+    editShippingFee(button.dataset.shippingEdit);
+  } else if (button.dataset.shippingToggle) {
+    toggleShippingFee(button.dataset.shippingToggle);
+  } else if (button.dataset.shippingDelete) {
+    deleteShippingFee(button.dataset.shippingDelete);
+  } else if (button.dataset.shippingMove) {
+    moveShippingFee(button.dataset.shippingId, button.dataset.shippingMove);
+  }
 });
 
 /* ------------------------
@@ -3017,8 +3254,18 @@ function renderOrders(ordersToRender) {
               </div>
 
               <div class="order-customer-row">
+                <span>Username</span>
+                <strong>${escapeHtml(order.customer_username || "Not provided")}</strong>
+              </div>
+
+              <div class="order-customer-row">
                 <span>Contact number</span>
                 <strong>${escapeHtml(order.phone || "Not provided")}</strong>
+              </div>
+
+              <div class="order-customer-row">
+                <span>Email address</span>
+                <strong>${escapeHtml(order.email || "Not provided")}</strong>
               </div>
 
               <div class="order-customer-row order-address-row">
