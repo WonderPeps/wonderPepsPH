@@ -465,8 +465,82 @@
 }
 
 .order-card { position: relative; padding: 19px; margin-top: 12px; }
-.order-card > strong { padding-right: 44px; color: var(--admin-rose-dark); font-size: 1.04rem; }
+.order-reference { display: inline-block; margin-bottom: 14px; color: var(--admin-rose-dark); font-size: 1.04rem; }
 .order-card > p { margin: 0; color: #715463; line-height: 1.55; }
+.order-customer-panel {
+  display: grid;
+  gap: 15px;
+  margin-bottom: 14px;
+  padding: 17px;
+  border: 1px solid #efd5e0;
+  border-radius: 17px;
+  background: linear-gradient(145deg, #fff8fb, #fff2f7);
+}
+.order-customer-heading { display: flex; align-items: center; gap: 11px; }
+.order-customer-avatar {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  color: #fff;
+  background: linear-gradient(145deg, #ec77a4, var(--admin-rose));
+  box-shadow: 0 7px 16px rgba(207, 63, 120, .2);
+  font-weight: 900;
+}
+.order-customer-heading > div,
+.order-customer-detail > div { display: grid; gap: 3px; min-width: 0; }
+.order-customer-heading strong { color: var(--admin-plum); font-size: 1rem; }
+.order-customer-details {
+  display: grid;
+  grid-template-columns: minmax(180px, .65fr) minmax(260px, 1.35fr);
+  gap: 10px;
+}
+.order-customer-detail {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 9px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid #f0d9e3;
+  border-radius: 14px;
+  background: rgba(255,255,255,.86);
+}
+.order-detail-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  color: var(--admin-rose);
+  background: var(--admin-blush-strong);
+  font-size: .88rem;
+  font-weight: 900;
+}
+.order-detail-label {
+  color: #a27b8d;
+  font-size: .65rem;
+  font-weight: 850;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.order-customer-detail strong,
+.order-customer-detail address { color: #5e3e4d; font-size: .88rem; line-height: 1.5; }
+.order-customer-detail address { overflow-wrap: anywhere; font-style: normal; }
+.order-payment-method {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px !important;
+  padding: 9px 12px;
+  border-radius: 12px;
+  color: var(--admin-muted) !important;
+  background: #fff8fb;
+  font-size: .78rem;
+}
+.order-payment-method strong { color: #684455; font-size: .84rem; }
 .order-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .order-products-details { border-color: #edd4df; background: var(--admin-blush); }
 .order-products-details summary { color: #674352; font-size: .95rem; }
@@ -602,6 +676,8 @@
   .inline-form { align-items: stretch; flex-direction: column; }
   .inline-form > * { width: 100%; }
   .category-card { align-items: flex-start; flex-wrap: wrap; }
+  .order-customer-details { grid-template-columns: 1fr; }
+  .order-payment-method { align-items: flex-start; flex-direction: column; gap: 2px; }
   .category-card .admin-actions { width: 100%; padding-left: 48px; }
   #adminMenuItems .admin-product { grid-template-columns: 1fr; }
   #adminMenuItems .admin-actions { justify-content: flex-start; }

@@ -2575,20 +2575,42 @@ function renderOrders(ordersToRender) {
 
     return `
         <article class="order-card">
-            <strong>${escapeHtml(getOrderReferenceLabel(order))}</strong>
+            <strong class="order-reference">${escapeHtml(getOrderReferenceLabel(order))}</strong>
 
-            <p>
-                ${escapeHtml(order.customer_name)}
-                · ${escapeHtml(order.phone)}
+            <section class="order-customer-panel" aria-label="Customer information">
+              <div class="order-customer-heading">
+                <span class="order-customer-avatar" aria-hidden="true">
+                  ${escapeHtml(String(order.customer_name || "C").trim().charAt(0).toUpperCase() || "C")}
+                </span>
+                <div>
+                  <span class="order-detail-label">Customer</span>
+                  <strong>${escapeHtml(order.customer_name || "Guest customer")}</strong>
+                </div>
+              </div>
+
+              <div class="order-customer-details">
+                <div class="order-customer-detail">
+                  <span class="order-detail-icon" aria-hidden="true">☎</span>
+                  <div>
+                    <span class="order-detail-label">Contact number</span>
+                    <strong>${escapeHtml(order.phone || "Not provided")}</strong>
+                  </div>
+                </div>
+
+                <div class="order-customer-detail order-address-detail">
+                  <span class="order-detail-icon" aria-hidden="true">⌂</span>
+                  <div>
+                    <span class="order-detail-label">Delivery address</span>
+                    <address>${shippingAddress}</address>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <p class="order-payment-method">
+              <span>Payment method</span>
+              <strong>${escapeHtml(order.payment_method || "—")}</strong>
             </p>
-
-            <p>
-                📍 ${shippingAddress}
-            </p>
-
-<p>
-  ${escapeHtml(order.payment_method || "—")}
-</p>
 
 
 <details class="order-products-details">
