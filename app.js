@@ -546,10 +546,8 @@ const displayedStock = hasVariants
     <div class="product-body">
             <h3>${escapeHtml(product.name)}</h3>
 
-            <p>
-              ${escapeHtml(
-                product.description || "Product listing"
-              )}
+            <p class="product-description">
+              ${escapeHtml(String(product.description || "").trim())}
             </p>
 
             <div class="price-row">
