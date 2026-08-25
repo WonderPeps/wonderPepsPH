@@ -143,14 +143,19 @@ body.storefront-page {
 
 .storefront-page #cartCount,
 .storefront-page .favorites-badge {
+  position: absolute;
   top: -5px;
   right: -5px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
   min-width: 20px;
   height: 20px;
   padding: 0 5px;
   border: 2px solid #fff;
   background: var(--store-pink);
   font-size: 0.66rem;
+  line-height: 1;
   box-shadow: 0 4px 10px rgba(223, 79, 134, 0.25);
 }
 
@@ -627,10 +632,11 @@ body.storefront-page {
 
   .storefront-page .hero-image-frame {
     width: 100%;
-    padding: 0;
-    border: 0;
-    border-radius: 21px;
-    box-shadow: none;
+    padding: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.96);
+    border-radius: 27px;
+    background: rgba(255, 255, 255, 0.62);
+    box-shadow: 0 14px 32px rgba(105, 50, 72, 0.12);
     transform: none;
   }
 
@@ -638,7 +644,7 @@ body.storefront-page {
   .storefront-page .bunny-card {
     height: min(58vw, 355px);
     aspect-ratio: auto;
-    border-radius: 21px;
+    border-radius: 19px;
   }
 
   .storefront-page .hero-copy {
@@ -655,8 +661,18 @@ body.storefront-page {
     font-size: 0.98rem;
   }
 
-  .hero-sparkle {
+  .hero-sparkle-one {
     display: none;
+  }
+
+  .hero-sparkle-two {
+    right: 24px;
+    bottom: 2px;
+    display: grid;
+    color: #fff;
+    font-size: 3.4rem;
+    filter: drop-shadow(0 5px 10px rgba(117, 48, 76, 0.2));
+    transform: rotate(12deg);
   }
 
   .storefront-page .catalog-section {
