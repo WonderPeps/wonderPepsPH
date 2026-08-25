@@ -471,7 +471,7 @@ const displayedStock = hasVariants
 <button
     class="favorite-button ${isFavorite(product.id) ? "is-favorite" : ""}"
     type="button"
-    aria-label="Add to Favorites"
+    aria-label="${isFavorite(product.id) ? "Remove from favorites" : "Add to favorites"}"
     data-favorite-product="${product.id}">
 
     <svg
@@ -560,9 +560,13 @@ const displayedStock = hasVariants
 
     const productId = button.dataset.favoriteProduct;
 
-   const added = toggleFavorite(productId);
+const added = toggleFavorite(productId);
 
 button.classList.toggle("is-favorite", added);
+button.setAttribute(
+  "aria-label",
+  added ? "Remove from favorites" : "Add to favorites"
+);
 
 const favoritesGrid = document.getElementById("favoritesGrid");
 

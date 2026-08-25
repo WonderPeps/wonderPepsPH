@@ -72,10 +72,14 @@ function removeFavorite(productId) {
 }
 
 function toggleFavorite(productId) {
+  const productName = getFavoriteProductName(productId);
+
   if (isFavorite(productId)) {
     removeFavorite(productId);
 
     renderFavoritesDrawer();
+
+    showFavoritesToast(`${productName} removed from favorites`);
 
     return false;
   }
@@ -83,6 +87,8 @@ function toggleFavorite(productId) {
   addFavorite(productId);
 
   renderFavoritesDrawer();
+
+  showFavoritesToast(`${productName} added to favorites`);
 
   return true;
 }
@@ -104,6 +110,37 @@ function getFavoriteProducts() {
 function getFavoriteCount() {
   return favorites.length;
 }
+
+function getFavoriteProductName(productId) {
+  if (typeof getProductById !== "function") {
+    return "Product";
+  }
+
+  return getProductById(productId)?.name || "Product";
+}
+
+function showFavoritesToast(message) {
+  let toast = document.getElementById("favoritesToast");
+
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "favoritesToast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = message;
+  toast.classList.remove("show");
+  void toast.offsetWidth;
+  toast.classList.add("show");
+
+  clearTimeout(toast.timeout);
+  toast.timeout = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2100);
+}
+
 function updateFavoritesBadge() {
     const badge = document.getElementById("favoritesCount");
 
@@ -116,6 +153,17 @@ function updateFavoritesBadge() {
     badge.textContent = count;
 
     badge.hidden = count === 0;
+
+    const button = document.getElementById("favoritesButton");
+
+    if (button) {
+        button.setAttribute(
+            "aria-label",
+            count
+                ? `Open favorites, ${count} item${count === 1 ? "" : "s"}`
+                : "Open favorites"
+        );
+    }
 }
 document.addEventListener("DOMContentLoaded", () => {
     updateFavoritesBadge();
@@ -177,6 +225,8 @@ function renderFavoritesDrawer() {
    button.addEventListener("click", () => {
 
     removeFavorite(button.dataset.favoriteProduct);
+
+    showFavoritesToast("Removed from favorites");
 
     renderFavoritesDrawer();
 
