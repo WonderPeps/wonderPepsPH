@@ -265,6 +265,10 @@
 
 .admin-main-content { min-width: 0; display: flex; flex-direction: column; gap: 22px; }
 
+/* Keep the large settings panels after all day-to-day management panels. */
+#shopSettingsSection { order: 100; }
+#securitySection { order: 101; }
+
 .admin-top {
   position: relative;
   display: flex;
