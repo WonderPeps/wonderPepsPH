@@ -104,6 +104,15 @@ const shippingFeeForm = document.querySelector("#shippingFeeForm");
 const shippingFeesList = document.querySelector("#shippingFeesList");
 const shippingFeesStatus = document.querySelector("#shippingFeesStatus");
 const cancelShippingFeeEdit = document.querySelector("#cancelShippingFeeEdit");
+const changePasswordForm = document.querySelector("#changePasswordForm");
+const signOutAllButton = document.querySelector("#signOutAllButton");
+const inviteAdminForm = document.querySelector("#inviteAdminForm");
+const adminAccountsList = document.querySelector("#adminAccountsList");
+const securityStatus = document.querySelector("#securityStatus");
+const inviteRoleField = document.querySelector("#inviteRoleField");
+const paymentMethodsNav = document.querySelector("#paymentMethodsNav");
+const paymentMethodsSection = document.querySelector("#paymentMethodsSection");
+let currentAdminRole = "admin";
 
 let menuItems = [];
 let products = [];
@@ -193,6 +202,7 @@ async function showAdmin() {
   setupAdminUI();
   setActiveSettingsTab(activeSettingsTab);
 
+  await ensureSecurityAdminProfile();
   await Promise.all([
     loadSettings(),
     loadProducts(),
@@ -201,7 +211,107 @@ async function showAdmin() {
     loadShippingFees(),
     loadOrders()
   ]);
+  await loadAdminAccounts();
 }
+
+function setSecurityStatus(message, isError = false) {
+  if (!securityStatus) return;
+  securityStatus.textContent = message;
+  securityStatus.classList.toggle("security-status-error", isError);
+}
+
+async function ensureSecurityAdminProfile() {
+  const { error } = await supabaseClient.rpc("bootstrap_current_admin_account");
+  if (error) console.warn("Admin security setup is not ready:", error.message);
+}
+
+async function callAdminSecurity(action, payload = {}) {
+  const { data, error } = await supabaseClient.functions.invoke("admin-security", {
+    body: { action, ...payload }
+  });
+  if (error) throw new Error(error.message || "Security request failed.");
+  if (!data?.ok) throw new Error(data?.error || "Security request failed.");
+  return data;
+}
+
+async function loadAdminAccounts() {
+  if (!adminAccountsList) return;
+  try {
+    const data = await callAdminSecurity("list");
+    currentAdminRole = data.current_role || "admin";
+    if (inviteRoleField) inviteRoleField.hidden = currentAdminRole !== "owner";
+    const canManagePayments = ["owner", "co_owner"].includes(currentAdminRole);
+    if (paymentMethodsNav) paymentMethodsNav.hidden = !canManagePayments;
+    if (paymentMethodsSection) paymentMethodsSection.hidden = !canManagePayments;
+    adminAccountsList.innerHTML = data.accounts.map((account) => `
+      <article class="admin-account-row">
+        <div><strong>${escapeHtml(account.email)}</strong><small>${escapeHtml(account.role === "co_owner" ? "Co-owner" : account.role === "owner" ? "Owner" : "Admin")}${account.is_current ? " · This is you" : account.invited_at ? " · Invitation sent" : ""}</small></div>
+        ${canRemoveAdmin(account) ? `<button class="secondary-button danger remove-admin-button" type="button" data-admin-account-id="${escapeHtml(account.id)}" data-admin-email="${escapeHtml(account.email)}">Remove</button>` : ""}
+      </article>`).join("") || `<p class="tiny-note">No additional admin accounts yet.</p>`;
+  } catch (error) {
+    adminAccountsList.innerHTML = `<p class="tiny-note">Security setup is not ready yet. Run the included SQL and deploy the included function.</p>`;
+  }
+}
+
+function canRemoveAdmin(account) {
+  if (account.is_current || account.role === "owner") return false;
+  if (currentAdminRole === "owner") return true;
+  return currentAdminRole === "co_owner" && account.role === "admin";
+}
+
+changePasswordForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(changePasswordForm);
+  const currentPassword = String(formData.get("currentPassword") || "");
+  const newPassword = String(formData.get("newPassword") || "");
+  const confirmPassword = String(formData.get("confirmPassword") || "");
+  if (newPassword.length < 8) return setSecurityStatus("Use at least 8 characters for the new password.", true);
+  if (newPassword !== confirmPassword) return setSecurityStatus("Your new passwords do not match.", true);
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user?.email) return setSecurityStatus("Please sign in again before changing your password.", true);
+  setSecurityStatus("Checking your current password…");
+  const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email: user.email, password: currentPassword });
+  if (signInError) return setSecurityStatus("Your current password is not correct.", true);
+  const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+  if (error) return setSecurityStatus(error.message, true);
+  changePasswordForm.reset();
+  setSecurityStatus("Password changed. For safety, log out all devices next.");
+});
+
+signOutAllButton?.addEventListener("click", async () => {
+  if (!window.confirm("Log out this admin account on every device? You will be signed out too.")) return;
+  try {
+    setSecurityStatus("Ending all sessions…");
+    await callAdminSecurity("signout-all");
+    await supabaseClient.auth.signOut();
+    await showLogin("All devices have been logged out. Please sign in again.");
+  } catch (error) { setSecurityStatus(error.message, true); }
+});
+
+inviteAdminForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    const formData = new FormData(inviteAdminForm);
+    const email = String(formData.get("email") || "").trim();
+    const role = currentAdminRole === "owner" ? String(formData.get("role") || "admin") : "admin";
+    setSecurityStatus("Sending invitation…");
+    await callAdminSecurity("invite", { email, role, redirectTo: `${window.location.origin}/admin.html` });
+    inviteAdminForm.reset();
+    setSecurityStatus("Invitation sent successfully.");
+    await loadAdminAccounts();
+  } catch (error) { setSecurityStatus(error.message, true); }
+});
+
+adminAccountsList?.addEventListener("click", async (event) => {
+  const button = event.target.closest(".remove-admin-button");
+  if (!button || !window.confirm(`Remove ${button.dataset.adminEmail} as an admin? They will no longer have access.`)) return;
+  try {
+    setSecurityStatus("Removing admin access…");
+    await callAdminSecurity("remove", { id: button.dataset.adminAccountId });
+    setSecurityStatus("Admin access removed.");
+    await loadAdminAccounts();
+  } catch (error) { setSecurityStatus(error.message, true); }
+});
 
 async function verifyAdmin() {
   const {

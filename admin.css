@@ -1249,3 +1249,20 @@ html { font-size: 112.5%; }
     grid-column: 1 / -1;
   }
 }
+
+.security-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.security-card { display:grid; gap:12px; padding:22px; border:1px solid var(--admin-line); border-radius:22px; background:#fffafd; box-shadow:0 12px 28px rgba(110,47,75,.07); }
+.security-card h3,.security-card p { margin:0; }
+.security-card p,.admin-account-row small { color:var(--admin-muted); line-height:1.5; }
+.security-card label { display:grid; gap:6px; font-size:.9rem; font-weight:800; }
+.security-card input { min-width:0; }
+.security-icon { display:grid; width:42px; height:42px; place-items:center; border-radius:14px; color:#fff; background:linear-gradient(145deg,#ed8eb4,var(--admin-rose)); font-size:1.3rem; font-weight:900; }
+.security-card-danger { background:linear-gradient(150deg,#fff8fb,#fff0f5); }
+.security-admin-list-wrap { margin-top:22px; padding-top:20px; border-top:1px solid var(--admin-line); }
+.compact-section-header { margin-bottom:6px; }
+.admin-accounts-list { display:grid; gap:10px; margin-top:14px; }
+.admin-account-row { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:14px 16px; border:1px solid var(--admin-line); border-radius:16px; background:#fff; }
+.admin-account-row div { display:grid; gap:3px; min-width:0; }
+.admin-account-row strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.security-status-error { color:#a92f61 !important; font-weight:800; }
+@media (max-width: 980px) { .security-grid { grid-template-columns:1fr; } }
