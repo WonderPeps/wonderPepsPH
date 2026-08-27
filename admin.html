@@ -67,9 +67,11 @@
       <a href="#categoriesSection"><span class="nav-icon" aria-hidden="true">✿</span><span>Categories</span></a>
       <a href="#menuSection"><span class="nav-icon" aria-hidden="true">☰</span><span>Menu</span></a>
 
-      <div class="nav-group-label">Store</div>
+      <div class="nav-group-label">Settings</div>
       <a href="#shopSettingsSection"><span class="nav-icon" aria-hidden="true">⚙</span><span>Shop settings</span></a>
-      <a href="#securitySection"><span class="nav-icon" aria-hidden="true">⌘</span><span>Security & accounts</span></a>
+      <a href="#securitySection"><span class="nav-icon" aria-hidden="true">⌘</span><span>Security &amp; accounts</span></a>
+
+      <div class="nav-group-label">Store</div>
       <a href="#shippingFeesSection"><span class="nav-icon" aria-hidden="true">♢</span><span>Shipping fees</span></a>
       <a id="paymentMethodsNav" href="#paymentMethodsSection"><span class="nav-icon" aria-hidden="true">♡</span><span>Payment methods</span></a>
       <a href="#addProductSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add product</span></a>
@@ -327,7 +329,12 @@ Hero eyebrow
         </div>
       </div>
 
-      <div class="security-grid">
+      <div class="admin-toolbar security-tabs" aria-label="Security settings">
+        <button id="securityAccountsTab" class="secondary-button active" type="button" data-security-tab="accounts">Accounts &amp; access</button>
+        <button class="secondary-button" type="button" data-security-tab="sessions">Password &amp; sessions</button>
+      </div>
+
+      <div class="security-grid" data-security-group="sessions" hidden>
         <form id="changePasswordForm" class="security-card">
           <div class="security-icon" aria-hidden="true">⌁</div>
           <h3>Change password</h3>
@@ -345,6 +352,9 @@ Hero eyebrow
           <button id="signOutAllButton" class="secondary-button danger" type="button">Log out all devices</button>
         </div>
 
+      </div>
+
+      <div class="security-grid security-accounts-grid" data-security-group="accounts">
         <form id="inviteAdminForm" class="security-card">
           <div class="security-icon" aria-hidden="true">＋</div>
           <h3>Invite another admin</h3>
@@ -355,7 +365,7 @@ Hero eyebrow
         </form>
       </div>
 
-      <div class="security-admin-list-wrap">
+      <div class="security-admin-list-wrap" data-security-group="accounts">
         <div class="admin-section-header compact-section-header">
           <div><h3>Admin accounts</h3><p class="tiny-note">Owner controls co-owners. Co-owners can manage Admin accounts.</p></div>
         </div>

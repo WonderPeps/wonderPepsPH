@@ -112,7 +112,9 @@ const securityStatus = document.querySelector("#securityStatus");
 const inviteRoleField = document.querySelector("#inviteRoleField");
 const paymentMethodsNav = document.querySelector("#paymentMethodsNav");
 const paymentMethodsSection = document.querySelector("#paymentMethodsSection");
+const securityAccountsTab = document.querySelector("#securityAccountsTab");
 let currentAdminRole = "admin";
+let activeSecurityTab = "accounts";
 
 let menuItems = [];
 let products = [];
@@ -148,6 +150,16 @@ function setupAdminUI() {
     button.addEventListener("click", () => {
       setActiveSettingsTab(button.dataset.settingsTab);
     });
+  });
+
+  document.querySelectorAll("[data-security-tab]").forEach((button) => {
+    if (button.dataset.bound) return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => setActiveSecurityTab(button.dataset.securityTab));
+  });
+
+  document.querySelectorAll("[data-security-tab]").forEach((button) => {
+    button.addEventListener("click", () => setActiveSecurityTab(button.dataset.securityTab));
   });
 
   ordersSearch?.addEventListener("input", () => {
@@ -201,6 +213,7 @@ async function showAdmin() {
 
   setupAdminUI();
   setActiveSettingsTab(activeSettingsTab);
+  setActiveSecurityTab(activeSecurityTab);
 
   await ensureSecurityAdminProfile();
   await Promise.all([
@@ -218,6 +231,16 @@ function setSecurityStatus(message, isError = false) {
   if (!securityStatus) return;
   securityStatus.textContent = message;
   securityStatus.classList.toggle("security-status-error", isError);
+}
+
+function setActiveSecurityTab(tab) {
+  activeSecurityTab = tab;
+  document.querySelectorAll("[data-security-group]").forEach((element) => {
+    element.hidden = element.dataset.securityGroup !== tab;
+  });
+  document.querySelectorAll("[data-security-tab]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.securityTab === tab);
+  });
 }
 
 async function ensureSecurityAdminProfile() {
@@ -240,13 +263,15 @@ async function loadAdminAccounts() {
     const data = await callAdminSecurity("list");
     currentAdminRole = data.current_role || "admin";
     if (inviteRoleField) inviteRoleField.hidden = currentAdminRole !== "owner";
+    if (securityAccountsTab) securityAccountsTab.hidden = !["owner", "co_owner"].includes(currentAdminRole);
+    if (!["owner", "co_owner"].includes(currentAdminRole)) setActiveSecurityTab("sessions");
     const canManagePayments = ["owner", "co_owner"].includes(currentAdminRole);
     if (paymentMethodsNav) paymentMethodsNav.hidden = !canManagePayments;
     if (paymentMethodsSection) paymentMethodsSection.hidden = !canManagePayments;
     adminAccountsList.innerHTML = data.accounts.map((account) => `
       <article class="admin-account-row">
-        <div><strong>${escapeHtml(account.email)}</strong><small>${escapeHtml(account.role === "co_owner" ? "Co-owner" : account.role === "owner" ? "Owner" : "Admin")}${account.is_current ? " · This is you" : account.invited_at ? " · Invitation sent" : ""}</small></div>
-        ${canRemoveAdmin(account) ? `<button class="secondary-button danger remove-admin-button" type="button" data-admin-account-id="${escapeHtml(account.id)}" data-admin-email="${escapeHtml(account.email)}">Remove</button>` : ""}
+        <div><strong>${escapeHtml(account.nickname || account.email)}</strong><small>${escapeHtml(account.email)} · ${escapeHtml(account.role === "co_owner" ? "Co-owner" : account.role === "owner" ? "Owner" : "Admin")}${account.suspended_at ? " · Suspended" : account.is_current ? " · This is you" : account.invited_at ? " · Invitation sent" : ""}</small></div>
+        <div class="admin-actions">${canManageAccount(account) ? `<button class="secondary-button account-action-button" type="button" data-account-action="nickname" data-admin-account-id="${escapeHtml(account.id)}" data-admin-nickname="${escapeHtml(account.nickname || "")}">Nickname</button>` : ""}${canRemoveAdmin(account) ? `<button class="secondary-button ${account.suspended_at ? "" : "danger"} account-action-button" type="button" data-account-action="${account.suspended_at ? "restore" : "suspend"}" data-admin-account-id="${escapeHtml(account.id)}" data-admin-email="${escapeHtml(account.email)}">${account.suspended_at ? "Unban" : "Suspend"}</button><button class="secondary-button danger remove-admin-button" type="button" data-admin-account-id="${escapeHtml(account.id)}" data-admin-email="${escapeHtml(account.email)}">Remove</button>` : ""}</div>
       </article>`).join("") || `<p class="tiny-note">No additional admin accounts yet.</p>`;
   } catch (error) {
     adminAccountsList.innerHTML = `<p class="tiny-note">Security setup is not ready yet. Run the included SQL and deploy the included function.</p>`;
@@ -257,6 +282,12 @@ function canRemoveAdmin(account) {
   if (account.is_current || account.role === "owner") return false;
   if (currentAdminRole === "owner") return true;
   return currentAdminRole === "co_owner" && account.role === "admin";
+}
+
+function canManageAccount(account) {
+  if (!["owner", "co_owner"].includes(currentAdminRole)) return false;
+  if (account.is_current) return true;
+  return canRemoveAdmin(account);
 }
 
 changePasswordForm?.addEventListener("submit", async (event) => {
@@ -303,6 +334,21 @@ inviteAdminForm?.addEventListener("submit", async (event) => {
 });
 
 adminAccountsList?.addEventListener("click", async (event) => {
+  const actionButton = event.target.closest(".account-action-button");
+  if (actionButton?.dataset.accountAction === "nickname") {
+    const nickname = window.prompt("Nickname for this account (optional):", actionButton.dataset.adminNickname || "");
+    if (nickname === null) return;
+    try { await callAdminSecurity("update-account", { id: actionButton.dataset.adminAccountId, nickname }); await loadAdminAccounts(); }
+    catch (error) { setSecurityStatus(error.message, true); }
+    return;
+  }
+  if (actionButton && ["suspend", "restore"].includes(actionButton.dataset.accountAction)) {
+    const isSuspending = actionButton.dataset.accountAction === "suspend";
+    if (!window.confirm(`${isSuspending ? "Suspend" : "restore"} ${actionButton.dataset.adminEmail || "this account"}?`)) return;
+    try { await callAdminSecurity("set-suspension", { id: actionButton.dataset.adminAccountId, suspended: isSuspending }); await loadAdminAccounts(); }
+    catch (error) { setSecurityStatus(error.message, true); }
+    return;
+  }
   const button = event.target.closest(".remove-admin-button");
   if (!button || !window.confirm(`Remove ${button.dataset.adminEmail} as an admin? They will no longer have access.`)) return;
   try {
@@ -375,6 +421,12 @@ function setupAdminUI() {
     button.addEventListener("click", () => {
       setActiveSettingsTab(button.dataset.settingsTab);
     });
+  });
+
+  document.querySelectorAll("[data-security-tab]").forEach((button) => {
+    if (button.dataset.bound) return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => setActiveSecurityTab(button.dataset.securityTab));
   });
 
   ordersSearch?.addEventListener("input", () => {
