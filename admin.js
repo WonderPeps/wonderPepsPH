@@ -72,6 +72,8 @@ const categoriesList = document.querySelector("#categoriesList");
 const customersList = document.querySelector("#customersList");
 const orderDetailsModal = document.querySelector("#orderDetailsModal");
 const orderDetailsContent = document.querySelector("#orderDetailsContent");
+const invoiceDialog = document.querySelector("#invoiceDialog");
+const invoiceContent = document.querySelector("#invoiceContent");
 const formTitle = document.querySelector("#formTitle");
 const cancelEdit = document.querySelector("#cancelEdit");
 const resetButton = document.querySelector("#resetButton");
@@ -3480,6 +3482,7 @@ function renderOrders(ordersToRender) {
   </div>
 
 <div class="order-card-actions">
+  <button type="button" class="secondary-button" data-order-invoice="${escapeHtml(String(order.id))}">Invoice</button>
   ${
     order.receipt_image
       ? `
@@ -3584,6 +3587,13 @@ ${Boolean(order.archived) ? `
         }
       });
     });
+
+  ordersList
+    .querySelectorAll("[data-order-invoice]")
+    .forEach((button) => button.addEventListener("click", () => {
+      const order = orders.find((item) => String(item.id) === String(button.dataset.orderInvoice));
+      if (order) openInvoice(order);
+    }));
 
   ordersList
     .querySelectorAll("[data-order-view-receipt]")
@@ -3768,6 +3778,37 @@ const shippingAddress = shippingLines.length
 
   orderDetailsContent.querySelector("[data-order-restore-modal]")?.addEventListener("click", async () => {
     await restoreOrder(order.id);
+  });
+}
+
+function openInvoice(order) {
+  const items = orderItemsByOrder[String(order.id)] || [];
+  const subtotal = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
+  const address = [[order.house_unit, order.street].filter(Boolean).join(", "), order.barangay ? `Brgy. ${order.barangay}` : "", [order.city, order.province].filter(Boolean).join(", "), order.zipcode || ""].filter(Boolean).map(escapeHtml).join("<br>") || "—";
+  invoiceContent.innerHTML = `<article class="invoice-sheet"><header class="invoice-head"><div><h2>WonderPeps PH</h2><p>Admin order invoice</p></div><div><strong>INVOICE</strong><p>${escapeHtml(getOrderReferenceLabel(order))}</p></div></header><div class="invoice-grid"><section class="invoice-box invoice-customer"><h4>BILL TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${escapeHtml(order.email || "Not provided")}<br>${escapeHtml(order.phone || "Not provided")}</p></section><section class="invoice-box invoice-customer"><h4>SHIP TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${address}</p></section></div><table class="invoice-table"><thead><tr><th>Item</th><th>Variant</th><th>Qty</th><th>Total</th></tr></thead><tbody>${items.map((item) => `<tr><td>${escapeHtml(item.product_name || "Product")}</td><td>${escapeHtml(item.variant_name || "—")}</td><td>${Number(item.quantity || 0)}</td><td>${formatCurrency(item.line_total || 0)}</td></tr>`).join("")}</tbody></table><div class="invoice-grid"><section class="invoice-box invoice-payment"><h4>PAYMENT INFORMATION</h4><p><span>Method</span><strong>${escapeHtml(order.payment_method || "—")}</strong></p><p><span>Status</span><strong>${escapeHtml(order.payment_status || "Pending")}</strong></p></section><section class="invoice-box invoice-summary"><h4>ORDER SUMMARY ♡</h4><p><span>Subtotal</span><strong>${formatCurrency(subtotal)}</strong></p><p><span>Shipping</span><strong>${formatCurrency(order.shipping_fee || 0)}</strong></p></section></div><div class="invoice-total"><span>TOTAL</span><span>${formatCurrency(order.total || 0)}</span></div><footer class="invoice-actions"><button class="secondary-button" type="button" data-close-invoice>Close</button><button class="primary-button" type="button" data-download-invoice>Download invoice image</button></footer></article>`;
+  const [billingBox, shippingBox] = invoiceContent.querySelectorAll(".invoice-customer");
+  if (billingBox) {
+    billingBox.innerHTML = `<h4>BILL TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p><span>Email</span><strong>${escapeHtml(order.email || "Not provided")}</strong></p><p><span>Number</span><strong>${escapeHtml(order.phone || "Not provided")}</strong></p></div>`;
+  }
+  if (shippingBox) {
+    shippingBox.innerHTML = `<h4>SHIP TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p class="invoice-address-row"><span>Full address</span><strong>${address}</strong></p></div>`;
+  }
+  invoiceDialog.showModal();
+  invoiceDialog.scrollTop = 0;
+  invoiceContent.scrollTop = 0;
+  invoiceContent.querySelector("[data-close-invoice]")?.addEventListener("click", () => invoiceDialog.close());
+  invoiceContent.querySelector("[data-download-invoice]")?.addEventListener("click", async () => {
+    const sheet = invoiceContent.querySelector(".invoice-sheet");
+    if (!sheet || !window.html2canvas) return alert("Invoice image tool is still loading. Please try again.");
+    const canvas = await window.html2canvas(sheet, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      ignoreElements: (element) => element.classList?.contains("invoice-actions"),
+    });
+    const link = document.createElement("a");
+    link.download = `${getOrderReferenceLabel(order)}-invoice.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   });
 }
 
