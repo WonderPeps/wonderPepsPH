@@ -72,6 +72,8 @@ const categoriesList = document.querySelector("#categoriesList");
 const customersList = document.querySelector("#customersList");
 const orderDetailsModal = document.querySelector("#orderDetailsModal");
 const orderDetailsContent = document.querySelector("#orderDetailsContent");
+const invoiceDialog = document.querySelector("#invoiceDialog");
+const invoiceContent = document.querySelector("#invoiceContent");
 const formTitle = document.querySelector("#formTitle");
 const cancelEdit = document.querySelector("#cancelEdit");
 const resetButton = document.querySelector("#resetButton");
@@ -3480,6 +3482,7 @@ function renderOrders(ordersToRender) {
   </div>
 
 <div class="order-card-actions">
+  <button type="button" class="secondary-button" data-order-invoice="${escapeHtml(String(order.id))}">Invoice</button>
   ${
     order.receipt_image
       ? `
@@ -3584,6 +3587,13 @@ ${Boolean(order.archived) ? `
         }
       });
     });
+
+  ordersList
+    .querySelectorAll("[data-order-invoice]")
+    .forEach((button) => button.addEventListener("click", () => {
+      const order = orders.find((item) => String(item.id) === String(button.dataset.orderInvoice));
+      if (order) openInvoice(order);
+    }));
 
   ordersList
     .querySelectorAll("[data-order-view-receipt]")
@@ -3769,6 +3779,16 @@ const shippingAddress = shippingLines.length
   orderDetailsContent.querySelector("[data-order-restore-modal]")?.addEventListener("click", async () => {
     await restoreOrder(order.id);
   });
+}
+
+function openInvoice(order) {
+  const items = orderItemsByOrder[String(order.id)] || [];
+  const subtotal = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
+  const address = [[order.house_unit, order.street].filter(Boolean).join(", "), order.barangay ? `Brgy. ${order.barangay}` : "", [order.city, order.province].filter(Boolean).join(", "), order.zipcode || ""].filter(Boolean).map(escapeHtml).join("<br>") || "—";
+  invoiceContent.innerHTML = `<article class="invoice-sheet"><header class="invoice-head"><div><h2>WonderPeps PH</h2><p>Admin order invoice</p></div><div><strong>INVOICE</strong><p>${escapeHtml(getOrderReferenceLabel(order))}</p></div></header><div class="invoice-grid"><section class="invoice-box"><h4>BILL TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${escapeHtml(order.email || "Not provided")}<br>${escapeHtml(order.phone || "Not provided")}</p></section><section class="invoice-box"><h4>SHIP TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${address}</p></section></div><table class="invoice-table"><thead><tr><th>Item</th><th>Variant</th><th>Qty</th><th>Total</th></tr></thead><tbody>${items.map((item) => `<tr><td>${escapeHtml(item.product_name || "Product")}</td><td>${escapeHtml(item.variant_name || "—")}</td><td>${Number(item.quantity || 0)}</td><td>${formatCurrency(item.line_total || 0)}</td></tr>`).join("") || `<tr><td colspan="4">No products found</td></tr>`}</tbody></table><div class="invoice-grid"><section class="invoice-box"><h4>PAYMENT INFORMATION</h4><p>Method: <strong>${escapeHtml(order.payment_method || "—")}</strong><br>Status: ${escapeHtml(order.payment_status || "Pending")}</p></section><section class="invoice-box"><p>Subtotal: <strong>${formatCurrency(subtotal)}</strong><br>Shipping: <strong>${formatCurrency(order.shipping_fee || 0)}</strong></p></section></div><div class="invoice-total"><span>TOTAL</span><span>${formatCurrency(order.total || 0)}</span></div><footer class="invoice-actions"><button class="secondary-button" type="button" data-close-invoice>Close</button><button class="primary-button" type="button" data-print-invoice>Print / Save PDF</button></footer></article>`;
+  invoiceDialog.showModal();
+  invoiceContent.querySelector("[data-close-invoice]")?.addEventListener("click", () => invoiceDialog.close());
+  invoiceContent.querySelector("[data-print-invoice]")?.addEventListener("click", () => window.print());
 }
 
 function renderDashboard() {
