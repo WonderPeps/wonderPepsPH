@@ -1279,3 +1279,13 @@ html { font-size: 112.5%; }
 /* Keep the invoice total visually connected to payment and order summary. */
 .invoice-table + .invoice-grid { padding-bottom:12px; }
 .invoice-grid + .invoice-total { margin:0 24px 20px; }
+.invoice-payment strong { font-size:1.06rem; }
+.invoice-customer { justify-content:flex-start; }
+.invoice-customer h4 { margin:0 0 12px; }
+.invoice-detail-rows { display:grid; gap:0; }
+.invoice-detail-rows span::after { content:":"; }
+.invoice-detail-rows p { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:0; padding:8px 0; color:#8d6475; border-bottom:1px dashed #f2bfd2; }
+.invoice-detail-rows p:last-child { border-bottom:0; }
+.invoice-detail-rows strong { color:#4b2c3e; font-size:.98rem; text-align:right; }
+.invoice-detail-rows .invoice-address-row { align-items:flex-start; }
+.invoice-detail-rows .invoice-address-row strong { max-width:70%; line-height:1.32; }
