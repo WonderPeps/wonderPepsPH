@@ -3791,7 +3791,11 @@ function openInvoice(order) {
   invoiceContent.querySelector("[data-download-invoice]")?.addEventListener("click", async () => {
     const sheet = invoiceContent.querySelector(".invoice-sheet");
     if (!sheet || !window.html2canvas) return alert("Invoice image tool is still loading. Please try again.");
-    const canvas = await window.html2canvas(sheet, { scale: 2, backgroundColor: "#ffffff" });
+    const canvas = await window.html2canvas(sheet, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      ignoreElements: (element) => element.classList?.contains("invoice-actions"),
+    });
     const link = document.createElement("a");
     link.download = `${getOrderReferenceLabel(order)}-invoice.png`;
     link.href = canvas.toDataURL("image/png");
