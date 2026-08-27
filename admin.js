@@ -326,9 +326,9 @@ inviteAdminForm?.addEventListener("submit", async (event) => {
     const email = String(formData.get("email") || "").trim();
     const role = currentAdminRole === "owner" ? String(formData.get("role") || "admin") : "admin";
     setSecurityStatus("Sending invitation…");
-    await callAdminSecurity("invite", { email, role, redirectTo: `${window.location.origin}/admin.html` });
+    const result = await callAdminSecurity("invite", { email, role, redirectTo: `${window.location.origin}/admin.html` });
     inviteAdminForm.reset();
-    setSecurityStatus("Invitation sent successfully.");
+    setSecurityStatus(result.restored_existing_account ? "Existing account restored successfully." : "Invitation sent successfully.");
     await loadAdminAccounts();
   } catch (error) { setSecurityStatus(error.message, true); }
 });
