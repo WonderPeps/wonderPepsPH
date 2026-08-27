@@ -104,6 +104,17 @@ const shippingFeeForm = document.querySelector("#shippingFeeForm");
 const shippingFeesList = document.querySelector("#shippingFeesList");
 const shippingFeesStatus = document.querySelector("#shippingFeesStatus");
 const cancelShippingFeeEdit = document.querySelector("#cancelShippingFeeEdit");
+const changePasswordForm = document.querySelector("#changePasswordForm");
+const signOutAllButton = document.querySelector("#signOutAllButton");
+const inviteAdminForm = document.querySelector("#inviteAdminForm");
+const adminAccountsList = document.querySelector("#adminAccountsList");
+const securityStatus = document.querySelector("#securityStatus");
+const inviteRoleField = document.querySelector("#inviteRoleField");
+const paymentMethodsNav = document.querySelector("#paymentMethodsNav");
+const paymentMethodsSection = document.querySelector("#paymentMethodsSection");
+const securityAccountsTab = document.querySelector("#securityAccountsTab");
+let currentAdminRole = "admin";
+let activeSecurityTab = "accounts";
 
 let menuItems = [];
 let products = [];
@@ -139,6 +150,16 @@ function setupAdminUI() {
     button.addEventListener("click", () => {
       setActiveSettingsTab(button.dataset.settingsTab);
     });
+  });
+
+  document.querySelectorAll("[data-security-tab]").forEach((button) => {
+    if (button.dataset.bound) return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => setActiveSecurityTab(button.dataset.securityTab));
+  });
+
+  document.querySelectorAll("[data-security-tab]").forEach((button) => {
+    button.addEventListener("click", () => setActiveSecurityTab(button.dataset.securityTab));
   });
 
   ordersSearch?.addEventListener("input", () => {
@@ -192,7 +213,9 @@ async function showAdmin() {
 
   setupAdminUI();
   setActiveSettingsTab(activeSettingsTab);
+  setActiveSecurityTab(activeSecurityTab);
 
+  await ensureSecurityAdminProfile();
   await Promise.all([
     loadSettings(),
     loadProducts(),
@@ -201,7 +224,140 @@ async function showAdmin() {
     loadShippingFees(),
     loadOrders()
   ]);
+  await loadAdminAccounts();
 }
+
+function setSecurityStatus(message, isError = false) {
+  if (!securityStatus) return;
+  securityStatus.textContent = message;
+  securityStatus.classList.toggle("security-status-error", isError);
+}
+
+function setActiveSecurityTab(tab) {
+  activeSecurityTab = tab;
+  document.querySelectorAll("[data-security-group]").forEach((element) => {
+    element.hidden = element.dataset.securityGroup !== tab;
+  });
+  document.querySelectorAll("[data-security-tab]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.securityTab === tab);
+  });
+}
+
+async function ensureSecurityAdminProfile() {
+  const { error } = await supabaseClient.rpc("bootstrap_current_admin_account");
+  if (error) console.warn("Admin security setup is not ready:", error.message);
+}
+
+async function callAdminSecurity(action, payload = {}) {
+  const { data, error } = await supabaseClient.functions.invoke("admin-security", {
+    body: { action, ...payload }
+  });
+  if (error) throw new Error(error.message || "Security request failed.");
+  if (!data?.ok) throw new Error(data?.error || "Security request failed.");
+  return data;
+}
+
+async function loadAdminAccounts() {
+  if (!adminAccountsList) return;
+  try {
+    const data = await callAdminSecurity("list");
+    currentAdminRole = data.current_role || "admin";
+    if (inviteRoleField) inviteRoleField.hidden = currentAdminRole !== "owner";
+    if (securityAccountsTab) securityAccountsTab.hidden = !["owner", "co_owner"].includes(currentAdminRole);
+    if (!["owner", "co_owner"].includes(currentAdminRole)) setActiveSecurityTab("sessions");
+    const canManagePayments = ["owner", "co_owner"].includes(currentAdminRole);
+    if (paymentMethodsNav) paymentMethodsNav.hidden = !canManagePayments;
+    if (paymentMethodsSection) paymentMethodsSection.hidden = !canManagePayments;
+    adminAccountsList.innerHTML = data.accounts.map((account) => `
+      <article class="admin-account-row">
+        <div><strong>${escapeHtml(account.nickname || account.email)}</strong><small>${escapeHtml(account.email)} · ${escapeHtml(account.role === "co_owner" ? "Co-owner" : account.role === "owner" ? "Owner" : "Admin")}${account.suspended_at ? " · Suspended" : account.is_current ? " · This is you" : account.invited_at ? " · Invitation sent" : ""}</small></div>
+        <div class="admin-actions">${canManageAccount(account) ? `<button class="secondary-button account-action-button" type="button" data-account-action="nickname" data-admin-account-id="${escapeHtml(account.id)}" data-admin-nickname="${escapeHtml(account.nickname || "")}">Nickname</button>` : ""}${canRemoveAdmin(account) ? `<button class="secondary-button ${account.suspended_at ? "" : "danger"} account-action-button" type="button" data-account-action="${account.suspended_at ? "restore" : "suspend"}" data-admin-account-id="${escapeHtml(account.id)}" data-admin-email="${escapeHtml(account.email)}">${account.suspended_at ? "Unban" : "Suspend"}</button><button class="secondary-button danger remove-admin-button" type="button" data-admin-account-id="${escapeHtml(account.id)}" data-admin-email="${escapeHtml(account.email)}">Remove</button>` : ""}</div>
+      </article>`).join("") || `<p class="tiny-note">No additional admin accounts yet.</p>`;
+  } catch (error) {
+    adminAccountsList.innerHTML = `<p class="tiny-note">Security setup is not ready yet. Run the included SQL and deploy the included function.</p>`;
+  }
+}
+
+function canRemoveAdmin(account) {
+  if (account.is_current || account.role === "owner") return false;
+  if (currentAdminRole === "owner") return true;
+  return currentAdminRole === "co_owner" && account.role === "admin";
+}
+
+function canManageAccount(account) {
+  if (!["owner", "co_owner"].includes(currentAdminRole)) return false;
+  if (account.is_current) return true;
+  return canRemoveAdmin(account);
+}
+
+changePasswordForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(changePasswordForm);
+  const currentPassword = String(formData.get("currentPassword") || "");
+  const newPassword = String(formData.get("newPassword") || "");
+  const confirmPassword = String(formData.get("confirmPassword") || "");
+  if (newPassword.length < 8) return setSecurityStatus("Use at least 8 characters for the new password.", true);
+  if (newPassword !== confirmPassword) return setSecurityStatus("Your new passwords do not match.", true);
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if (!user?.email) return setSecurityStatus("Please sign in again before changing your password.", true);
+  setSecurityStatus("Checking your current password…");
+  const { error: signInError } = await supabaseClient.auth.signInWithPassword({ email: user.email, password: currentPassword });
+  if (signInError) return setSecurityStatus("Your current password is not correct.", true);
+  const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+  if (error) return setSecurityStatus(error.message, true);
+  changePasswordForm.reset();
+  setSecurityStatus("Password changed. For safety, log out all devices next.");
+});
+
+signOutAllButton?.addEventListener("click", async () => {
+  if (!window.confirm("Log out this admin account on every device? You will be signed out too.")) return;
+  try {
+    setSecurityStatus("Ending all sessions…");
+    await callAdminSecurity("signout-all");
+    await supabaseClient.auth.signOut();
+    await showLogin("All devices have been logged out. Please sign in again.");
+  } catch (error) { setSecurityStatus(error.message, true); }
+});
+
+inviteAdminForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try {
+    const formData = new FormData(inviteAdminForm);
+    const email = String(formData.get("email") || "").trim();
+    const role = currentAdminRole === "owner" ? String(formData.get("role") || "admin") : "admin";
+    setSecurityStatus("Sending invitation…");
+    const result = await callAdminSecurity("invite", { email, role, redirectTo: `${window.location.origin}/admin.html` });
+    inviteAdminForm.reset();
+    setSecurityStatus(result.restored_existing_account ? "Existing account restored successfully." : "Invitation sent successfully.");
+    await loadAdminAccounts();
+  } catch (error) { setSecurityStatus(error.message, true); }
+});
+
+adminAccountsList?.addEventListener("click", async (event) => {
+  const actionButton = event.target.closest(".account-action-button");
+  if (actionButton?.dataset.accountAction === "nickname") {
+    const nickname = window.prompt("Nickname for this account (optional):", actionButton.dataset.adminNickname || "");
+    if (nickname === null) return;
+    try { await callAdminSecurity("update-account", { id: actionButton.dataset.adminAccountId, nickname }); await loadAdminAccounts(); }
+    catch (error) { setSecurityStatus(error.message, true); }
+    return;
+  }
+  if (actionButton && ["suspend", "restore"].includes(actionButton.dataset.accountAction)) {
+    const isSuspending = actionButton.dataset.accountAction === "suspend";
+    if (!window.confirm(`${isSuspending ? "Suspend" : "restore"} ${actionButton.dataset.adminEmail || "this account"}?`)) return;
+    try { await callAdminSecurity("set-suspension", { id: actionButton.dataset.adminAccountId, suspended: isSuspending }); await loadAdminAccounts(); }
+    catch (error) { setSecurityStatus(error.message, true); }
+    return;
+  }
+  const button = event.target.closest(".remove-admin-button");
+  if (!button || !window.confirm(`Remove ${button.dataset.adminEmail} as an admin? They will no longer have access.`)) return;
+  try {
+    setSecurityStatus("Removing admin access…");
+    await callAdminSecurity("remove", { id: button.dataset.adminAccountId });
+    setSecurityStatus("Admin access removed.");
+    await loadAdminAccounts();
+  } catch (error) { setSecurityStatus(error.message, true); }
+});
 
 async function verifyAdmin() {
   const {
@@ -265,6 +421,12 @@ function setupAdminUI() {
     button.addEventListener("click", () => {
       setActiveSettingsTab(button.dataset.settingsTab);
     });
+  });
+
+  document.querySelectorAll("[data-security-tab]").forEach((button) => {
+    if (button.dataset.bound) return;
+    button.dataset.bound = "true";
+    button.addEventListener("click", () => setActiveSecurityTab(button.dataset.securityTab));
   });
 
   ordersSearch?.addEventListener("input", () => {

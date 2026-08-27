@@ -142,6 +142,25 @@ let paymentStepReceiptFile = null;
 let paymentStepReceiptPreviewUrl = null;
 let storefrontCategoryOrder = [];
 
+function startStorefrontAtTop() {
+  if (window.location.hash) return;
+
+  const previousScrollBehavior = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  requestAnimationFrame(() => {
+    document.documentElement.style.scrollBehavior = previousScrollBehavior;
+  });
+}
+
+// Messenger and other in-app browsers sometimes restore a previous scroll position
+// after the document first paints. Repeat this after their restoration point.
+window.addEventListener("pageshow", startStorefrontAtTop);
+window.addEventListener("load", () => {
+  startStorefrontAtTop();
+  setTimeout(startStorefrontAtTop, 150);
+});
+
 /* -------------------------
    HELPERS
 ------------------------- */
@@ -1327,10 +1346,6 @@ function closeCartDrawer() {
 }
 function openFavorites() {
   lockPageScroll("favorites");
-  favoritesDrawer.classList.add("open");
-  favoritesDrawer.setAttribute("aria-hidden", "false");
-}
-function openFavorites() {
   favoritesDrawer.classList.add("open");
   favoritesDrawer.setAttribute("aria-hidden", "false");
 }

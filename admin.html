@@ -68,11 +68,14 @@
       <a href="#menuSection"><span class="nav-icon" aria-hidden="true">☰</span><span>Menu</span></a>
 
       <div class="nav-group-label">Store</div>
-      <a href="#shopSettingsSection"><span class="nav-icon" aria-hidden="true">⚙</span><span>Shop settings</span></a>
       <a href="#shippingFeesSection"><span class="nav-icon" aria-hidden="true">♢</span><span>Shipping fees</span></a>
-      <a href="#paymentMethodsSection"><span class="nav-icon" aria-hidden="true">♡</span><span>Payment methods</span></a>
+      <a id="paymentMethodsNav" href="#paymentMethodsSection"><span class="nav-icon" aria-hidden="true">♡</span><span>Payment methods</span></a>
       <a href="#addProductSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add product</span></a>
       <a href="#addMenuSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add menu item</span></a>
+
+      <div class="nav-group-label">Settings</div>
+      <a href="#shopSettingsSection"><span class="nav-icon" aria-hidden="true">⚙</span><span>Shop settings</span></a>
+      <a href="#securitySection"><span class="nav-icon" aria-hidden="true">⌘</span><span>Security &amp; accounts</span></a>
     </nav>
 
     <button
@@ -316,6 +319,59 @@ Hero eyebrow
         </div>
         <button class="primary-button" type="submit">Save shop profile</button>
       </form>
+    </section>
+
+    <section id="securitySection" class="admin-card admin-panel-section security-section">
+      <div class="admin-section-header">
+        <div>
+          <h2>Security &amp; accounts</h2>
+          <p class="tiny-note">Keep the admin workspace private and under your control.</p>
+        </div>
+      </div>
+
+      <div class="admin-toolbar security-tabs" aria-label="Security settings">
+        <button id="securityAccountsTab" class="secondary-button active" type="button" data-security-tab="accounts">Accounts &amp; access</button>
+        <button class="secondary-button" type="button" data-security-tab="sessions">Password &amp; sessions</button>
+      </div>
+
+      <div class="security-grid" data-security-group="sessions" hidden>
+        <form id="changePasswordForm" class="security-card">
+          <div class="security-icon" aria-hidden="true">⌁</div>
+          <h3>Change password</h3>
+          <p>Use a strong new password for this admin account.</p>
+          <label>Current password<input name="currentPassword" type="password" autocomplete="current-password" required /></label>
+          <label>New password<input name="newPassword" type="password" autocomplete="new-password" minlength="8" required /></label>
+          <label>Confirm new password<input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required /></label>
+          <button class="primary-button" type="submit">Change password</button>
+        </form>
+
+        <div class="security-card security-card-danger">
+          <div class="security-icon" aria-hidden="true">◌</div>
+          <h3>Log out all devices</h3>
+          <p>End every admin session, including this one. Sign in again with your password.</p>
+          <button id="signOutAllButton" class="secondary-button danger" type="button">Log out all devices</button>
+        </div>
+
+      </div>
+
+      <div class="security-grid security-accounts-grid" data-security-group="accounts">
+        <form id="inviteAdminForm" class="security-card">
+          <div class="security-icon" aria-hidden="true">＋</div>
+          <h3>Invite another admin</h3>
+          <p>They receive a private email invitation to set their own password.</p>
+          <label>Email address<input name="email" type="email" autocomplete="email" placeholder="admin@example.com" required /></label>
+          <label id="inviteRoleField">Role<select name="role"><option value="admin">Admin</option><option value="co_owner">Co-owner</option></select></label>
+          <button class="primary-button" type="submit">Send invitation</button>
+        </form>
+      </div>
+
+      <div class="security-admin-list-wrap" data-security-group="accounts">
+        <div class="admin-section-header compact-section-header">
+          <div><h3>Admin accounts</h3><p class="tiny-note">Owner controls co-owners. Co-owners can manage Admin accounts.</p></div>
+        </div>
+        <p id="securityStatus" class="tiny-note" role="status" aria-live="polite"></p>
+        <div id="adminAccountsList" class="admin-accounts-list"></div>
+      </div>
     </section>
 
     <section id="shippingFeesSection" class="admin-card admin-panel-section">
