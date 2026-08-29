@@ -1644,7 +1644,7 @@ function openPaymentStep() {
   // delivery charge. Shipping should never be left for the remaining balance.
   const amountDueNow = selectedPaymentMethod.deposit_required
     ? roundToTwo(subtotal * (depositPercentage / 100) + shippingFee)
-    : total;
+    : roundToTwo(subtotal + shippingFee);
   const remainingBalance = roundToTwo(total - amountDueNow);
   const instructions = selectedPaymentMethod.short_description || "Please follow the payment instructions provided.";
   const qrUrl = selectedPaymentMethod.qr_url && String(selectedPaymentMethod.qr_url).trim();
@@ -1796,7 +1796,7 @@ const formattedAddress = [
       ? roundToTwo(
           subtotal * (Number(selectedPaymentMethod.deposit_percentage || 0) / 100) + shippingFee
         )
-      : total;
+      : roundToTwo(subtotal + shippingFee);
     const requiresReceipt = Boolean(selectedPaymentMethod?.receipt_required);
     const requiresReference = Boolean(selectedPaymentMethod?.reference_required);
     const referenceInput = paymentStepContent?.querySelector("#paymentReferenceInput");
