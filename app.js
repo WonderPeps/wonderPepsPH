@@ -1648,6 +1648,9 @@ function openPaymentStep() {
   const qrUrl = selectedPaymentMethod.qr_url && String(selectedPaymentMethod.qr_url).trim();
   const requiresReceipt = Boolean(selectedPaymentMethod.receipt_required);
   const requiresReference = Boolean(selectedPaymentMethod.reference_required);
+  const isCashOnDelivery = /cash\s*on\s*delivery|\bcod\b/i.test(
+    String(selectedPaymentMethod.payment_name || "")
+  );
 
   clearPaymentStepReceiptState();
   showPaymentStepFeedback("");
@@ -1666,7 +1669,7 @@ function openPaymentStep() {
       </div>
       <div class="cart-summary"><div><span>Order total</span><strong>${formatCurrency(total)}</strong></div></div>
       <div class="cart-summary"><div><span>Shipping fee</span><strong>${formatCurrency(shippingFee)}</strong></div></div>
-      <div class="cart-summary"><div><span>Amount due now</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>
+      <div class="cart-summary ${isCashOnDelivery ? "payment-step-deposit-row" : ""}"><div><span>${isCashOnDelivery ? "Deposit amount" : "Amount due now"}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>
       ${selectedPaymentMethod.deposit_required
         ? `<div class="cart-summary"><div><span>Remaining balance</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
         : ""}
