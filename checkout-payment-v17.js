@@ -1677,7 +1677,7 @@ function openPaymentStep() {
         <strong>${escapeHtml(selectedPaymentMethod.payment_name || "Payment method")}</strong>
         <p class="tiny-note">${escapeHtml(instructions)}</p>
       </div>
-      <div class="cart-summary"><div><span>Product subtotal</span><strong>${formatCurrency(subtotal)}</strong></div></div>
+      <div class="cart-summary"><div><span>Order total</span><strong>${formatCurrency(total)}</strong></div></div>
       <div class="cart-summary"><div><span>Shipping fee</span><strong>${formatCurrency(shippingFee)}</strong></div></div>
       ${paymentBalanceRows}
       ${buyerPaymentNote ? `<p class="payment-step-custom-note">♡ ${escapeHtml(buyerPaymentNote)}</p>` : ""}
