@@ -411,6 +411,14 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
 #paymentStepDialog .payment-step-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 24px 20px;-webkit-overflow-scrolling:touch}
 #paymentStepDialog .payment-step-actions{position:relative;z-index:1;margin:0;padding:14px 24px 20px;background:#fff;border-top:1px solid var(--line)}
 @media (max-width:600px){#paymentStepDialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px);border-radius:26px}#paymentStepDialog .payment-step-card{max-height:calc(100dvh - 16px)}#paymentStepDialog .drawer-header{padding:18px 18px 14px}#paymentStepDialog .payment-step-content{padding:14px 18px 18px}#paymentStepDialog .payment-step-actions{padding:12px 18px 16px;display:grid;grid-template-columns:1fr 1.15fr}#paymentStepDialog .payment-step-actions button{min-width:0;padding-inline:10px;font-size:.9rem}#paymentStepDialog .payment-step-qr{min-height:180px}#paymentStepDialog .payment-step-qr img{max-height:180px}}
+
+/* Keep the short COD flow compact; an empty QR and hidden preview must not take payment-screen space. */
+.payment-step-preview-box[hidden]{display:none}
+#paymentStepDialog .payment-step-content{overflow-x:hidden}
+#paymentStepDialog .payment-step-qr.no-qr{min-height:84px}
+#paymentStepDialog .payment-step-qr.no-qr .payment-step-qr-placeholder{padding:12px;font-size:.92rem}
+#paymentStepDialog .payment-step-order-summary .cart-summary{padding-top:10px}
+@media (max-width:600px){#paymentStepDialog .payment-step-qr.no-qr{min-height:72px}}
 .tiny-note{font-size:.78rem;color:var(--muted);line-height:1.5}
 .success-card{text-align:center}
 .success-icon{font-size:3rem;color:var(--pink-3)}

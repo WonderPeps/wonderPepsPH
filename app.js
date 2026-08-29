@@ -1653,7 +1653,7 @@ function openPaymentStep() {
   showPaymentStepFeedback("");
 
   paymentStepContent.innerHTML = `
-    <div class="payment-step-qr">
+    <div class="payment-step-qr ${qrUrl ? "has-qr" : "no-qr"}">
       ${qrUrl
         ? `<img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" />`
         : `<div class="payment-step-qr-placeholder">No QR code available</div>`}
