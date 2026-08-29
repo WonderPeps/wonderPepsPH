@@ -1640,8 +1640,10 @@ function openPaymentStep() {
   const shippingFee = getSelectedShippingFee();
   const total = roundToTwo(subtotal + shippingFee);
   const depositPercentage = Number(selectedPaymentMethod.deposit_percentage || 0);
+  // A deposit covers the selected percentage of the products, plus the full
+  // delivery charge. Shipping should never be left for the remaining balance.
   const amountDueNow = selectedPaymentMethod.deposit_required
-    ? roundToTwo(total * (depositPercentage / 100))
+    ? roundToTwo(subtotal * (depositPercentage / 100) + shippingFee)
     : total;
   const remainingBalance = roundToTwo(total - amountDueNow);
   const instructions = selectedPaymentMethod.short_description || "Please follow the payment instructions provided.";
@@ -1791,7 +1793,9 @@ const formattedAddress = [
       selectedPaymentMethod?.payment_name || formData.get("payment") || ""
     ).trim();
     const amountDueNow = selectedPaymentMethod?.deposit_required
-      ? roundToTwo(total * (Number(selectedPaymentMethod.deposit_percentage || 0) / 100))
+      ? roundToTwo(
+          subtotal * (Number(selectedPaymentMethod.deposit_percentage || 0) / 100) + shippingFee
+        )
       : total;
     const requiresReceipt = Boolean(selectedPaymentMethod?.receipt_required);
     const requiresReference = Boolean(selectedPaymentMethod?.reference_required);
