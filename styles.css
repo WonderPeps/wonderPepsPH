@@ -577,6 +577,16 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
     font-size:.78rem;
     line-height:1.4;
   }
+  #paymentStepDialog .payment-step-custom-note{
+    margin:10px 0 0;
+    padding:11px 12px;
+    border:1px solid #f2c4d7;
+    border-radius:15px;
+    background:#fffafd;
+    color:#7d5266;
+    font-size:.78rem;
+    line-height:1.4;
+  }
   #paymentStepDialog .payment-step-qr.has-qr{
     min-height:178px;
     height:178px;
