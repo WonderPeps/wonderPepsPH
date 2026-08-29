@@ -147,6 +147,8 @@ function startStorefrontAtTop() {
 
   const previousScrollBehavior = document.documentElement.style.scrollBehavior;
   document.documentElement.style.scrollBehavior = "auto";
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
   window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   requestAnimationFrame(() => {
     document.documentElement.style.scrollBehavior = previousScrollBehavior;
@@ -157,8 +159,11 @@ function startStorefrontAtTop() {
 // after the document first paints. Repeat this after their restoration point.
 window.addEventListener("pageshow", startStorefrontAtTop);
 window.addEventListener("load", () => {
-  startStorefrontAtTop();
-  setTimeout(startStorefrontAtTop, 150);
+  // Messenger restores its remembered position later than a normal mobile browser.
+  // Reset through its full restore window, but only during the page's first seconds.
+  [0, 80, 250, 600, 1200, 1800].forEach((delay) => {
+    setTimeout(startStorefrontAtTop, delay);
+  });
 });
 
 /* -------------------------
