@@ -402,6 +402,15 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
 .payment-step-field{display:grid;gap:8px;font-weight:700}
 .payment-step-preview-box{display:grid;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:16px;background:var(--pink-2)}
 .payment-step-preview-image{width:100%;max-height:220px;object-fit:contain;border-radius:14px;border:1px solid var(--line);background:white}
+.payment-step-order-summary{display:grid;gap:0}.payment-step-method{padding-bottom:14px}.payment-step-method>span{display:block;color:var(--muted);font-size:.86rem;font-weight:700}.payment-step-method>strong{margin-top:4px}.payment-step-method .tiny-note{margin:6px 0 0}.payment-step-order-summary .cart-summary{margin-top:0;padding-top:14px}.payment-step-order-summary .cart-summary>div{margin-bottom:0}
+
+/* Mobile payment window: keep the heading and actions available while only the details scroll. */
+#paymentStepDialog{width:min(560px,calc(100% - 20px));max-height:calc(100dvh - 20px);overflow:hidden}
+#paymentStepDialog .payment-step-card{max-height:calc(100dvh - 20px);padding:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:0;overflow:hidden}
+#paymentStepDialog .drawer-header{position:relative;z-index:1;padding:22px 24px 16px;background:#fff}
+#paymentStepDialog .payment-step-content{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 24px 20px;-webkit-overflow-scrolling:touch}
+#paymentStepDialog .payment-step-actions{position:relative;z-index:1;margin:0;padding:14px 24px 20px;background:#fff;border-top:1px solid var(--line)}
+@media (max-width:600px){#paymentStepDialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px);border-radius:26px}#paymentStepDialog .payment-step-card{max-height:calc(100dvh - 16px)}#paymentStepDialog .drawer-header{padding:18px 18px 14px}#paymentStepDialog .payment-step-content{padding:14px 18px 18px}#paymentStepDialog .payment-step-actions{padding:12px 18px 16px;display:grid;grid-template-columns:1fr 1.15fr}#paymentStepDialog .payment-step-actions button{min-width:0;padding-inline:10px;font-size:.9rem}#paymentStepDialog .payment-step-qr{min-height:180px}#paymentStepDialog .payment-step-qr img{max-height:180px}}
 .tiny-note{font-size:.78rem;color:var(--muted);line-height:1.5}
 .success-card{text-align:center}
 .success-icon{font-size:3rem;color:var(--pink-3)}

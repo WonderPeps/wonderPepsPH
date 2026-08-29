@@ -1653,17 +1653,19 @@ function openPaymentStep() {
   showPaymentStepFeedback("");
 
   paymentStepContent.innerHTML = `
-    <div class="payment-step-summary">
-      <strong>${escapeHtml(selectedPaymentMethod.payment_name || "Payment method")}</strong>
-      <p class="tiny-note">${escapeHtml(instructions)}</p>
-    </div>
     <div class="payment-step-qr">
       ${qrUrl
         ? `<img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" />`
         : `<div class="payment-step-qr-placeholder">No QR code available</div>`}
     </div>
-    <div class="payment-step-summary">
+    <div class="payment-step-summary payment-step-order-summary">
+      <div class="payment-step-method">
+        <span>Payment method</span>
+        <strong>${escapeHtml(selectedPaymentMethod.payment_name || "Payment method")}</strong>
+        <p class="tiny-note">${escapeHtml(instructions)}</p>
+      </div>
       <div class="cart-summary"><div><span>Order total</span><strong>${formatCurrency(total)}</strong></div></div>
+      <div class="cart-summary"><div><span>Shipping fee</span><strong>${formatCurrency(shippingFee)}</strong></div></div>
       <div class="cart-summary"><div><span>Amount due now</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>
       ${selectedPaymentMethod.deposit_required
         ? `<div class="cart-summary"><div><span>Remaining balance</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
@@ -1710,6 +1712,8 @@ function openPaymentStep() {
   clearCheckoutFormError();
   checkoutDialog.close();
   paymentStepDialog.showModal();
+  paymentStepDialog.scrollTop = 0;
+  paymentStepContent.scrollTop = 0;
 }
 
 function resetCheckoutState() {
