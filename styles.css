@@ -417,8 +417,101 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
 #paymentStepDialog .payment-step-content{overflow-x:hidden}
 #paymentStepDialog .payment-step-qr.no-qr{min-height:84px}
 #paymentStepDialog .payment-step-qr.no-qr .payment-step-qr-placeholder{padding:12px;font-size:.92rem}
+#paymentStepDialog .payment-step-qr.has-qr{padding:12px}
+#paymentStepDialog .payment-step-qr.has-qr img{display:block;justify-self:center;align-self:center;margin:0 auto}
 #paymentStepDialog .payment-step-order-summary .cart-summary{padding-top:10px}
 @media (max-width:600px){#paymentStepDialog .payment-step-qr.no-qr{min-height:72px}}
+
+/* Full-screen mobile payment experience. */
+@media (max-width:600px){
+  #paymentStepDialog{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100dvh;
+    max-height:100dvh;
+    margin:0;
+    border-radius:0;
+    background:linear-gradient(180deg,#fff,#fff8fb);
+  }
+  #paymentStepDialog .payment-step-card{
+    width:100%;
+    height:100dvh;
+    max-height:100dvh;
+    box-sizing:border-box;
+    grid-template-rows:auto minmax(0,1fr) auto;
+    background:radial-gradient(circle at 8% 9%,#ffe7f0 0,transparent 25%),#fff;
+  }
+  #paymentStepDialog .drawer-header{
+    padding:18px 22px 14px;
+    border-bottom:1px solid #f7d9e6;
+    background:rgba(255,255,255,.97);
+  }
+  #paymentStepDialog .drawer-header h2{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    font-size:34px;
+  }
+  #paymentStepDialog .drawer-header h2::before{content:"♡";color:#e24b88;font-family:inherit;font-size:.78em}
+  #paymentStepDialog .payment-step-content{
+    display:grid;
+    align-content:start;
+    gap:12px;
+    padding:12px 18px 14px;
+    background:transparent;
+  }
+  #paymentStepDialog .payment-step-qr{
+    min-height:104px;
+    padding:10px;
+    border:0;
+    border-radius:22px;
+    background:linear-gradient(145deg,#fff,#fff1f7);
+    box-shadow:0 10px 24px rgba(184,54,112,.11);
+  }
+  #paymentStepDialog .payment-step-qr.has-qr img{
+    width:132px;
+    max-width:100%;
+    height:132px;
+    max-height:132px;
+    object-fit:contain;
+  }
+  #paymentStepDialog .payment-step-qr.no-qr{min-height:64px}
+  #paymentStepDialog .payment-step-qr.no-qr .payment-step-qr-placeholder{font-size:.85rem}
+  #paymentStepDialog .payment-step-order-summary{
+    gap:0;
+    padding:16px;
+    border-radius:24px;
+    background:linear-gradient(145deg,#fff5fa,#ffedf5);
+    box-shadow:0 12px 28px rgba(184,54,112,.10);
+  }
+  #paymentStepDialog .payment-step-method{padding:0 0 8px}
+  #paymentStepDialog .payment-step-method>span{color:#be4479;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+  #paymentStepDialog .payment-step-method>strong{color:#4a293b;font-size:1.15rem}
+  #paymentStepDialog .payment-step-method .tiny-note{font-size:.78rem;line-height:1.35}
+  #paymentStepDialog .payment-step-order-summary .cart-summary{padding:9px 0;border-top:1px dashed #f2bed3}
+  #paymentStepDialog .payment-step-order-summary .cart-summary>div{margin:0;font-size:.92rem}
+  #paymentStepDialog .payment-step-order-summary .cart-summary strong{color:#d43d79;font-size:1rem}
+  #paymentStepDialog .payment-step-field{gap:5px;padding:0 4px;font-size:.9rem}
+  #paymentStepDialog .payment-step-field input{font-size:.82rem}
+  #paymentStepDialog .payment-step-actions{
+    display:grid;
+    grid-template-columns:1fr 1.18fr;
+    gap:10px;
+    padding:12px 18px calc(12px + env(safe-area-inset-bottom));
+    border-top:1px solid #f4d8e4;
+    background:rgba(255,255,255,.98);
+    box-shadow:0 -8px 22px rgba(100,45,70,.06);
+  }
+  #paymentStepDialog .payment-step-actions button{
+    min-width:0;
+    min-height:48px;
+    padding:9px 8px;
+    border-radius:18px;
+    font-size:.83rem;
+    white-space:nowrap;
+  }
+}
 .tiny-note{font-size:.78rem;color:var(--muted);line-height:1.5}
 .success-card{text-align:center}
 .success-icon{font-size:3rem;color:var(--pink-3)}
