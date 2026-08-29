@@ -553,6 +553,33 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
   #paymentStepDialog .payment-step-actions .secondary-button::before{content:"←";margin-right:6px;color:#df3f7d;font-size:1.05em}
   #paymentStepDialog .payment-step-actions .primary-button::before{content:"♥";margin-right:6px;font-size:.9em}
 }
+
+@media (max-width:600px){
+  /* These rows are payment details, not the sticky shopping-bag summary. */
+  #paymentStepDialog .payment-step-order-summary .cart-summary{
+    position:static;
+    z-index:auto;
+    margin:0;
+    padding:10px 0;
+    border-top:1px dashed #f2bed3;
+    background:transparent;
+    box-shadow:none;
+    backdrop-filter:none;
+  }
+  #paymentStepDialog .payment-step-order-summary .cart-summary>div{background:transparent;box-shadow:none}
+  #paymentStepDialog .payment-step-qr.has-qr{
+    min-height:154px;
+    height:154px;
+    box-sizing:border-box;
+    overflow:hidden;
+  }
+  #paymentStepDialog .payment-step-qr.has-qr img{
+    width:128px;
+    height:128px;
+    max-height:128px;
+    transform:translateY(-2px);
+  }
+}
 .tiny-note{font-size:.78rem;color:var(--muted);line-height:1.5}
 .success-card{text-align:center}
 .success-icon{font-size:3rem;color:var(--pink-3)}
