@@ -1658,9 +1658,6 @@ function openPaymentStep() {
   const paymentBalanceRows = isCashOnDelivery
     ? `${remainingBalanceRow}${amountDueRow}`
     : `${amountDueRow}${remainingBalanceRow}`;
-  const depositReminder = isCashOnDelivery
-    ? `<p class="payment-step-deposit-note">♡ Make sure to send the exact deposit amount shown on your screen to proceed with your order.</p>`
-    : "";
   const buyerPaymentNote = String(selectedPaymentMethod.instructions || "").trim();
 
   clearPaymentStepReceiptState();
@@ -1682,7 +1679,6 @@ function openPaymentStep() {
       <div class="cart-summary"><div><span>Shipping fee</span><strong>${formatCurrency(shippingFee)}</strong></div></div>
       ${paymentBalanceRows}
       ${buyerPaymentNote ? `<p class="payment-step-custom-note">♡ ${escapeHtml(buyerPaymentNote)}</p>` : ""}
-      ${depositReminder}
     </div>
     ${requiresReceipt ? `
       <label class="payment-step-field">

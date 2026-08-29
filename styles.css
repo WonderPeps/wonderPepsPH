@@ -580,10 +580,10 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
   #paymentStepDialog .payment-step-custom-note{
     margin:10px 0 0;
     padding:11px 12px;
-    border:1px solid #f2c4d7;
+    border:1px solid #f4c8da;
     border-radius:15px;
-    background:#fffafd;
-    color:#7d5266;
+    background:linear-gradient(135deg,#fff0f6,#fff9fc);
+    color:#87586d;
     font-size:.78rem;
     line-height:1.4;
   }
