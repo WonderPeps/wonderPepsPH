@@ -1651,13 +1651,16 @@ function openPaymentStep() {
   const isCashOnDelivery = /cash\s*on\s*delivery|\bcod\b/i.test(
     String(selectedPaymentMethod.payment_name || "")
   );
-  const amountDueRow = `<div class="cart-summary ${isCashOnDelivery ? "payment-step-deposit-row" : ""}"><div><span>${isCashOnDelivery ? "Deposit amount" : "Amount due now"}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>`;
+  const amountDueRow = `<div class="cart-summary"><div><span>${isCashOnDelivery ? "Deposit amount" : "Amount due now"}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>`;
   const remainingBalanceRow = selectedPaymentMethod.deposit_required
     ? `<div class="cart-summary"><div><span>Remaining balance</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
     : "";
   const paymentBalanceRows = isCashOnDelivery
     ? `${remainingBalanceRow}${amountDueRow}`
     : `${amountDueRow}${remainingBalanceRow}`;
+  const depositReminder = isCashOnDelivery
+    ? `<p class="payment-step-deposit-note">♡ Make sure to send the exact deposit amount shown on your screen to proceed with your order.</p>`
+    : "";
 
   clearPaymentStepReceiptState();
   showPaymentStepFeedback("");
@@ -1677,6 +1680,7 @@ function openPaymentStep() {
       <div class="cart-summary"><div><span>Order total</span><strong>${formatCurrency(total)}</strong></div></div>
       <div class="cart-summary"><div><span>Shipping fee</span><strong>${formatCurrency(shippingFee)}</strong></div></div>
       ${paymentBalanceRows}
+      ${depositReminder}
     </div>
     ${requiresReceipt ? `
       <label class="payment-step-field">
