@@ -25,6 +25,57 @@ body.storefront-page {
     linear-gradient(180deg, #fff 0%, #fff9fc 48%, #fff 100%);
 }
 
+/* Bunny boutique catalog refresh: visual-only overrides. */
+.storefront-page .hero {
+  min-height: 380px;
+  grid-template-columns: minmax(0, 1fr);
+  padding: clamp(38px, 5vw, 68px);
+  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("assets/wonderpeps-bunny-hero.png");
+  background-position: center;
+  background-size: cover;
+}
+.storefront-page .hero-media { display: none; }
+.storefront-page .hero-copy { width: min(52%, 650px); }
+.storefront-page .hero h1 { font-size: clamp(2.8rem, 5.2vw, 5rem); }
+.storefront-page .search-wrap { width: min(520px, 100%); flex-basis: min(520px, 44%); }
+.storefront-page .search { min-height: 62px; border-radius: 999px; font-size: 1rem; }
+.storefront-page .category-chip { min-height: 54px; padding-inline: 25px; }
+.storefront-page .product-card > .product-image { aspect-ratio: 1 / .86; }
+.storefront-page .product-badge {
+  position: absolute; top: 14px; left: 14px; z-index: 5;
+  padding: 7px 12px; border-radius: 999px; color: #fff;
+  background: linear-gradient(135deg, #e95f93, #d33f78);
+  box-shadow: 0 7px 18px rgba(192,49,105,.2); font-size: .74rem; font-weight: 850;
+}
+.storefront-page .product-body { display: flex; flex: 1; flex-direction: column; }
+.storefront-page .product-body h3,
+.storefront-page .product-body .product-description {
+  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.storefront-page .product-body h3 { min-height: 2.45em; }
+.storefront-page .product-body .product-description { min-height: 2.7em; }
+.storefront-page .product-stats { min-height: 31px; }
+.storefront-page .add-button { margin-top: auto; }
+
+@media (max-width: 760px) {
+  .storefront-page .hero {
+    min-height: 285px; padding: 30px 22px;
+    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("assets/wonderpeps-bunny-hero.png");
+    background-position: 60% center;
+  }
+  .storefront-page .hero-copy { width: 66%; padding: 0; }
+  .storefront-page .hero h1 { font-size: clamp(2rem, 8.7vw, 3.15rem); line-height: 1; }
+  .storefront-page .hero-copy > p:not(.eyebrow) { margin: 13px 0 17px; font-size: .82rem; line-height: 1.45; }
+  .storefront-page .hero-button { min-height: 43px; padding: 11px 17px; font-size: .82rem; }
+  .storefront-page .catalog-section { padding-top: 32px; }
+  .storefront-page .section-heading { gap: 16px; }
+  .storefront-page .search { min-height: 58px; }
+  .storefront-page .category-chip { min-height: 50px; padding: 12px 20px; }
+  .storefront-page .product-card > .product-image { aspect-ratio: 1 / .92; }
+  .storefront-page .product-badge { top: 10px; left: 10px; padding: 6px 9px; font-size: .64rem; }
+  .storefront-page .sold-count, .storefront-page .stock { font-size: .68rem; }
+}
+
 body.storefront-page.page-scroll-locked {
   position: fixed;
   right: 0;
@@ -602,6 +653,31 @@ body.storefront-page.page-scroll-locked {
 
 .storefront-page .stock::before {
   background: var(--store-green);
+}
+
+.storefront-page .product-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.storefront-page .sold-count {
+  padding: 5px 9px;
+  border: 1px solid #f0d5e0;
+  border-radius: 999px;
+  color: var(--store-pink-dark);
+  background: #fff8fb;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.storefront-page .sold-count::before {
+  margin-right: 4px;
+  content: "♥";
+  color: var(--store-pink);
 }
 
 .storefront-page .add-button {
@@ -1310,6 +1386,10 @@ body.storefront-page.page-scroll-locked {
     padding-top: 14px;
   }
 
+  .storefront-page .product-stats {
+    align-items: flex-start;
+  }
+
   .storefront-page .price-row strong {
     font-size: 1.04rem;
   }
@@ -1670,4 +1750,55 @@ body.storefront-page.page-scroll-locked {
     height: 40px;
     border-radius: 13px;
   }
+}
+
+/* Final bunny boutique overrides (kept last so existing responsive rules remain intact). */
+.storefront-page .hero {
+  min-height: 380px;
+  grid-template-columns: minmax(0, 1fr);
+  padding: clamp(38px, 5vw, 68px);
+  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("assets/wonderpeps-bunny-hero.png");
+  background-position: center;
+  background-size: cover;
+}
+.storefront-page .hero-media { display: none; }
+.storefront-page .hero-copy { width: min(52%, 650px); }
+.storefront-page .hero h1 { font-size: clamp(2.8rem, 5.2vw, 5rem); }
+.storefront-page .search-wrap { width: min(520px, 100%); flex-basis: min(520px, 44%); }
+.storefront-page .search { min-height: 62px; border-radius: 999px; font-size: 1rem; }
+.storefront-page .category-chip { min-height: 54px; padding-inline: 25px; }
+.storefront-page .product-card > .product-image { aspect-ratio: 1 / .86; }
+.storefront-page .product-badge {
+  position: absolute; top: 14px; left: 14px; z-index: 5;
+  padding: 7px 12px; border-radius: 999px; color: #fff;
+  background: linear-gradient(135deg, #e95f93, #d33f78);
+  box-shadow: 0 7px 18px rgba(192,49,105,.2); font-size: .74rem; font-weight: 850;
+}
+.storefront-page .product-body { display: flex; flex: 1; flex-direction: column; }
+.storefront-page .product-body h3,
+.storefront-page .product-body .product-description {
+  display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.storefront-page .product-body h3 { min-height: 2.45em; }
+.storefront-page .product-body .product-description { min-height: 2.7em; }
+.storefront-page .product-stats { min-height: 31px; }
+.storefront-page .add-button { margin-top: auto; }
+
+@media (max-width: 760px) {
+  .storefront-page .hero {
+    min-height: 285px; padding: 30px 22px;
+    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("assets/wonderpeps-bunny-hero.png");
+    background-position: 60% center;
+  }
+  .storefront-page .hero-copy { width: 66%; padding: 0; }
+  .storefront-page .hero h1 { font-size: clamp(2rem, 8.7vw, 3.15rem); line-height: 1; }
+  .storefront-page .hero-copy > p:not(.eyebrow) { margin: 13px 0 17px; font-size: .82rem; line-height: 1.45; }
+  .storefront-page .hero-button { min-height: 43px; padding: 11px 17px; font-size: .82rem; }
+  .storefront-page .catalog-section { padding-top: 32px; }
+  .storefront-page .section-heading { gap: 16px; }
+  .storefront-page .search { min-height: 58px; }
+  .storefront-page .category-chip { min-height: 50px; padding: 12px 20px; }
+  .storefront-page .product-card > .product-image { aspect-ratio: 1 / .92; }
+  .storefront-page .product-badge { top: 10px; left: 10px; padding: 6px 9px; font-size: .64rem; }
+  .storefront-page .sold-count, .storefront-page .stock { font-size: .68rem; }
 }

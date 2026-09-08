@@ -129,6 +129,7 @@ function clearSavedCart() {
 let selectedCategory = "All";
 let products = [];
 let productVariants = [];
+let productSoldCounts = new Map();
 let activeVariantProduct = null;
 let selectedVariant = null;
 let selectedVariantQuantity = 1;
@@ -376,7 +377,8 @@ async function loadProducts() {
 
   const [
     { data: productData, error: productError },
-    { data: variantData, error: variantError }
+    { data: variantData, error: variantError },
+    { data: soldData, error: soldError }
   ] = await Promise.all([
     supabaseClient
       .from("products")
@@ -388,7 +390,11 @@ async function loadProducts() {
       .from("product_variants")
       .select("*")
       .eq("is_active", true)
-      .order("sort_order", { ascending: true })
+      .order("sort_order", { ascending: true }),
+
+    // This RPC returns aggregate totals only, so no customer/order details are
+    // exposed to storefront visitors. See supabase-sold-counts.sql.
+    supabaseClient.rpc("get_product_sold_counts")
   ]);
   if (productError) {
      grid.innerHTML = `
@@ -407,6 +413,16 @@ async function loadProducts() {
   }
 
   productVariants = variantData || [];
+  productSoldCounts = new Map(
+    (soldError ? [] : soldData || []).map((row) => [
+      String(row.product_id),
+      Number(row.sold_count || 0)
+    ])
+  );
+
+  if (soldError) {
+    console.warn("Could not load sold counts:", soldError.message);
+  }
 
   products = (productData || []).map((product) => ({
     ...product,
@@ -443,6 +459,15 @@ function getProductVariants(productId) {
     (variant) =>
       String(variant.product_id) === String(productId)
   );
+}
+
+function formatSoldCount(count) {
+  const amount = Number(count || 0);
+  if (amount < 1000) return String(amount);
+  const compact = amount >= 10000
+    ? Math.round(amount / 1000)
+    : Math.round(amount / 100) / 10;
+  return `${compact}K`;
 }
 function renderCategoryFilters() {
 
@@ -523,6 +548,15 @@ function renderProducts(list, grid = productGrid) {
     .map((product) => {
       const variants = getProductVariants(product.id);
       const hasVariants = variants.length > 0;
+      const soldCount = productSoldCounts.get(String(product.id)) || 0;
+      const createdAt = product.created_at ? new Date(product.created_at) : null;
+      const isNew = createdAt && !Number.isNaN(createdAt.getTime()) &&
+        Date.now() - createdAt.getTime() <= 30 * 24 * 60 * 60 * 1000;
+      const productBadge = soldCount >= 10
+        ? "Bestseller"
+        : isNew
+          ? "New"
+          : "";
 const displayedStock = hasVariants
   ? variants.reduce(
       (total, variant) =>
@@ -546,6 +580,8 @@ const displayedStock = hasVariants
 
       return `
   <article class="product-card">
+
+${productBadge ? `<span class="product-badge">${productBadge}</span>` : ""}
 
 <button
     class="favorite-button ${isFavorite(product.id) ? "is-favorite" : ""}"
@@ -576,10 +612,11 @@ const displayedStock = hasVariants
 
             <div class="price-row">
               <strong>${formatCurrency(product.price)}</strong>
+            </div>
 
-              <span class="stock">
-                Stock: ${displayedStock}
-              </span>
+            <div class="product-stats" aria-label="Product availability and sales">
+              <span class="stock">Stock: ${displayedStock}</span>
+              ${soldCount > 0 ? `<span class="sold-count">${formatSoldCount(soldCount)} sold</span>` : ""}
             </div>
 
             <button
