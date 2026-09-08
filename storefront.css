@@ -2008,7 +2008,7 @@ body.storefront-page.page-scroll-locked {
 }
 .storefront-page .sold-count {
   position: relative;
-  top: -1px;
+  top: -2px;
 }
 .storefront-page .add-button { margin-top: auto; }
 
