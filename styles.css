@@ -2494,3 +2494,52 @@ input[type="button"],
 input[type="submit"] {
   cursor: pointer;
 }
+
+/* Compact, edge-friendly mobile shopping bag. */
+@media (max-width: 600px) {
+  #cartDrawer .drawer-panel {
+    width: 100vw;
+    padding: 6px;
+  }
+
+  #cartDrawer .drawer-header {
+    padding: 18px 4px 14px;
+  }
+
+  #cartItems {
+    padding: 0 0 18px;
+  }
+
+  #cartDrawer .cart-item {
+    grid-template-columns: 92px minmax(0, 1fr) 34px;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  #cartDrawer .cart-thumb {
+    width: 92px;
+    height: 92px;
+    max-width: 92px;
+    max-height: 92px;
+    border-radius: 18px;
+  }
+
+  #cartDrawer .cart-summary {
+    width: 100%;
+    margin: 10px 0 max(4px, env(safe-area-inset-bottom));
+    padding: 18px;
+    border: 1px solid #f0cad9;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(255,255,255,.98), #fff1f7);
+    box-shadow: 0 12px 30px rgba(121,55,82,.13);
+  }
+
+  #cartDrawer .cart-summary > div {
+    margin-bottom: 14px;
+  }
+
+  #cartDrawer .cart-summary .primary-button {
+    min-height: 54px;
+    border-radius: 999px;
+  }
+}
