@@ -1891,19 +1891,6 @@ zipcode: zipcode || null,
       status: "Pending"
     };
 
-    const { data: order, error: orderError } = await supabaseClient
-      .from("orders")
-      .insert(orderData)
-      .select("id, order_ref")
-      .single();
-
-    if (orderError) {
-      if (uploadedReceiptPath) {
-        await deleteUploadedReceipt(uploadedReceiptPath);
-      }
-      throw orderError;
-    }
-
     const orderItems = cart.map((item) => {
   const product = getProductById(item.productId);
 
@@ -1920,7 +1907,6 @@ zipcode: zipcode || null,
     : null;
 
   return {
-    order_id: order.id,
     product_id: product.id,
     product_name: product.name,
 
@@ -1934,15 +1920,18 @@ zipcode: zipcode || null,
   };
 });
 
-    const { error: itemsError } = await supabaseClient
-      .from("order_items")
-      .insert(orderItems);
+    const { data: order, error: orderError } = await supabaseClient
+      .rpc("place_storefront_order", {
+        p_order: orderData,
+        p_items: orderItems
+      })
+      .single();
 
-    if (itemsError) {
+    if (orderError) {
       if (uploadedReceiptPath) {
         await deleteUploadedReceipt(uploadedReceiptPath);
       }
-      throw itemsError;
+      throw orderError;
     }
 
    clearSavedCart();
