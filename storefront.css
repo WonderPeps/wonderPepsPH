@@ -2006,6 +2006,10 @@ body.storefront-page.page-scroll-locked {
   flex: 0 0 auto;
   line-height: 1;
 }
+.storefront-page .sold-count {
+  position: relative;
+  top: -1px;
+}
 .storefront-page .add-button { margin-top: auto; }
 
 @media (max-width: 760px) {
