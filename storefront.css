@@ -98,7 +98,7 @@ body.storefront-page {
   overflow: hidden;
   border: 1px solid var(--store-line);
   border-radius: 30px;
-  background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.94) 47%, rgba(255,238,245,.08) 74%), url("wonderpeps-bunny-hero.png");
+  background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.94) 47%, rgba(255,238,245,.08) 74%), var(--catalog-image, url("wonderpeps-bunny-hero.png"));
   background-position: center;
   background-size: cover;
   box-shadow: 0 14px 38px rgba(104,56,76,.09);
@@ -124,7 +124,7 @@ body.storefront-page {
   .storefront-page .hero-button { min-height: 50px; padding: 14px 22px; font-size: inherit; }
   .storefront-page .section-heading {
     min-height: 330px; margin-bottom: 20px; padding: 25px 22px 94px;
-    background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.93) 53%, rgba(255,238,245,.12) 82%), url("wonderpeps-bunny-hero.png");
+    background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.93) 53%, rgba(255,238,245,.12) 82%), var(--catalog-image, url("wonderpeps-bunny-hero.png"));
     background-position: 61% center;
   }
   .storefront-page .section-heading > div { max-width: 68%; }
@@ -164,7 +164,11 @@ body.storefront-page {
   box-shadow: 0 14px 38px rgba(104,56,76,.09);
 }
 .storefront-page .section-heading > div { position: relative; z-index: 1; max-width: 54%; }
-.storefront-page .section-heading .search-wrap { position: absolute; z-index: 2; left: clamp(28px, 4vw, 48px); bottom: clamp(25px, 3.5vw, 40px); width: min(480px, 48%); }
+.storefront-page .catalog-search {
+  position: relative;
+  width: min(680px, 100%);
+  margin: 0 0 22px;
+}
 
 @media (max-width: 760px) {
   .storefront-page .hero {
@@ -1954,12 +1958,12 @@ body.storefront-page.page-scroll-locked {
 .storefront-page .section-heading {
   position: relative; min-height: 300px; padding: clamp(28px, 4vw, 48px); overflow: hidden;
   border: 1px solid var(--store-line); border-radius: 30px;
-  background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.94) 47%, rgba(255,238,245,.08) 74%), url("wonderpeps-bunny-hero.png");
-  background-position: center; background-size: cover;
+  background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.94) 47%, rgba(255,238,245,.08) 74%), var(--catalog-image, url("wonderpeps-bunny-hero.png"));
+  background-position: center; background-repeat: no-repeat; background-size: cover;
   box-shadow: 0 14px 38px rgba(104,56,76,.09);
 }
 .storefront-page .section-heading > div { position: relative; z-index: 1; max-width: 54%; }
-.storefront-page .section-heading .search-wrap { position: absolute; z-index: 2; left: clamp(28px, 4vw, 48px); bottom: clamp(25px, 3.5vw, 40px); width: min(480px, 48%); }
+.storefront-page .catalog-search { position: relative; width: min(680px, 100%); margin: 0 0 22px; }
 .storefront-page .search-wrap { width: min(520px, 100%); flex-basis: min(520px, 44%); }
 .storefront-page .search { min-height: 62px; border-radius: 999px; font-size: 1rem; }
 .storefront-page .category-chip { min-height: 54px; padding-inline: 25px; }
@@ -1994,13 +1998,15 @@ body.storefront-page.page-scroll-locked {
   .storefront-page .hero-button { min-height: 50px; padding: 14px 22px; font-size: inherit; }
   .storefront-page .catalog-section { padding-top: 32px; }
   .storefront-page .section-heading {
-    min-height: 330px; margin-bottom: 20px; padding: 25px 22px 94px; gap: 16px;
-    background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.93) 53%, rgba(255,238,245,.12) 82%), url("wonderpeps-bunny-hero.png");
-    background-position: 61% center;
+    min-height: 250px; margin-bottom: 18px; padding: 24px 22px; gap: 16px;
+    background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.93) 53%, rgba(255,238,245,.12) 82%), var(--catalog-image, url("wonderpeps-bunny-hero.png"));
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% auto;
   }
   .storefront-page .section-heading > div { max-width: 68%; }
   .storefront-page .section-heading h2 { font-size: clamp(2rem, 8.5vw, 3rem); }
-  .storefront-page .section-heading .search-wrap { left: 20px; right: 20px; bottom: 20px; width: auto; }
+  .storefront-page .catalog-search { width: 100%; margin-bottom: 20px; }
   .storefront-page .search { min-height: 58px; }
   .storefront-page .category-chip { min-height: 50px; padding: 12px 20px; }
   .storefront-page .product-card > .product-image { aspect-ratio: 1 / .92; }

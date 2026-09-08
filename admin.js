@@ -42,6 +42,8 @@ let temporaryShopLogoPreviewUrl = "";
 
 let selectedHeroImageFile = null;
 let temporaryHeroImagePreviewUrl = "";
+let selectedCatalogImageFile = null;
+let temporaryCatalogImagePreviewUrl = "";
 
 const heroImageFileInput = document.querySelector("#heroImageFile");
 const heroImagePreview = document.querySelector("#heroImagePreview");
@@ -49,6 +51,10 @@ const replaceHeroImageButton =
   document.querySelector("#replaceHeroImageButton");
 const deleteHeroImageButton =
   document.querySelector("#deleteHeroImageButton");
+const catalogImageFileInput = document.querySelector("#catalogImageFile");
+const catalogImagePreview = document.querySelector("#catalogImagePreview");
+const replaceCatalogImageButton = document.querySelector("#replaceCatalogImageButton");
+const deleteCatalogImageButton = document.querySelector("#deleteCatalogImageButton");
 const shopLogoFileInput = document.querySelector("#shopLogoFile");
 const shopLogoPreview = document.querySelector("#shopLogoPreview");
 const replaceShopLogoButton =
@@ -531,6 +537,14 @@ if (data.hero_image_url) {
 
   deleteHeroImageButton.hidden = true;
 }
+settingsForm.elements.catalogImageUrl.value = data.catalog_image_url || "";
+if (data.catalog_image_url) {
+  catalogImagePreview.innerHTML = `<img src="${escapeHtml(data.catalog_image_url)}" alt="Catalog banner" />`;
+  deleteCatalogImageButton.hidden = false;
+} else {
+  catalogImagePreview.innerHTML = `<span>Using the default bunny banner</span>`;
+  deleteCatalogImageButton.hidden = true;
+}
   settingsForm.elements.heroEyebrow.value = data.hero_eyebrow || "";
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
@@ -560,6 +574,7 @@ settingsForm.addEventListener("submit", async (event) => {
     shop_name: String(formData.get("shopName") || "").trim(),
     logo_url: String(formData.get("logoUrl") || "").trim() || null,
     hero_image_url: String(formData.get("heroImageUrl") || "").trim() || null,
+    catalog_image_url: String(formData.get("catalogImageUrl") || "").trim() || null,
     hero_eyebrow: settingsForm.elements.heroEyebrow.value,
     hero_title: String(formData.get("heroTitle") || "").trim(),
     hero_subtitle: String(formData.get("heroSubtitle") || "").trim(),
@@ -601,6 +616,15 @@ if (selectedHeroImageFile) {
     return;
   }
 }
+if (selectedCatalogImageFile) {
+  try {
+    updates.catalog_image_url = await uploadProductImage(selectedCatalogImageFile);
+    settingsForm.elements.catalogImageUrl.value = updates.catalog_image_url;
+  } catch (uploadError) {
+    alert(`Could not upload catalog image: ${uploadError.message}`);
+    return;
+  }
+}
 const { error } = await supabaseClient
   .from("shop_settings")
   .update(updates)
@@ -613,6 +637,7 @@ if (error) {
 
 selectedShopLogoFile = null;
 selectedHeroImageFile = null;
+selectedCatalogImageFile = null;
 
 alert("Shop profile saved online.");
 });
@@ -2355,6 +2380,25 @@ deleteHeroImageButton?.addEventListener("click", () => {
   `;
 
   deleteHeroImageButton.hidden = true;
+});
+catalogImageFileInput?.addEventListener("change", () => {
+  const file = catalogImageFileInput.files?.[0] || null;
+  selectedCatalogImageFile = file;
+  if (!file) return;
+  if (temporaryCatalogImagePreviewUrl) URL.revokeObjectURL(temporaryCatalogImagePreviewUrl);
+  temporaryCatalogImagePreviewUrl = URL.createObjectURL(file);
+  catalogImagePreview.innerHTML = `<img src="${temporaryCatalogImagePreviewUrl}" alt="Catalog image preview" />`;
+  deleteCatalogImageButton.hidden = false;
+});
+replaceCatalogImageButton?.addEventListener("click", () => catalogImageFileInput?.click());
+deleteCatalogImageButton?.addEventListener("click", () => {
+  selectedCatalogImageFile = null;
+  if (temporaryCatalogImagePreviewUrl) URL.revokeObjectURL(temporaryCatalogImagePreviewUrl);
+  temporaryCatalogImagePreviewUrl = "";
+  catalogImageFileInput.value = "";
+  settingsForm.elements.catalogImageUrl.value = "";
+  catalogImagePreview.innerHTML = `<span>Using the default bunny banner</span>`;
+  deleteCatalogImageButton.hidden = true;
 });
 /* =========================================================
    PRODUCT VARIANTS

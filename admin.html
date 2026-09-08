@@ -301,6 +301,18 @@ Hero eyebrow
             Catalog eyebrow
             <input name="catalogEyebrow" placeholder="OUR COLLECTION" />
           </label>
+          <div class="settings-upload-field" data-settings-group="catalog">
+            <label for="catalogImageFile">Catalog banner image</label>
+            <input type="hidden" name="catalogImageUrl" />
+            <input id="catalogImageFile" type="file" accept="image/png,image/jpeg,image/webp" />
+            <div class="settings-image-preview" id="catalogImagePreview">
+              <span>Using the default bunny banner</span>
+            </div>
+            <div class="settings-upload-actions">
+              <button type="button" class="secondary-button" id="replaceCatalogImageButton">Upload image</button>
+              <button type="button" class="danger-button" id="deleteCatalogImageButton" hidden>Use default image</button>
+            </div>
+          </div>
           <label data-settings-group="catalog">
             Catalog title
             <input name="catalogTitle" placeholder="Find your new favorite" />
@@ -692,7 +704,7 @@ Hero eyebrow
 <script src="supabase.js"></script>
 <script src="variants.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="admin.js?v=editable-badges-v1"></script>
+<script src="admin.js?v=catalog-image-v2"></script>
 <script src="admin-ui.js"></script>
 </body>
 </html>
