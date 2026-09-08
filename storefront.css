@@ -30,7 +30,7 @@ body.storefront-page {
   min-height: 380px;
   grid-template-columns: minmax(0, 1fr);
   padding: clamp(38px, 5vw, 68px);
-  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("assets/wonderpeps-bunny-hero.png");
+  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("wonderpeps-bunny-hero.png");
   background-position: center;
   background-size: cover;
 }
@@ -60,7 +60,7 @@ body.storefront-page {
 @media (max-width: 760px) {
   .storefront-page .hero {
     min-height: 285px; padding: 30px 22px;
-    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("assets/wonderpeps-bunny-hero.png");
+    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("wonderpeps-bunny-hero.png");
     background-position: 60% center;
   }
   .storefront-page .hero-copy { width: 66%; padding: 0; }
@@ -1757,7 +1757,7 @@ body.storefront-page.page-scroll-locked {
   min-height: 380px;
   grid-template-columns: minmax(0, 1fr);
   padding: clamp(38px, 5vw, 68px);
-  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("assets/wonderpeps-bunny-hero.png");
+  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("wonderpeps-bunny-hero.png");
   background-position: center;
   background-size: cover;
 }
@@ -1787,7 +1787,7 @@ body.storefront-page.page-scroll-locked {
 @media (max-width: 760px) {
   .storefront-page .hero {
     min-height: 285px; padding: 30px 22px;
-    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("assets/wonderpeps-bunny-hero.png");
+    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("wonderpeps-bunny-hero.png");
     background-position: 60% center;
   }
   .storefront-page .hero-copy { width: 66%; padding: 0; }
