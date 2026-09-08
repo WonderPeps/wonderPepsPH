@@ -1991,11 +1991,20 @@ body.storefront-page.page-scroll-locked {
 .storefront-page .sold-count {
   display: inline-flex;
   width: auto;
+  height: 29px;
   min-height: 29px;
+  padding-block: 0;
   align-items: center;
   justify-content: flex-start;
   box-sizing: border-box;
+  line-height: 1;
   white-space: nowrap;
+}
+.storefront-page .stock::before,
+.storefront-page .sold-count::before {
+  display: inline-block;
+  flex: 0 0 auto;
+  line-height: 1;
 }
 .storefront-page .add-button { margin-top: auto; }
 
@@ -2027,7 +2036,14 @@ body.storefront-page.page-scroll-locked {
   .storefront-page .product-card > .product-image { aspect-ratio: 1 / .92; }
   .storefront-page .product-badge { top: 10px; left: 10px; padding: 6px 9px; font-size: .64rem; }
   .storefront-page .product-stats { display: flex; flex-wrap: nowrap; align-items: center; gap: 5px; }
-  .storefront-page .sold-count, .storefront-page .stock { min-height: 27px; padding: 4px 5px; font-size: .61rem; }
+  .storefront-page .sold-count,
+  .storefront-page .stock {
+    height: 27px;
+    min-height: 27px;
+    padding: 0 7px;
+    font-size: .61rem;
+    line-height: 1;
+  }
   .storefront-page .product-body { padding-bottom: 11px; }
   .storefront-page .product-body .product-description { display: none; min-height: 0; }
   .storefront-page .price-row { padding-top: 7px; }
