@@ -30,7 +30,7 @@ body.storefront-page {
   min-height: 380px;
   grid-template-columns: minmax(0, 1fr);
   padding: clamp(38px, 5vw, 68px);
-  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("wonderpeps-bunny-hero.png");
+  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("assets/wonderpeps-bunny-hero.png");
   background-position: center;
   background-size: cover;
 }
@@ -60,7 +60,7 @@ body.storefront-page {
 @media (max-width: 760px) {
   .storefront-page .hero {
     min-height: 285px; padding: 30px 22px;
-    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("wonderpeps-bunny-hero.png");
+    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("assets/wonderpeps-bunny-hero.png");
     background-position: 60% center;
   }
   .storefront-page .hero-copy { width: 66%; padding: 0; }
@@ -74,6 +74,194 @@ body.storefront-page {
   .storefront-page .product-card > .product-image { aspect-ratio: 1 / .92; }
   .storefront-page .product-badge { top: 10px; left: 10px; padding: 6px 9px; font-size: .64rem; }
   .storefront-page .sold-count, .storefront-page .stock { font-size: .68rem; }
+}
+
+/* Final placement corrections. */
+.storefront-page .hero {
+  min-height: 500px;
+  padding: clamp(40px, 6vw, 78px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, .72fr);
+  gap: clamp(36px, 7vw, 88px);
+  background:
+    radial-gradient(circle at 12% 14%, #fff 0 5px, transparent 6px),
+    radial-gradient(circle at 90% 82%, rgba(255,255,255,.85) 0 7px, transparent 8px),
+    linear-gradient(125deg, #fffafd 3%, #ffedf5 58%, #f9d5e4 100%);
+}
+.storefront-page .hero-media { display: grid; }
+.storefront-page .hero-copy { width: auto; }
+.storefront-page .hero h1 { font-size: clamp(3rem, 5.8vw, 5.7rem); }
+
+.storefront-page .section-heading {
+  position: relative;
+  min-height: 300px;
+  padding: clamp(28px, 4vw, 48px);
+  overflow: hidden;
+  border: 1px solid var(--store-line);
+  border-radius: 30px;
+  background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.94) 47%, rgba(255,238,245,.08) 74%), url("wonderpeps-bunny-hero.png");
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 14px 38px rgba(104,56,76,.09);
+}
+.storefront-page .section-heading > div { position: relative; z-index: 1; max-width: 54%; }
+.storefront-page .section-heading .search-wrap {
+  position: absolute; z-index: 2; left: clamp(28px, 4vw, 48px); bottom: clamp(25px, 3.5vw, 40px);
+  width: min(480px, 48%);
+}
+.storefront-page .product-stats { flex-wrap: nowrap; }
+.storefront-page .stock, .storefront-page .sold-count { white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .storefront-page .hero {
+    min-height: 0; margin: 14px 14px 4px; padding: 0;
+    grid-template-columns: 1fr; gap: 0;
+    background: radial-gradient(circle at 12% 14%, #fff 0 5px, transparent 6px), radial-gradient(circle at 90% 82%, rgba(255,255,255,.85) 0 7px, transparent 8px), linear-gradient(125deg, #fffafd 3%, #ffedf5 58%, #f9d5e4 100%);
+  }
+  .storefront-page .hero-media { order: 1; width: 100%; padding: 13px 13px 0; }
+  .storefront-page .hero-copy { order: 2; width: auto; padding: 31px 25px 35px; }
+  .storefront-page .hero h1 { font-size: clamp(2.45rem, 11vw, 4rem); }
+  .storefront-page .hero-copy > p:not(.eyebrow) { margin: 18px 0 23px; font-size: .98rem; line-height: 1.7; }
+  .storefront-page .hero-button { min-height: 50px; padding: 14px 22px; font-size: inherit; }
+  .storefront-page .section-heading {
+    min-height: 330px; margin-bottom: 20px; padding: 25px 22px 94px;
+    background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.93) 53%, rgba(255,238,245,.12) 82%), url("wonderpeps-bunny-hero.png");
+    background-position: 61% center;
+  }
+  .storefront-page .section-heading > div { max-width: 68%; }
+  .storefront-page .section-heading h2 { font-size: clamp(2rem, 8.5vw, 3rem); }
+  .storefront-page .section-heading .search-wrap { left: 20px; right: 20px; bottom: 20px; width: auto; }
+  .storefront-page .product-stats { gap: 4px; }
+  .storefront-page .stock, .storefront-page .sold-count { padding: 4px 6px; font-size: .61rem; }
+}
+
+/* Correct placement: retain the product hero; place bunny art in catalog intro. */
+.storefront-page .hero {
+  min-height: 500px;
+  padding: clamp(40px, 6vw, 78px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, .72fr);
+  gap: clamp(36px, 7vw, 88px);
+  background:
+    radial-gradient(circle at 12% 14%, #fff 0 5px, transparent 6px),
+    radial-gradient(circle at 90% 82%, rgba(255,255,255,.85) 0 7px, transparent 8px),
+    linear-gradient(125deg, #fffafd 3%, #ffedf5 58%, #f9d5e4 100%);
+}
+.storefront-page .hero-media { display: grid; }
+.storefront-page .hero-copy { width: auto; }
+.storefront-page .hero h1 { font-size: clamp(3rem, 5.8vw, 5.7rem); }
+
+.storefront-page .section-heading {
+  position: relative;
+  min-height: 300px;
+  padding: clamp(28px, 4vw, 48px);
+  overflow: hidden;
+  border: 1px solid var(--store-line);
+  border-radius: 30px;
+  background-image:
+    linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.94) 47%, rgba(255,238,245,.08) 74%),
+    url("wonderpeps-bunny-hero.png");
+  background-position: center;
+  background-size: cover;
+  box-shadow: 0 14px 38px rgba(104,56,76,.09);
+}
+.storefront-page .section-heading > div { position: relative; z-index: 1; max-width: 54%; }
+.storefront-page .section-heading .search-wrap { position: absolute; z-index: 2; left: clamp(28px, 4vw, 48px); bottom: clamp(25px, 3.5vw, 40px); width: min(480px, 48%); }
+
+@media (max-width: 760px) {
+  .storefront-page .hero {
+    min-height: 0;
+    margin: 14px 14px 4px;
+    padding: 0;
+    grid-template-columns: 1fr;
+    gap: 0;
+    background:
+      radial-gradient(circle at 12% 14%, #fff 0 5px, transparent 6px),
+      radial-gradient(circle at 90% 82%, rgba(255,255,255,.85) 0 7px, transparent 8px),
+      linear-gradient(125deg, #fffafd 3%, #ffedf5 58%, #f9d5e4 100%);
+  }
+  .storefront-page .hero-media { order: 1; width: 100%; padding: 13px 13px 0; }
+  .storefront-page .hero-copy { order: 2; width: auto; padding: 31px 25px 35px; }
+  .storefront-page .hero h1 { font-size: clamp(2.45rem, 11vw, 4rem); }
+  .storefront-page .hero-copy > p:not(.eyebrow) { margin: 18px 0 23px; font-size: .98rem; line-height: 1.7; }
+  .storefront-page .hero-button { min-height: 50px; padding: 14px 22px; font-size: inherit; }
+
+  .storefront-page .section-heading {
+    min-height: 330px;
+    margin-bottom: 20px;
+    padding: 25px 22px 94px;
+    background-image:
+      linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.93) 53%, rgba(255,238,245,.12) 82%),
+      url("wonderpeps-bunny-hero.png");
+    background-position: 61% center;
+  }
+  .storefront-page .section-heading > div { max-width: 68%; }
+  .storefront-page .section-heading h2 { font-size: clamp(2rem, 8.5vw, 3rem); }
+  .storefront-page .section-heading .search-wrap { left: 20px; right: 20px; bottom: 20px; width: auto; }
+}
+
+/* Keep the original admin-managed product hero and its established layout. */
+.storefront-page .hero {
+  min-height: 500px;
+  padding: clamp(40px, 6vw, 78px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, .72fr);
+  gap: clamp(36px, 7vw, 88px);
+  background:
+    radial-gradient(circle at 12% 14%, #fff 0 5px, transparent 6px),
+    radial-gradient(circle at 90% 82%, rgba(255,255,255,.85) 0 7px, transparent 8px),
+    linear-gradient(125deg, #fffafd 3%, #ffedf5 58%, #f9d5e4 100%);
+}
+
+.storefront-page .hero-media {
+  display: grid;
+}
+
+.storefront-page .hero-copy {
+  width: auto;
+}
+
+.storefront-page .hero h1 {
+  font-size: clamp(3rem, 5.8vw, 5.7rem);
+}
+
+@media (max-width: 760px) {
+  .storefront-page .hero {
+    min-height: 0;
+    margin: 14px 14px 4px;
+    padding: 0;
+    grid-template-columns: 1fr;
+    gap: 0;
+    background:
+      radial-gradient(circle at 12% 14%, #fff 0 5px, transparent 6px),
+      radial-gradient(circle at 90% 82%, rgba(255,255,255,.85) 0 7px, transparent 8px),
+      linear-gradient(125deg, #fffafd 3%, #ffedf5 58%, #f9d5e4 100%);
+  }
+
+  .storefront-page .hero-media {
+    order: 1;
+    width: 100%;
+    padding: 13px 13px 0;
+  }
+
+  .storefront-page .hero-copy {
+    order: 2;
+    width: auto;
+    padding: 31px 25px 35px;
+  }
+
+  .storefront-page .hero h1 {
+    font-size: clamp(2.45rem, 11vw, 4rem);
+  }
+
+  .storefront-page .hero-copy > p:not(.eyebrow) {
+    margin: 18px 0 23px;
+    font-size: .98rem;
+    line-height: 1.7;
+  }
+
+  .storefront-page .hero-button {
+    min-height: 50px;
+    padding: 14px 22px;
+    font-size: inherit;
+  }
 }
 
 body.storefront-page.page-scroll-locked {
@@ -1752,18 +1940,26 @@ body.storefront-page.page-scroll-locked {
   }
 }
 
-/* Final bunny boutique overrides (kept last so existing responsive rules remain intact). */
+/* Final storefront overrides: original product hero, bunny in catalog intro. */
 .storefront-page .hero {
-  min-height: 380px;
-  grid-template-columns: minmax(0, 1fr);
-  padding: clamp(38px, 5vw, 68px);
-  background-image: linear-gradient(90deg, rgba(255,244,248,.97) 0%, rgba(255,240,246,.84) 42%, rgba(255,238,245,.12) 67%), url("wonderpeps-bunny-hero.png");
-  background-position: center;
-  background-size: cover;
+  min-height: 500px;
+  padding: clamp(40px, 6vw, 78px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(320px, .72fr);
+  gap: clamp(36px, 7vw, 88px);
+  background: radial-gradient(circle at 12% 14%, #fff 0 5px, transparent 6px), radial-gradient(circle at 90% 82%, rgba(255,255,255,.85) 0 7px, transparent 8px), linear-gradient(125deg, #fffafd 3%, #ffedf5 58%, #f9d5e4 100%);
 }
-.storefront-page .hero-media { display: none; }
-.storefront-page .hero-copy { width: min(52%, 650px); }
-.storefront-page .hero h1 { font-size: clamp(2.8rem, 5.2vw, 5rem); }
+.storefront-page .hero-media { display: grid; }
+.storefront-page .hero-copy { width: auto; }
+.storefront-page .hero h1 { font-size: clamp(3rem, 5.8vw, 5.7rem); }
+.storefront-page .section-heading {
+  position: relative; min-height: 300px; padding: clamp(28px, 4vw, 48px); overflow: hidden;
+  border: 1px solid var(--store-line); border-radius: 30px;
+  background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.94) 47%, rgba(255,238,245,.08) 74%), url("wonderpeps-bunny-hero.png");
+  background-position: center; background-size: cover;
+  box-shadow: 0 14px 38px rgba(104,56,76,.09);
+}
+.storefront-page .section-heading > div { position: relative; z-index: 1; max-width: 54%; }
+.storefront-page .section-heading .search-wrap { position: absolute; z-index: 2; left: clamp(28px, 4vw, 48px); bottom: clamp(25px, 3.5vw, 40px); width: min(480px, 48%); }
 .storefront-page .search-wrap { width: min(520px, 100%); flex-basis: min(520px, 44%); }
 .storefront-page .search { min-height: 62px; border-radius: 999px; font-size: 1rem; }
 .storefront-page .category-chip { min-height: 54px; padding-inline: 25px; }
@@ -1781,24 +1977,34 @@ body.storefront-page.page-scroll-locked {
 }
 .storefront-page .product-body h3 { min-height: 2.45em; }
 .storefront-page .product-body .product-description { min-height: 2.7em; }
-.storefront-page .product-stats { min-height: 31px; }
+.storefront-page .product-stats { min-height: 31px; flex-wrap: nowrap; }
+.storefront-page .stock, .storefront-page .sold-count { white-space: nowrap; }
 .storefront-page .add-button { margin-top: auto; }
 
 @media (max-width: 760px) {
   .storefront-page .hero {
-    min-height: 285px; padding: 30px 22px;
-    background-image: linear-gradient(90deg, rgba(255,244,248,.98) 0%, rgba(255,240,246,.88) 47%, rgba(255,238,245,.05) 76%), url("wonderpeps-bunny-hero.png");
-    background-position: 60% center;
+    min-height: 0; margin: 14px 14px 4px; padding: 0;
+    grid-template-columns: 1fr; gap: 0;
+    background: radial-gradient(circle at 12% 14%, #fff 0 5px, transparent 6px), radial-gradient(circle at 90% 82%, rgba(255,255,255,.85) 0 7px, transparent 8px), linear-gradient(125deg, #fffafd 3%, #ffedf5 58%, #f9d5e4 100%);
   }
-  .storefront-page .hero-copy { width: 66%; padding: 0; }
-  .storefront-page .hero h1 { font-size: clamp(2rem, 8.7vw, 3.15rem); line-height: 1; }
-  .storefront-page .hero-copy > p:not(.eyebrow) { margin: 13px 0 17px; font-size: .82rem; line-height: 1.45; }
-  .storefront-page .hero-button { min-height: 43px; padding: 11px 17px; font-size: .82rem; }
+  .storefront-page .hero-media { order: 1; width: 100%; padding: 13px 13px 0; }
+  .storefront-page .hero-copy { order: 2; width: auto; padding: 31px 25px 35px; }
+  .storefront-page .hero h1 { font-size: clamp(2.45rem, 11vw, 4rem); }
+  .storefront-page .hero-copy > p:not(.eyebrow) { margin: 18px 0 23px; font-size: .98rem; line-height: 1.7; }
+  .storefront-page .hero-button { min-height: 50px; padding: 14px 22px; font-size: inherit; }
   .storefront-page .catalog-section { padding-top: 32px; }
-  .storefront-page .section-heading { gap: 16px; }
+  .storefront-page .section-heading {
+    min-height: 330px; margin-bottom: 20px; padding: 25px 22px 94px; gap: 16px;
+    background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.93) 53%, rgba(255,238,245,.12) 82%), url("wonderpeps-bunny-hero.png");
+    background-position: 61% center;
+  }
+  .storefront-page .section-heading > div { max-width: 68%; }
+  .storefront-page .section-heading h2 { font-size: clamp(2rem, 8.5vw, 3rem); }
+  .storefront-page .section-heading .search-wrap { left: 20px; right: 20px; bottom: 20px; width: auto; }
   .storefront-page .search { min-height: 58px; }
   .storefront-page .category-chip { min-height: 50px; padding: 12px 20px; }
   .storefront-page .product-card > .product-image { aspect-ratio: 1 / .92; }
   .storefront-page .product-badge { top: 10px; left: 10px; padding: 6px 9px; font-size: .64rem; }
-  .storefront-page .sold-count, .storefront-page .stock { font-size: .68rem; }
+  .storefront-page .product-stats { gap: 4px; }
+  .storefront-page .sold-count, .storefront-page .stock { padding: 4px 6px; font-size: .61rem; }
 }

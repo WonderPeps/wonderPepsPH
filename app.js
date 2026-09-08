@@ -549,14 +549,7 @@ function renderProducts(list, grid = productGrid) {
       const variants = getProductVariants(product.id);
       const hasVariants = variants.length > 0;
       const soldCount = productSoldCounts.get(String(product.id)) || 0;
-      const createdAt = product.created_at ? new Date(product.created_at) : null;
-      const isNew = createdAt && !Number.isNaN(createdAt.getTime()) &&
-        Date.now() - createdAt.getTime() <= 30 * 24 * 60 * 60 * 1000;
-      const productBadge = soldCount >= 10
-        ? "Bestseller"
-        : isNew
-          ? "New"
-          : "";
+      const productBadge = String(product.badge || "").trim().slice(0, 24);
 const displayedStock = hasVariants
   ? variants.reduce(
       (total, variant) =>

@@ -1999,6 +1999,7 @@ function renderProducts() {
             <th>Name</th>
             <th>Description</th>
             <th>Category</th>
+            <th>Badge</th>
             <th>Price</th>
             <th>Stock</th>
             <th>Visibility</th>
@@ -2013,6 +2014,7 @@ function renderProducts() {
               <td>${escapeHtml(product.name)}</td>
               <td>${escapeHtml(product.description || "—")}</td>
               <td>${escapeHtml(product.category || "Uncategorized")}</td>
+              <td>${escapeHtml(product.badge || "—")}</td>
               <td>${formatCurrency(product.price)}</td>
               <td>${Number(product.stock || 0)}</td>
               <td>${product.is_visible ? "Visible" : "Hidden"}</td>
@@ -2657,6 +2659,7 @@ if (!categoryValue) {
    price: basePrice,
    stock: baseStock,
    category: categoryValue,
+    badge: String(formData.get("badge") || "").trim().slice(0, 24) || null,
     image_url: productImageUrl || null,
     description:
       String(formData.get("description") || "").trim() || null,
@@ -2730,6 +2733,7 @@ try {
   productForm.elements.price.value = product.price ?? 0;
   productForm.elements.stock.value = product.stock ?? 0;
   updateProductCategoryChoices(product.category || "");
+  productForm.elements.badge.value = product.badge || "";
   productForm.elements.image.value = product.image_url || "";
   selectedProductImageFile = null;
   productImageFileInput.value = "";
