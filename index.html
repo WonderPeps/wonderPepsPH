@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#f9d8e5" />
   <title>Wonder Peps PH</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23df4f86'/%3E%3Cpath d='M32 48S13 37 13 23c0-7 5-11 11-11 4 0 7 2 8 5 2-3 5-5 9-5 6 0 11 4 11 11 0 14-20 25-20 25Z' fill='white'/%3E%3C/svg%3E" />
   <script>
     // Shared links opened by Messenger can restore a stale vertical position.
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
@@ -16,8 +17,8 @@
     [0, 60, 180, 450].forEach((delay) => setTimeout(startAtTop, delay));
     window.addEventListener("pageshow", startAtTop);
   </script>
-  <link rel="stylesheet" href="styles.css?v=payment-shipping-v16" />
-  <link rel="stylesheet" href="storefront.css" />
+  <link rel="stylesheet" href="styles.css?v=mobile-bag-bubble-v18" />
+  <link rel="stylesheet" href="storefront.css?v=sold-pill-position-v10" />
 </head>
 <body class="storefront-page settings-loading">
   <header class="site-header">
@@ -133,7 +134,9 @@
           <p id="catalogSubtitle" class="catalog-subtitle">Sweet little picks, chosen just for you.</p>
         </div>
 
-        <label class="search-wrap" for="searchInput">
+      </div>
+
+        <label class="search-wrap catalog-search" for="searchInput">
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <circle cx="11" cy="11" r="6.5" />
             <path d="m16 16 4 4" />
@@ -146,7 +149,6 @@
             autocomplete="off"
           />
         </label>
-      </div>
 
       <div class="category-area" aria-label="Product categories">
         <div id="categoryFilters" class="category-filters"></div>
@@ -494,6 +496,6 @@
 <script src="supabase.js"></script>
 <script src="variants.js"></script>
 <script src="favorites.js"></script>
-<script src="checkout-payment-v18.js"></script>
+<script src="checkout-payment-v18.js?v=secure-order-rpc-v1"></script>
 </body>
 </html>

@@ -19,6 +19,7 @@ const heroFallback = document.querySelector("#heroFallback");
 const catalogEyebrow = document.querySelector("#catalogEyebrow");
 const catalogTitle = document.querySelector("#catalogTitle");
 const catalogSubtitle = document.querySelector("#catalogSubtitle");
+const catalogHeading = document.querySelector(".section-heading");
 const footerBrand = document.querySelector("#footerBrand");
 const facebookLink = document.querySelector("#facebookLink");
 const tiktokLink = document.querySelector("#tiktokLink");
@@ -129,6 +130,7 @@ function clearSavedCart() {
 let selectedCategory = "All";
 let products = [];
 let productVariants = [];
+let productSoldCounts = new Map();
 let activeVariantProduct = null;
 let selectedVariant = null;
 let selectedVariantQuantity = 1;
@@ -302,6 +304,18 @@ function applyShopSettings(settings) {
       "Sweet little picks, chosen just for you.";
   }
 
+  if (catalogHeading) {
+    const catalogImageUrl = String(settings.catalog_image_url || "").trim();
+    if (catalogImageUrl) {
+      catalogHeading.style.setProperty(
+        "--catalog-image",
+        `url(${JSON.stringify(catalogImageUrl)})`
+      );
+    } else {
+      catalogHeading.style.removeProperty("--catalog-image");
+    }
+  }
+
   if (footerBrand) {
     footerBrand.textContent = `© ${shopName}`;
   }
@@ -376,7 +390,8 @@ async function loadProducts() {
 
   const [
     { data: productData, error: productError },
-    { data: variantData, error: variantError }
+    { data: variantData, error: variantError },
+    { data: soldData, error: soldError }
   ] = await Promise.all([
     supabaseClient
       .from("products")
@@ -388,7 +403,11 @@ async function loadProducts() {
       .from("product_variants")
       .select("*")
       .eq("is_active", true)
-      .order("sort_order", { ascending: true })
+      .order("sort_order", { ascending: true }),
+
+    // This RPC returns aggregate totals only, so no customer/order details are
+    // exposed to storefront visitors. See supabase-sold-counts.sql.
+    supabaseClient.rpc("get_product_sold_counts")
   ]);
   if (productError) {
      grid.innerHTML = `
@@ -407,6 +426,16 @@ async function loadProducts() {
   }
 
   productVariants = variantData || [];
+  productSoldCounts = new Map(
+    (soldError ? [] : soldData || []).map((row) => [
+      String(row.product_id),
+      Number(row.sold_count || 0)
+    ])
+  );
+
+  if (soldError) {
+    console.warn("Could not load sold counts:", soldError.message);
+  }
 
   products = (productData || []).map((product) => ({
     ...product,
@@ -443,6 +472,15 @@ function getProductVariants(productId) {
     (variant) =>
       String(variant.product_id) === String(productId)
   );
+}
+
+function formatSoldCount(count) {
+  const amount = Number(count || 0);
+  if (amount < 1000) return String(amount);
+  const compact = amount >= 10000
+    ? Math.round(amount / 1000)
+    : Math.round(amount / 100) / 10;
+  return `${compact}K`;
 }
 function renderCategoryFilters() {
 
@@ -523,6 +561,8 @@ function renderProducts(list, grid = productGrid) {
     .map((product) => {
       const variants = getProductVariants(product.id);
       const hasVariants = variants.length > 0;
+      const soldCount = productSoldCounts.get(String(product.id)) || 0;
+      const productBadge = String(product.badge || "").trim().slice(0, 24);
 const displayedStock = hasVariants
   ? variants.reduce(
       (total, variant) =>
@@ -546,6 +586,8 @@ const displayedStock = hasVariants
 
       return `
   <article class="product-card">
+
+${productBadge ? `<span class="product-badge">${productBadge}</span>` : ""}
 
 <button
     class="favorite-button ${isFavorite(product.id) ? "is-favorite" : ""}"
@@ -576,10 +618,11 @@ const displayedStock = hasVariants
 
             <div class="price-row">
               <strong>${formatCurrency(product.price)}</strong>
+            </div>
 
-              <span class="stock">
-                Stock: ${displayedStock}
-              </span>
+            <div class="product-stats" aria-label="Product availability and sales">
+              <span class="stock">Stock: ${displayedStock}</span>
+              ${soldCount > 0 ? `<span class="sold-count">${formatSoldCount(soldCount)} sold</span>` : ""}
             </div>
 
             <button
@@ -1848,19 +1891,6 @@ zipcode: zipcode || null,
       status: "Pending"
     };
 
-    const { data: order, error: orderError } = await supabaseClient
-      .from("orders")
-      .insert(orderData)
-      .select("id, order_ref")
-      .single();
-
-    if (orderError) {
-      if (uploadedReceiptPath) {
-        await deleteUploadedReceipt(uploadedReceiptPath);
-      }
-      throw orderError;
-    }
-
     const orderItems = cart.map((item) => {
   const product = getProductById(item.productId);
 
@@ -1877,7 +1907,6 @@ zipcode: zipcode || null,
     : null;
 
   return {
-    order_id: order.id,
     product_id: product.id,
     product_name: product.name,
 
@@ -1891,15 +1920,18 @@ zipcode: zipcode || null,
   };
 });
 
-    const { error: itemsError } = await supabaseClient
-      .from("order_items")
-      .insert(orderItems);
+    const { data: order, error: orderError } = await supabaseClient
+      .rpc("place_storefront_order", {
+        p_order: orderData,
+        p_items: orderItems
+      })
+      .single();
 
-    if (itemsError) {
+    if (orderError) {
       if (uploadedReceiptPath) {
         await deleteUploadedReceipt(uploadedReceiptPath);
       }
-      throw itemsError;
+      throw orderError;
     }
 
    clearSavedCart();

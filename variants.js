@@ -21,7 +21,6 @@ const VariantManager = (() => {
     supabase = config.supabaseClient;
     uploadImage = config.uploadProductImage;
 
-    console.log("Variant Manager initialized");
   }
 
   function isEnabled() {

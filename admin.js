@@ -42,6 +42,8 @@ let temporaryShopLogoPreviewUrl = "";
 
 let selectedHeroImageFile = null;
 let temporaryHeroImagePreviewUrl = "";
+let selectedCatalogImageFile = null;
+let temporaryCatalogImagePreviewUrl = "";
 
 const heroImageFileInput = document.querySelector("#heroImageFile");
 const heroImagePreview = document.querySelector("#heroImagePreview");
@@ -49,6 +51,10 @@ const replaceHeroImageButton =
   document.querySelector("#replaceHeroImageButton");
 const deleteHeroImageButton =
   document.querySelector("#deleteHeroImageButton");
+const catalogImageFileInput = document.querySelector("#catalogImageFile");
+const catalogImagePreview = document.querySelector("#catalogImagePreview");
+const replaceCatalogImageButton = document.querySelector("#replaceCatalogImageButton");
+const deleteCatalogImageButton = document.querySelector("#deleteCatalogImageButton");
 const shopLogoFileInput = document.querySelector("#shopLogoFile");
 const shopLogoPreview = document.querySelector("#shopLogoPreview");
 const replaceShopLogoButton =
@@ -124,6 +130,10 @@ let paymentMethods = [];
 let orders = [];
 let orderItemsByOrder = {};
 let activeOrderFilter = "all";
+let orderPage = 1;
+const orderPageSize = 5;
+let dashboardOrderPage = 1;
+const dashboardOrderPageSize = 3;
 let activeSettingsTab = "branding";
 let categoryRegistry = [];
 let categoryVisibilityState = {};
@@ -165,6 +175,7 @@ function setupAdminUI() {
   });
 
   ordersSearch?.addEventListener("input", () => {
+    orderPage = 1;
     renderOrders(getFilteredOrders());
   });
 
@@ -531,6 +542,14 @@ if (data.hero_image_url) {
 
   deleteHeroImageButton.hidden = true;
 }
+settingsForm.elements.catalogImageUrl.value = data.catalog_image_url || "";
+if (data.catalog_image_url) {
+  catalogImagePreview.innerHTML = `<img src="${escapeHtml(data.catalog_image_url)}" alt="Catalog banner" />`;
+  deleteCatalogImageButton.hidden = false;
+} else {
+  catalogImagePreview.innerHTML = `<span>Using the default bunny banner</span>`;
+  deleteCatalogImageButton.hidden = true;
+}
   settingsForm.elements.heroEyebrow.value = data.hero_eyebrow || "";
   settingsForm.elements.heroTitle.value = data.hero_title || "";
   settingsForm.elements.heroSubtitle.value = data.hero_subtitle || "";
@@ -560,6 +579,7 @@ settingsForm.addEventListener("submit", async (event) => {
     shop_name: String(formData.get("shopName") || "").trim(),
     logo_url: String(formData.get("logoUrl") || "").trim() || null,
     hero_image_url: String(formData.get("heroImageUrl") || "").trim() || null,
+    catalog_image_url: String(formData.get("catalogImageUrl") || "").trim() || null,
     hero_eyebrow: settingsForm.elements.heroEyebrow.value,
     hero_title: String(formData.get("heroTitle") || "").trim(),
     hero_subtitle: String(formData.get("heroSubtitle") || "").trim(),
@@ -601,6 +621,15 @@ if (selectedHeroImageFile) {
     return;
   }
 }
+if (selectedCatalogImageFile) {
+  try {
+    updates.catalog_image_url = await uploadProductImage(selectedCatalogImageFile);
+    settingsForm.elements.catalogImageUrl.value = updates.catalog_image_url;
+  } catch (uploadError) {
+    alert(`Could not upload catalog image: ${uploadError.message}`);
+    return;
+  }
+}
 const { error } = await supabaseClient
   .from("shop_settings")
   .update(updates)
@@ -613,6 +642,7 @@ if (error) {
 
 selectedShopLogoFile = null;
 selectedHeroImageFile = null;
+selectedCatalogImageFile = null;
 
 alert("Shop profile saved online.");
 });
@@ -1919,8 +1949,6 @@ async function loadProducts() {
       `<p>Could not load products: ${escapeHtml(error.message)}</p>`;
     return;
   }
-   console.log("data received:", data);
-   console.log("length:", data?.length);
   products = data || [];
   categoryRegistry = Array.from(new Set([
     ...categoryRegistry,
@@ -1999,6 +2027,7 @@ function renderProducts() {
             <th>Name</th>
             <th>Description</th>
             <th>Category</th>
+            <th>Badge</th>
             <th>Price</th>
             <th>Stock</th>
             <th>Visibility</th>
@@ -2013,6 +2042,7 @@ function renderProducts() {
               <td>${escapeHtml(product.name)}</td>
               <td>${escapeHtml(product.description || "—")}</td>
               <td>${escapeHtml(product.category || "Uncategorized")}</td>
+              <td>${escapeHtml(product.badge || "—")}</td>
               <td>${formatCurrency(product.price)}</td>
               <td>${Number(product.stock || 0)}</td>
               <td>${product.is_visible ? "Visible" : "Hidden"}</td>
@@ -2354,6 +2384,25 @@ deleteHeroImageButton?.addEventListener("click", () => {
 
   deleteHeroImageButton.hidden = true;
 });
+catalogImageFileInput?.addEventListener("change", () => {
+  const file = catalogImageFileInput.files?.[0] || null;
+  selectedCatalogImageFile = file;
+  if (!file) return;
+  if (temporaryCatalogImagePreviewUrl) URL.revokeObjectURL(temporaryCatalogImagePreviewUrl);
+  temporaryCatalogImagePreviewUrl = URL.createObjectURL(file);
+  catalogImagePreview.innerHTML = `<img src="${temporaryCatalogImagePreviewUrl}" alt="Catalog image preview" />`;
+  deleteCatalogImageButton.hidden = false;
+});
+replaceCatalogImageButton?.addEventListener("click", () => catalogImageFileInput?.click());
+deleteCatalogImageButton?.addEventListener("click", () => {
+  selectedCatalogImageFile = null;
+  if (temporaryCatalogImagePreviewUrl) URL.revokeObjectURL(temporaryCatalogImagePreviewUrl);
+  temporaryCatalogImagePreviewUrl = "";
+  catalogImageFileInput.value = "";
+  settingsForm.elements.catalogImageUrl.value = "";
+  catalogImagePreview.innerHTML = `<span>Using the default bunny banner</span>`;
+  deleteCatalogImageButton.hidden = true;
+});
 /* =========================================================
    PRODUCT VARIANTS
 ========================================================= */
@@ -2657,6 +2706,7 @@ if (!categoryValue) {
    price: basePrice,
    stock: baseStock,
    category: categoryValue,
+    badge: String(formData.get("badge") || "").trim().slice(0, 24) || null,
     image_url: productImageUrl || null,
     description:
       String(formData.get("description") || "").trim() || null,
@@ -2730,6 +2780,7 @@ try {
   productForm.elements.price.value = product.price ?? 0;
   productForm.elements.stock.value = product.stock ?? 0;
   updateProductCategoryChoices(product.category || "");
+  productForm.elements.badge.value = product.badge || "";
   productForm.elements.image.value = product.image_url || "";
   selectedProductImageFile = null;
   productImageFileInput.value = "";
@@ -2936,6 +2987,7 @@ function renderOrderTabs() {
     .forEach((button) => {
       button.addEventListener("click", () => {
         activeOrderFilter = button.dataset.orderFilter || "all";
+        orderPage = 1;
         renderOrderTabs();
         renderOrders(getFilteredOrders());
       });
@@ -2944,6 +2996,7 @@ function renderOrderTabs() {
 
 function setOrderFilter(filter) {
   activeOrderFilter = filter;
+  orderPage = 1;
   renderOrderTabs();
   renderOrders(getFilteredOrders());
 }
@@ -3324,7 +3377,12 @@ function renderOrders(ordersToRender) {
     return;
   }
 
-  ordersList.innerHTML = ordersToRender
+  const totalPages = Math.max(1, Math.ceil(ordersToRender.length / orderPageSize));
+  orderPage = Math.min(Math.max(1, orderPage), totalPages);
+  const pageStart = (orderPage - 1) * orderPageSize;
+  const pageOrders = ordersToRender.slice(pageStart, pageStart + orderPageSize);
+
+  ordersList.innerHTML = pageOrders
     .map(
       (order) => {
         const orderedAt = order.created_at
@@ -3563,7 +3621,13 @@ ${Boolean(order.archived) ? `
 </article>
     `;
   })
-  .join("");
+  .join("") + `
+    <div class="pagination order-pagination" aria-label="Orders pages">
+      <button class="secondary-button" type="button" data-orders-page="prev" ${orderPage <= 1 ? "disabled" : ""}>Previous</button>
+      <span class="tiny-note">Page ${orderPage} of ${totalPages}</span>
+      <button class="secondary-button" type="button" data-orders-page="next" ${orderPage >= totalPages ? "disabled" : ""}>Next</button>
+    </div>
+  `;
 
 
   ordersList
@@ -3648,6 +3712,15 @@ ${Boolean(order.archived) ? `
         }
       });
     });
+
+  ordersList.querySelectorAll("[data-orders-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.ordersPage === "prev" && orderPage > 1) orderPage -= 1;
+      if (button.dataset.ordersPage === "next" && orderPage < totalPages) orderPage += 1;
+      renderOrders(getFilteredOrders());
+      document.querySelector("#ordersSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 }
 
 async function updateOrderStatus(id, status) {
@@ -3824,9 +3897,12 @@ function renderDashboard() {
   const revenue = dashboardOrders.reduce((sum, order) => sum + Number(order.total || order.amount_paid || 0), 0);
   const pendingPayments = dashboardOrders.filter((order) => String(order.payment_status || "Pending").toLowerCase() === "pending").length;
   const shippedOrders = dashboardOrders.filter((order) => ["paid", "confirmed", "shipped", "delivered"].includes(String(order.status || "").toLowerCase())).length;
-  const recentOrders = [...dashboardOrders]
-    .sort((first, second) => new Date(second.created_at || 0) - new Date(first.created_at || 0))
-    .slice(0, 5);
+  const allRecentOrders = [...dashboardOrders]
+    .sort((first, second) => new Date(second.created_at || 0) - new Date(first.created_at || 0));
+  const recentOrderPages = Math.max(1, Math.ceil(allRecentOrders.length / dashboardOrderPageSize));
+  dashboardOrderPage = Math.min(Math.max(1, dashboardOrderPage), recentOrderPages);
+  const recentStart = (dashboardOrderPage - 1) * dashboardOrderPageSize;
+  const recentOrders = allRecentOrders.slice(recentStart, recentStart + dashboardOrderPageSize);
   const dashboardOrderIds = new Set(
     dashboardOrders.map((order) => String(order.id))
   );
@@ -3887,8 +3963,22 @@ function renderDashboard() {
               <span>${escapeHtml(order.payment_status || "Pending")}</span>
             </div>
           </div>
-        `).join("")
+        `).join("") + `
+          <div class="pagination dashboard-order-pagination" aria-label="Recent order pages">
+            <button class="secondary-button" type="button" data-dashboard-orders-page="prev" ${dashboardOrderPage <= 1 ? "disabled" : ""}>Previous</button>
+            <span class="tiny-note">Page ${dashboardOrderPage} of ${recentOrderPages}</span>
+            <button class="secondary-button" type="button" data-dashboard-orders-page="next" ${dashboardOrderPage >= recentOrderPages ? "disabled" : ""}>Next</button>
+          </div>
+        `
       : `<p class="empty">No orders yet.</p>`;
+
+    dashboardRecentOrders.querySelectorAll("[data-dashboard-orders-page]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.dashboardOrdersPage === "prev" && dashboardOrderPage > 1) dashboardOrderPage -= 1;
+        if (button.dataset.dashboardOrdersPage === "next" && dashboardOrderPage < recentOrderPages) dashboardOrderPage += 1;
+        renderDashboard();
+      });
+    });
   }
 
   if (dashboardBestSellers) {
