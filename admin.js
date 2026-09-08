@@ -1949,8 +1949,6 @@ async function loadProducts() {
       `<p>Could not load products: ${escapeHtml(error.message)}</p>`;
     return;
   }
-   console.log("data received:", data);
-   console.log("length:", data?.length);
   products = data || [];
   categoryRegistry = Array.from(new Set([
     ...categoryRegistry,

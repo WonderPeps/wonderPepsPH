@@ -34,7 +34,7 @@
       if (!section) return;
 
       setActiveLink(id);
-      section.scrollIntoView({ behavior: "smooth", block: "start" });
+      section.scrollIntoView({ behavior: "auto", block: "start" });
       history.replaceState(null, "", `${location.pathname}${location.search}#${id}`);
 
       if (window.matchMedia("(max-width: 900px)").matches) {
@@ -42,26 +42,6 @@
       }
     });
   });
-
-  if ("IntersectionObserver" in window) {
-    const visibleSections = new Map();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          visibleSections.set(entry.target.id, entry.isIntersecting ? entry.intersectionRatio : 0);
-        });
-
-        const active = Array.from(visibleSections.entries())
-          .filter(([, ratio]) => ratio > 0)
-          .sort((first, second) => second[1] - first[1])[0];
-
-        if (active) setActiveLink(active[0]);
-      },
-      { rootMargin: "-120px 0px -58% 0px", threshold: [0.05, 0.2, 0.5] }
-    );
-
-    sectionById.forEach((section) => observer.observe(section));
-  }
 
   document.querySelectorAll("[data-settings-tab]").forEach((button) => {
     button.setAttribute("aria-controls", "settingsForm");
