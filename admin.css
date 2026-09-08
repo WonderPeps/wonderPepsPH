@@ -22,6 +22,10 @@
   font-family: ui-rounded, "SF Pro Rounded", "Nunito", Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
+.admin-panel-section {
+  scroll-margin-top: 24px;
+}
+
 .admin-page::before {
   content: "";
   position: fixed;
@@ -459,6 +463,18 @@
 .compact-actions { min-width: 200px; }
 .compact-actions .secondary-button { min-height: 36px; padding: 7px 10px; font-size: .78rem; }
 .pagination { margin-top: 16px; }
+.order-pagination,
+.dashboard-order-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+}
+.order-pagination .secondary-button,
+.dashboard-order-pagination .secondary-button {
+  min-width: 88px;
+}
 
 .order-tabs { gap: 8px; margin: 5px 0 0; }
 .order-tab { min-height: 40px; padding: 8px 12px; border-radius: 12px; }

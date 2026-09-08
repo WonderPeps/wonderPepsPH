@@ -1998,14 +1998,15 @@ body.storefront-page.page-scroll-locked {
   .storefront-page .hero-button { min-height: 50px; padding: 14px 22px; font-size: inherit; }
   .storefront-page .catalog-section { padding-top: 32px; }
   .storefront-page .section-heading {
-    min-height: 250px; margin-bottom: 18px; padding: 24px 22px; gap: 16px;
+    min-height: 0; margin-bottom: 18px; padding: 26px 22px; gap: 16px;
     background-image: linear-gradient(90deg, rgba(255,252,253,.99) 0%, rgba(255,244,248,.93) 53%, rgba(255,238,245,.12) 82%), var(--catalog-image, url("wonderpeps-bunny-hero.png"));
-    background-position: center;
+    background-position: center, right center;
     background-repeat: no-repeat;
-    background-size: 100% auto;
+    background-size: cover, auto 100%;
   }
-  .storefront-page .section-heading > div { max-width: 68%; }
-  .storefront-page .section-heading h2 { font-size: clamp(2rem, 8.5vw, 3rem); }
+  .storefront-page .section-heading > div { max-width: 62%; }
+  .storefront-page .section-heading h2 { font-size: clamp(1.85rem, 7.6vw, 2.7rem); }
+  .storefront-page .catalog-subtitle { max-width: 95%; font-size: .88rem; }
   .storefront-page .catalog-search { width: 100%; margin-bottom: 20px; }
   .storefront-page .search { min-height: 58px; }
   .storefront-page .category-chip { min-height: 50px; padding: 12px 20px; }

@@ -130,6 +130,10 @@ let paymentMethods = [];
 let orders = [];
 let orderItemsByOrder = {};
 let activeOrderFilter = "all";
+let orderPage = 1;
+const orderPageSize = 5;
+let dashboardOrderPage = 1;
+const dashboardOrderPageSize = 3;
 let activeSettingsTab = "branding";
 let categoryRegistry = [];
 let categoryVisibilityState = {};
@@ -171,6 +175,7 @@ function setupAdminUI() {
   });
 
   ordersSearch?.addEventListener("input", () => {
+    orderPage = 1;
     renderOrders(getFilteredOrders());
   });
 
@@ -2984,6 +2989,7 @@ function renderOrderTabs() {
     .forEach((button) => {
       button.addEventListener("click", () => {
         activeOrderFilter = button.dataset.orderFilter || "all";
+        orderPage = 1;
         renderOrderTabs();
         renderOrders(getFilteredOrders());
       });
@@ -2992,6 +2998,7 @@ function renderOrderTabs() {
 
 function setOrderFilter(filter) {
   activeOrderFilter = filter;
+  orderPage = 1;
   renderOrderTabs();
   renderOrders(getFilteredOrders());
 }
@@ -3372,7 +3379,12 @@ function renderOrders(ordersToRender) {
     return;
   }
 
-  ordersList.innerHTML = ordersToRender
+  const totalPages = Math.max(1, Math.ceil(ordersToRender.length / orderPageSize));
+  orderPage = Math.min(Math.max(1, orderPage), totalPages);
+  const pageStart = (orderPage - 1) * orderPageSize;
+  const pageOrders = ordersToRender.slice(pageStart, pageStart + orderPageSize);
+
+  ordersList.innerHTML = pageOrders
     .map(
       (order) => {
         const orderedAt = order.created_at
@@ -3611,7 +3623,13 @@ ${Boolean(order.archived) ? `
 </article>
     `;
   })
-  .join("");
+  .join("") + `
+    <div class="pagination order-pagination" aria-label="Orders pages">
+      <button class="secondary-button" type="button" data-orders-page="prev" ${orderPage <= 1 ? "disabled" : ""}>Previous</button>
+      <span class="tiny-note">Page ${orderPage} of ${totalPages}</span>
+      <button class="secondary-button" type="button" data-orders-page="next" ${orderPage >= totalPages ? "disabled" : ""}>Next</button>
+    </div>
+  `;
 
 
   ordersList
@@ -3696,6 +3714,15 @@ ${Boolean(order.archived) ? `
         }
       });
     });
+
+  ordersList.querySelectorAll("[data-orders-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.ordersPage === "prev" && orderPage > 1) orderPage -= 1;
+      if (button.dataset.ordersPage === "next" && orderPage < totalPages) orderPage += 1;
+      renderOrders(getFilteredOrders());
+      document.querySelector("#ordersSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
 }
 
 async function updateOrderStatus(id, status) {
@@ -3872,9 +3899,12 @@ function renderDashboard() {
   const revenue = dashboardOrders.reduce((sum, order) => sum + Number(order.total || order.amount_paid || 0), 0);
   const pendingPayments = dashboardOrders.filter((order) => String(order.payment_status || "Pending").toLowerCase() === "pending").length;
   const shippedOrders = dashboardOrders.filter((order) => ["paid", "confirmed", "shipped", "delivered"].includes(String(order.status || "").toLowerCase())).length;
-  const recentOrders = [...dashboardOrders]
-    .sort((first, second) => new Date(second.created_at || 0) - new Date(first.created_at || 0))
-    .slice(0, 5);
+  const allRecentOrders = [...dashboardOrders]
+    .sort((first, second) => new Date(second.created_at || 0) - new Date(first.created_at || 0));
+  const recentOrderPages = Math.max(1, Math.ceil(allRecentOrders.length / dashboardOrderPageSize));
+  dashboardOrderPage = Math.min(Math.max(1, dashboardOrderPage), recentOrderPages);
+  const recentStart = (dashboardOrderPage - 1) * dashboardOrderPageSize;
+  const recentOrders = allRecentOrders.slice(recentStart, recentStart + dashboardOrderPageSize);
   const dashboardOrderIds = new Set(
     dashboardOrders.map((order) => String(order.id))
   );
@@ -3935,8 +3965,22 @@ function renderDashboard() {
               <span>${escapeHtml(order.payment_status || "Pending")}</span>
             </div>
           </div>
-        `).join("")
+        `).join("") + `
+          <div class="pagination dashboard-order-pagination" aria-label="Recent order pages">
+            <button class="secondary-button" type="button" data-dashboard-orders-page="prev" ${dashboardOrderPage <= 1 ? "disabled" : ""}>Previous</button>
+            <span class="tiny-note">Page ${dashboardOrderPage} of ${recentOrderPages}</span>
+            <button class="secondary-button" type="button" data-dashboard-orders-page="next" ${dashboardOrderPage >= recentOrderPages ? "disabled" : ""}>Next</button>
+          </div>
+        `
       : `<p class="empty">No orders yet.</p>`;
+
+    dashboardRecentOrders.querySelectorAll("[data-dashboard-orders-page]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.dashboardOrdersPage === "prev" && dashboardOrderPage > 1) dashboardOrderPage -= 1;
+        if (button.dataset.dashboardOrdersPage === "next" && dashboardOrderPage < recentOrderPages) dashboardOrderPage += 1;
+        renderDashboard();
+      });
+    });
   }
 
   if (dashboardBestSellers) {

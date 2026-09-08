@@ -27,9 +27,15 @@
   }
 
   navLinks.forEach((link) => {
-    link.addEventListener("click", () => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
       const id = link.getAttribute("href").slice(1);
+      const section = sectionById.get(id);
+      if (!section) return;
+
       setActiveLink(id);
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", `${location.pathname}${location.search}#${id}`);
 
       if (window.matchMedia("(max-width: 900px)").matches) {
         link.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
