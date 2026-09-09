@@ -189,7 +189,7 @@ function roundToTwo(value) {
   return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
 }
 
-function showStoreNotice(message, type = "warning") {
+function showStoreNotice(message, type = "warning", title = "Just a moment 🌸") {
   let notice = document.getElementById("storeNotice");
 
   if (!notice) {
@@ -197,11 +197,12 @@ function showStoreNotice(message, type = "warning") {
     notice.id = "storeNotice";
     notice.setAttribute("role", "status");
     notice.setAttribute("aria-live", "polite");
-    notice.innerHTML = '<span class="store-notice-icon" aria-hidden="true">♡</span><span class="store-notice-message"></span>';
+    notice.innerHTML = '<span class="store-notice-icon" aria-hidden="true">♡</span><span class="store-notice-copy"><strong class="store-notice-title"></strong><span class="store-notice-message"></span></span>';
     document.body.appendChild(notice);
   }
 
   notice.className = `store-notice store-notice-${type}`;
+  notice.querySelector(".store-notice-title").textContent = title;
   notice.querySelector(".store-notice-message").textContent = message;
   requestAnimationFrame(() => notice.classList.add("show"));
 
@@ -1053,7 +1054,11 @@ function addToCart(productId, sourceButton = null) {
   const currentQuantity = existingItem ? existingItem.quantity : 0;
 
   if (currentQuantity >= Number(product.stock)) {
-    showStoreNotice("You cannot add more than the available stock.");
+    showStoreNotice(
+      "You already have the maximum available quantity in your bag. Please check your bag.",
+      "warning",
+      "Oopsie! This is the last one 🌸"
+    );
     return;
   }
 
@@ -1113,7 +1118,11 @@ function changeQuantity(productId, variantId, amount) {
   }
 
   if (newQuantity > stock) {
-    showStoreNotice("You cannot add more than the available stock.");
+    showStoreNotice(
+      "You already have the maximum available quantity in your bag. Please check your bag.",
+      "warning",
+      "Oopsie! This is the last one 🌸"
+    );
     return;
   }
 
