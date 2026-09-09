@@ -189,6 +189,26 @@ function roundToTwo(value) {
   return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
 }
 
+function showStoreNotice(message, type = "warning") {
+  let notice = document.getElementById("storeNotice");
+
+  if (!notice) {
+    notice = document.createElement("div");
+    notice.id = "storeNotice";
+    notice.setAttribute("role", "status");
+    notice.setAttribute("aria-live", "polite");
+    notice.innerHTML = '<span class="store-notice-icon" aria-hidden="true">♡</span><span class="store-notice-message"></span>';
+    document.body.appendChild(notice);
+  }
+
+  notice.className = `store-notice store-notice-${type}`;
+  notice.querySelector(".store-notice-message").textContent = message;
+  requestAnimationFrame(() => notice.classList.add("show"));
+
+  clearTimeout(notice.hideTimeout);
+  notice.hideTimeout = setTimeout(() => notice.classList.remove("show"), 2800);
+}
+
 function clearCheckoutFormError() {
   if (checkoutFormError) {
     checkoutFormError.textContent = "";
@@ -199,7 +219,7 @@ function showCheckoutError(message) {
   if (checkoutFormError) {
     checkoutFormError.textContent = message;
   } else {
-    alert(message);
+    showStoreNotice(message, "error");
   }
 }
 
@@ -1022,7 +1042,7 @@ function addToCart(productId, sourceButton = null) {
   const product = getProductById(productId);
 
   if (!product || Number(product.stock || 0) < 1) {
-    alert("This product is currently unavailable.");
+    showStoreNotice("This product is currently unavailable.");
     return;
   }
 
@@ -1033,7 +1053,7 @@ function addToCart(productId, sourceButton = null) {
   const currentQuantity = existingItem ? existingItem.quantity : 0;
 
   if (currentQuantity >= Number(product.stock)) {
-    alert("You cannot add more than the available stock.");
+    showStoreNotice("You cannot add more than the available stock.");
     return;
   }
 
@@ -1093,7 +1113,7 @@ function changeQuantity(productId, variantId, amount) {
   }
 
   if (newQuantity > stock) {
-    alert("You cannot add more than the available stock.");
+    showStoreNotice("You cannot add more than the available stock.");
     return;
   }
 
@@ -1424,7 +1444,7 @@ favoritesDrawer.addEventListener("click", (event) => {
 
 checkoutButton.addEventListener("click", () => {
   if (!cart.length) {
-    alert("Your bag is empty.");
+    showStoreNotice("Your bag is empty.");
     return;
   }
 
@@ -1790,7 +1810,7 @@ function resetCheckoutState() {
 
 async function submitOrder() {
   if (!cart.length) {
-    alert("Your bag is empty.");
+    showStoreNotice("Your bag is empty.");
     return;
   }
 
@@ -1960,7 +1980,7 @@ resetCheckoutState();
 checkoutForm.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!cart.length) {
-    alert("Your bag is empty.");
+    showStoreNotice("Your bag is empty.");
     return;
   }
 
