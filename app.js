@@ -1725,14 +1725,17 @@ function openPaymentStep() {
   const isCashOnDelivery = /cash\s*on\s*delivery|\bcod\b/i.test(
     String(selectedPaymentMethod.payment_name || "")
   );
-  const amountDueRow = `<div class="cart-summary"><div><span>${isCashOnDelivery ? "Deposit amount" : "Amount due now"}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>`;
+  const amountDueLabel = isCashOnDelivery
+    ? `Pay now (${depositPercentage}% deposit + shipping)`
+    : "Amount due now";
+  const amountDueRow = `<div class="cart-summary"><div><span>${escapeHtml(amountDueLabel)}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>`;
   const remainingBalanceRow = selectedPaymentMethod.deposit_required
-    ? `<div class="cart-summary"><div><span>Remaining balance</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
+    ? `<div class="cart-summary"><div><span>${isCashOnDelivery ? "Pay upon delivery" : "Remaining balance"}</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
     : "";
-  const paymentBalanceRows = isCashOnDelivery
-    ? `${remainingBalanceRow}${amountDueRow}`
-    : `${amountDueRow}${remainingBalanceRow}`;
-  const buyerPaymentNote = String(selectedPaymentMethod.instructions || "").trim();
+  const paymentBalanceRows = `${amountDueRow}${remainingBalanceRow}`;
+  const buyerPaymentNote = isCashOnDelivery
+    ? `Pay ${formatCurrency(amountDueNow)} now using the QR code and upload your receipt. The remaining ${formatCurrency(remainingBalance)} will be paid when your order is delivered.`
+    : String(selectedPaymentMethod.instructions || "").trim();
 
   clearPaymentStepReceiptState();
   showPaymentStepFeedback("");
