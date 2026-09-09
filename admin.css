@@ -540,6 +540,35 @@
 .order-customer-row strong,
 .order-customer-row address { color: #5e3e4d; font-size: .9rem; line-height: 1.55; }
 .order-customer-row address { overflow-wrap: anywhere; font-style: normal; }
+.order-customer-note {
+  display: flex;
+  gap: 11px;
+  padding: 14px 16px;
+  border: 1px solid #f1c8d8;
+  border-left: 4px solid var(--admin-rose);
+  border-radius: 15px;
+  background: linear-gradient(135deg, #fff8fb, #ffedf5);
+}
+.order-note-icon { flex: 0 0 auto; line-height: 1.35; }
+.order-customer-note strong { color: var(--admin-rose-dark); font-size: .82rem; }
+.order-customer-note p {
+  margin: 4px 0 0;
+  color: #624452;
+  font-size: .88rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.invoice-customer-note {
+  margin: 0 24px;
+  padding: 15px 17px;
+  border: 1px solid #f1c8d8;
+  border-left: 4px solid #d83f7d;
+  border-radius: 14px;
+  background: #fff1f7;
+}
+.invoice-customer-note strong { color: #bd356b; }
+.invoice-customer-note p { margin: 6px 0 0; color: #60404f; line-height: 1.5; white-space: pre-wrap; }
 .order-products-details {
   padding: 0;
   border: 1px solid #edd4df;

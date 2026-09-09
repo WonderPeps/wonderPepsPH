@@ -3456,6 +3456,7 @@ function renderOrders(ordersToRender) {
     const paymentStatusClass = paymentStatus
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-");
+    const customerNote = String(order.notes || "").trim();
 
     return `
         <article class="order-card">
@@ -3501,6 +3502,15 @@ function renderOrders(ordersToRender) {
               </div>
             </section>
 
+            ${customerNote ? `
+              <section class="order-customer-note" aria-label="Customer note">
+                <span class="order-note-icon" aria-hidden="true">🌸</span>
+                <div>
+                  <strong>Customer note</strong>
+                  <p>${escapeHtml(customerNote)}</p>
+                </div>
+              </section>
+            ` : ""}
 
 <details class="order-products-details">
   <summary>
@@ -3858,7 +3868,7 @@ function openInvoice(order) {
   const items = orderItemsByOrder[String(order.id)] || [];
   const subtotal = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
   const address = [[order.house_unit, order.street].filter(Boolean).join(", "), order.barangay ? `Brgy. ${order.barangay}` : "", [order.city, order.province].filter(Boolean).join(", "), order.zipcode || ""].filter(Boolean).map(escapeHtml).join("<br>") || "—";
-  invoiceContent.innerHTML = `<article class="invoice-sheet"><header class="invoice-head"><div><h2>WonderPeps PH</h2><p>Admin order invoice</p></div><div><strong>INVOICE</strong><p>${escapeHtml(getOrderReferenceLabel(order))}</p></div></header><div class="invoice-grid"><section class="invoice-box invoice-customer"><h4>BILL TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${escapeHtml(order.email || "Not provided")}<br>${escapeHtml(order.phone || "Not provided")}</p></section><section class="invoice-box invoice-customer"><h4>SHIP TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${address}</p></section></div><table class="invoice-table"><thead><tr><th>Item</th><th>Variant</th><th>Qty</th><th>Total</th></tr></thead><tbody>${items.map((item) => `<tr><td>${escapeHtml(item.product_name || "Product")}</td><td>${escapeHtml(item.variant_name || "—")}</td><td>${Number(item.quantity || 0)}</td><td>${formatCurrency(item.line_total || 0)}</td></tr>`).join("")}</tbody></table><div class="invoice-grid"><section class="invoice-box invoice-payment"><h4>PAYMENT INFORMATION</h4><p><span>Method</span><strong>${escapeHtml(order.payment_method || "—")}</strong></p><p><span>Status</span><strong>${escapeHtml(order.payment_status || "Pending")}</strong></p></section><section class="invoice-box invoice-summary"><h4>ORDER SUMMARY ♡</h4><p><span>Subtotal</span><strong>${formatCurrency(subtotal)}</strong></p><p><span>Shipping</span><strong>${formatCurrency(order.shipping_fee || 0)}</strong></p></section></div><div class="invoice-total"><span>TOTAL</span><span>${formatCurrency(order.total || 0)}</span></div><footer class="invoice-actions"><button class="secondary-button" type="button" data-close-invoice>Close</button><button class="primary-button" type="button" data-download-invoice>Download invoice image</button></footer></article>`;
+  invoiceContent.innerHTML = `<article class="invoice-sheet"><header class="invoice-head"><div><h2>WonderPeps PH</h2><p>Admin order invoice</p></div><div><strong>INVOICE</strong><p>${escapeHtml(getOrderReferenceLabel(order))}</p></div></header><div class="invoice-grid"><section class="invoice-box invoice-customer"><h4>BILL TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${escapeHtml(order.email || "Not provided")}<br>${escapeHtml(order.phone || "Not provided")}</p></section><section class="invoice-box invoice-customer"><h4>SHIP TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${address}</p></section></div><table class="invoice-table"><thead><tr><th>Item</th><th>Variant</th><th>Qty</th><th>Total</th></tr></thead><tbody>${items.map((item) => `<tr><td>${escapeHtml(item.product_name || "Product")}</td><td>${escapeHtml(item.variant_name || "—")}</td><td>${Number(item.quantity || 0)}</td><td>${formatCurrency(item.line_total || 0)}</td></tr>`).join("")}</tbody></table><div class="invoice-grid"><section class="invoice-box invoice-payment"><h4>PAYMENT INFORMATION</h4><p><span>Method</span><strong>${escapeHtml(order.payment_method || "—")}</strong></p><p><span>Status</span><strong>${escapeHtml(order.payment_status || "Pending")}</strong></p></section><section class="invoice-box invoice-summary"><h4>ORDER SUMMARY ♡</h4><p><span>Subtotal</span><strong>${formatCurrency(subtotal)}</strong></p><p><span>Shipping</span><strong>${formatCurrency(order.shipping_fee || 0)}</strong></p></section></div>${String(order.notes || "").trim() ? `<section class="invoice-customer-note"><strong>🌸 Customer note</strong><p>${escapeHtml(String(order.notes).trim())}</p></section>` : ""}<div class="invoice-total"><span>TOTAL</span><span>${formatCurrency(order.total || 0)}</span></div><footer class="invoice-actions"><button class="secondary-button" type="button" data-close-invoice>Close</button><button class="primary-button" type="button" data-download-invoice>Download invoice image</button></footer></article>`;
   const [billingBox, shippingBox] = invoiceContent.querySelectorAll(".invoice-customer");
   if (billingBox) {
     billingBox.innerHTML = `<h4>BILL TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p><span>Email</span><strong>${escapeHtml(order.email || "Not provided")}</strong></p><p><span>Number</span><strong>${escapeHtml(order.phone || "Not provided")}</strong></p></div>`;

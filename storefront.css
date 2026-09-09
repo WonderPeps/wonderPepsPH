@@ -2053,3 +2053,15 @@ body.storefront-page.page-scroll-locked {
   .storefront-page .price-row { padding-top: 7px; }
   .storefront-page .add-button { min-height: 38px; margin-top: 9px; }
 }
+
+/* Keep category labels centered and remove the decorative heart circles. */
+.storefront-page .category-chip {
+  justify-content: center;
+  gap: 0;
+  text-align: center;
+}
+.storefront-page .category-chip::before,
+.storefront-page .category-chip.active::before {
+  content: none;
+  display: none;
+}
