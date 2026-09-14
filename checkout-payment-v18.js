@@ -465,6 +465,9 @@ async function loadProducts() {
         String(variant.product_id) === String(product.id)
     )
   }));
+if (typeof pruneMissingFavorites === "function") {
+  pruneMissingFavorites(products);
+}
 const isFavoritesPage = !!document.getElementById("favoritesGrid");
 
 if (isFavoritesPage) {
@@ -853,26 +856,23 @@ function openVariantSelector(product, sourceButton = null) {
 
           <div class="variant-option-main">
             <strong>${escapeHtml(variant.name)}</strong>
-
-            ${
-              variant.badge
-                ? `<span class="variant-option-badge">${escapeHtml(
-                    variant.badge
-                  )}</span>`
-                : ""
-            }
+            <div class="variant-option-meta">
+              <span>${formatCurrency(variant.price)}</span>
+              <small>
+                ${
+                  outOfStock
+                    ? "Out of stock"
+                    : `Stock: ${Number(variant.stock || 0)}`
+                }
+              </small>
+            </div>
           </div>
 
-          <div class="variant-option-meta">
-            <span>${formatCurrency(variant.price)}</span>
-            <small>
-              ${
-                outOfStock
-                  ? "Out of stock"
-                  : `Stock: ${Number(variant.stock || 0)}`
-              }
-            </small>
-          </div>
+          ${
+            variant.badge
+              ? `<span class="variant-option-badge">${escapeHtml(variant.badge)}</span>`
+              : ""
+          }
         </label>
       `;
     })

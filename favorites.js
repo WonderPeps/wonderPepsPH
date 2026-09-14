@@ -111,6 +111,22 @@ function getFavoriteCount() {
   return favorites.length;
 }
 
+function pruneMissingFavorites(existingProducts = []) {
+  const existingProductIds = new Set(
+    existingProducts.map((product) => String(product.id))
+  );
+  const cleanedFavorites = favorites.filter((item) =>
+    existingProductIds.has(String(item.productId))
+  );
+
+  if (cleanedFavorites.length !== favorites.length) {
+    favorites = cleanedFavorites;
+    saveFavorites();
+  }
+
+  return favorites;
+}
+
 function getFavoriteProductName(productId) {
   if (typeof getProductById !== "function") {
     return "Product";

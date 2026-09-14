@@ -2615,3 +2615,72 @@ input[type="submit"] {
     border-radius: 999px;
   }
 }
+
+/* Compact storefront variant cards with right-aligned reusable badges. */
+.variant-dialog-card {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.variant-dialog-card::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+.variant-option-card {
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, auto);
+  min-height: 112px;
+  padding: 16px 18px;
+  gap: 16px;
+}
+.variant-option-main {
+  align-self: center;
+  gap: 8px;
+}
+.variant-option-main > strong {
+  font-size: 1.02rem;
+}
+.variant-option-main .variant-option-meta {
+  grid-column: auto;
+  justify-items: start;
+  gap: 4px;
+  text-align: left;
+}
+.variant-option-badge {
+  align-self: start;
+  justify-self: end;
+  max-width: min(240px, 42vw);
+  text-align: center;
+  white-space: normal;
+}
+
+@media (max-width: 620px) {
+  .variant-dialog {
+    width: calc(100vw - 20px);
+    max-height: 94dvh;
+  }
+  .variant-dialog-card {
+    max-height: 94dvh;
+  }
+  .variant-option-card {
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, auto);
+    min-height: 104px;
+    padding: 14px;
+    gap: 12px;
+  }
+  .variant-option-badge {
+    max-width: 42vw;
+    font-size: .72rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .variant-option-card {
+    gap: 9px;
+    padding: 12px;
+  }
+  .variant-option-badge {
+    max-width: 38vw;
+    padding-inline: 7px;
+    font-size: .68rem;
+  }
+}
