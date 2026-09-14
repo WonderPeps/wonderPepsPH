@@ -298,8 +298,12 @@ function applyShopSettings(settings) {
   }
 
   if (heroTitle) {
-    heroTitle.textContent =
+    const configuredHeroTitle =
       settings.hero_title || "Soft pink shopping made easy.";
+    heroTitle.innerHTML = escapeHtml(configuredHeroTitle).replace(
+      /\sPH$/i,
+      ' <small class="hero-title-ph">PH</small>'
+    );
   }
 
   if (heroSubtitle) {
