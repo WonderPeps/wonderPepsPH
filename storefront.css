@@ -2134,3 +2134,94 @@ body.storefront-page.page-scroll-locked {
     line-clamp: 2;
   }
 }
+
+/* Compact mobile storefront so products appear sooner without changing the card grid. */
+@media (max-width: 760px) {
+  .storefront-page .hero {
+    margin: 10px 12px 2px;
+  }
+
+  .storefront-page .hero-media {
+    padding: 10px 10px 0;
+  }
+
+  .storefront-page .hero-image,
+  .storefront-page .bunny-card {
+    aspect-ratio: 16 / 10;
+  }
+
+  .storefront-page .hero-copy {
+    padding: 21px 22px 25px;
+  }
+
+  .storefront-page .hero-copy .eyebrow {
+    margin-bottom: 10px;
+  }
+
+  .storefront-page .hero h1 {
+    font-size: clamp(2.2rem, 9.8vw, 3.25rem);
+  }
+
+  .storefront-page .hero-copy > p:not(.eyebrow) {
+    margin: 12px 0 18px;
+    line-height: 1.5;
+  }
+
+  .storefront-page .hero-button {
+    min-height: 46px;
+    padding-block: 12px;
+  }
+
+  .storefront-page .catalog-section {
+    padding-top: 20px;
+  }
+
+  .storefront-page .section-heading {
+    margin-bottom: 14px;
+    padding: 20px 18px;
+    border-radius: 25px;
+  }
+
+  .storefront-page .section-heading > div {
+    max-width: 64%;
+  }
+
+  .storefront-page .section-heading .eyebrow {
+    margin-bottom: 10px;
+  }
+
+  .storefront-page .section-heading h2 {
+    font-size: clamp(1.65rem, 7vw, 2.25rem);
+  }
+
+  .storefront-page .catalog-subtitle {
+    margin-top: 7px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .storefront-page .catalog-search {
+    margin-bottom: 13px;
+  }
+
+  .storefront-page .search {
+    min-height: 50px;
+    padding-block: 11px;
+    font-size: 0.94rem;
+  }
+
+  .storefront-page .category-area {
+    margin-bottom: 22px;
+  }
+
+  .storefront-page .category-filters {
+    gap: 8px;
+    padding-bottom: 6px;
+  }
+
+  .storefront-page .category-chip {
+    min-height: 42px;
+    padding: 9px 16px;
+    font-size: 0.88rem;
+  }
+}
