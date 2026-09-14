@@ -2078,3 +2078,22 @@ body.storefront-page.page-scroll-locked {
   content: none;
   display: none;
 }
+
+/* Keep mobile product descriptions visible and card rows evenly sized. */
+@media (max-width: 760px) {
+  .storefront-page .product-grid {
+    align-items: stretch;
+  }
+  .storefront-page .product-card {
+    height: auto;
+  }
+  .storefront-page .product-body .product-description {
+    display: -webkit-box;
+    min-height: 2.65em;
+    margin: 0;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+}
