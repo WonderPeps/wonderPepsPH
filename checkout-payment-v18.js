@@ -282,11 +282,14 @@ function applyShopSettings(settings) {
     brandName.innerHTML = escapeHtml(shopName).replace(
       /\sPH$/i,
       " <small>PH</small>"
-    );
+    ) + '<span class="brand-heart" aria-hidden="true">♥</span>';
   }
 
   if (menuBrandName) {
-    menuBrandName.textContent = shopName;
+    menuBrandName.innerHTML = escapeHtml(shopName).replace(
+      /\sPH$/i,
+      " <small>PH</small>"
+    );
   }
 
   if (menuBrandTagline) {
@@ -295,8 +298,12 @@ function applyShopSettings(settings) {
   }
 
   if (heroTitle) {
-    heroTitle.textContent =
+    const configuredHeroTitle =
       settings.hero_title || "Soft pink shopping made easy.";
+    heroTitle.innerHTML = escapeHtml(configuredHeroTitle).replace(
+      /\sPH$/i,
+      ' <small class="hero-title-ph">PH</small>'
+    );
   }
 
   if (heroSubtitle) {
@@ -342,14 +349,8 @@ function applyShopSettings(settings) {
   }
 
   if (brandLogo && brandFallback) {
-    if (settings.logo_url) {
-      brandLogo.src = settings.logo_url;
-      brandLogo.hidden = false;
-      brandFallback.hidden = true;
-    } else {
-      brandLogo.hidden = true;
-      brandFallback.hidden = false;
-    }
+    brandLogo.hidden = true;
+    brandFallback.hidden = true;
   }
 
   if (menuBrandLogo && menuBrandFallback) {
