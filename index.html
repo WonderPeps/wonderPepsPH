@@ -424,7 +424,7 @@
           </label>
         </div>
       </section>
-      <section class="checkout-shipping-card" aria-labelledby="shippingFeeTitle">
+      <section class="checkout-shipping-card" aria-labelledby="shippingMethodTitle">
         <div class="checkout-section-heading">
           <span class="checkout-section-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">
@@ -435,23 +435,38 @@
             </svg>
           </span>
           <div>
+            <h3 id="shippingMethodTitle">Shipping option</h3>
+            <p>Choose how you would like to receive your order.</p>
+          </div>
+        </div>
+        <input id="selectedShippingMethodInput" name="shipping_method" type="hidden">
+        <div id="shippingMethodOptions" class="shipping-method-selector" aria-live="polite"></div>
+      </section>
+      <section id="shippingFeeSection" class="checkout-shipping-card" aria-labelledby="shippingFeeTitle" hidden>
+        <div class="checkout-section-heading">
+          <span class="checkout-section-icon" aria-hidden="true">₱</span>
+          <div>
             <h3 id="shippingFeeTitle">Shipping fee</h3>
-            <p>Choose the delivery area for your order.</p>
+            <p id="shippingFeeHelp">Choose the delivery area for your order.</p>
           </div>
         </div>
         <input id="selectedShippingInput" name="shipping" type="hidden">
         <div id="shippingFeeOptions" class="shipping-fee-selector" aria-live="polite"></div>
       </section>
-      <div>
+      <section id="externalCheckoutSection" class="external-checkout-card" hidden>
+        <p id="externalCheckoutMessage"></p>
+        <a id="externalCheckoutLink" class="primary-button full" href="#" target="_blank" rel="noopener noreferrer">Continue to marketplace</a>
+      </section>
+      <div id="paymentMethodSection">
         <label>Payment method</label>
         <input id="selectedPaymentInput" name="payment" type="hidden" />
         <div id="paymentMethodsList" class="payment-method-selector" aria-live="polite"></div>
       </div>
-      <label>Order notes
+      <label id="orderNotesField">Order notes
         <textarea name="notes" rows="2"></textarea>
       </label>
       <p id="checkoutFormError" class="checkout-error" role="alert"></p>
-      <div class="checkout-total">
+      <div id="checkoutTotalRow" class="checkout-total">
         <span>Total</span>
         <strong id="checkoutTotal">₱0</strong>
       </div>

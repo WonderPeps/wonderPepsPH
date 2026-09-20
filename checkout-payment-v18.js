@@ -84,6 +84,16 @@ const paymentMethodsList = document.querySelector("#paymentMethodsList");
 const selectedPaymentInput = document.querySelector("#selectedPaymentInput");
 const selectedShippingInput = document.querySelector("#selectedShippingInput");
 const shippingFeeOptions = document.querySelector("#shippingFeeOptions");
+const selectedShippingMethodInput = document.querySelector("#selectedShippingMethodInput");
+const shippingMethodOptions = document.querySelector("#shippingMethodOptions");
+const shippingFeeSection = document.querySelector("#shippingFeeSection");
+const shippingFeeHelp = document.querySelector("#shippingFeeHelp");
+const externalCheckoutSection = document.querySelector("#externalCheckoutSection");
+const externalCheckoutMessage = document.querySelector("#externalCheckoutMessage");
+const externalCheckoutLink = document.querySelector("#externalCheckoutLink");
+const paymentMethodSection = document.querySelector("#paymentMethodSection");
+const orderNotesField = document.querySelector("#orderNotesField");
+const checkoutTotalRow = document.querySelector("#checkoutTotalRow");
 const proceedPaymentButton = document.querySelector("#proceedPaymentButton");
 const checkoutFormError = document.querySelector("#checkoutFormError");
 const paymentStepDialog = document.querySelector("#paymentStepDialog");
@@ -140,6 +150,8 @@ let paymentMethods = [];
 let selectedPaymentMethod = null;
 let shippingFees = [];
 let selectedShippingFee = null;
+let shippingMethods = [];
+let selectedShippingMethod = null;
 let paymentStepReceiptFile = null;
 let paymentStepReceiptPreviewUrl = null;
 let storefrontCategoryOrder = [];
@@ -340,7 +352,9 @@ function applyShopSettings(settings) {
         `url(${JSON.stringify(catalogImageUrl)})`
       );
     } else {
-      catalogHeading.style.removeProperty("--catalog-image");
+      // Never fall back to a bundled bunny image. The catalog artwork is
+      // controlled only by the image selected in Admin settings.
+      catalogHeading.style.setProperty("--catalog-image", "none");
     }
   }
 
@@ -1155,58 +1169,75 @@ function getSelectedShippingFee() {
 
 function updateProceedPaymentAvailability() {
   if (!proceedPaymentButton) return;
-  proceedPaymentButton.disabled = !paymentMethods.length || !shippingFees.length;
+  const courierReady = selectedShippingMethod?.method_type === "courier" && Boolean(selectedShippingFee);
+  proceedPaymentButton.hidden = selectedShippingMethod?.method_type === "external";
+  proceedPaymentButton.disabled = !paymentMethods.length || !courierReady;
 }
 
-async function loadShippingFees() {
-  if (!shippingFeeOptions) return;
+async function loadShippingOptions() {
+  if (!shippingMethodOptions) return;
+  shippingMethodOptions.innerHTML = '<p class="empty">Loading shipping options…</p>';
 
-  shippingFeeOptions.innerHTML = `<p class="empty">Loading shipping choices…</p>`;
+  const [{ data: methodData, error: methodError }, { data: feeData, error: feeError }] = await Promise.all([
+    supabaseClient.from("shipping_methods").select("*").eq("is_active", true).order("sort_order", { ascending: true }).order("id", { ascending: true }),
+    supabaseClient.from("shipping_fees").select("*").eq("is_active", true).order("sort_order", { ascending: true }).order("id", { ascending: true })
+  ]);
 
-  const { data, error } = await supabaseClient
-    .from("shipping_fees")
-    .select("*")
-    .eq("is_active", true)
-    .order("sort_order", { ascending: true })
-    .order("id", { ascending: true });
-
-  if (error) {
+  if (methodError || feeError) {
+    shippingMethods = [];
     shippingFees = [];
-    selectedShippingFee = null;
-    if (selectedShippingInput) selectedShippingInput.value = "";
-    shippingFeeOptions.innerHTML = `
-      <div class="shipping-fee-empty">
-        <strong>Shipping choices are unavailable.</strong>
-        <span>Please try again shortly.</span>
-      </div>
-    `;
+    shippingMethodOptions.innerHTML = `<div class="shipping-fee-empty"><strong>Shipping options are unavailable.</strong><span>Please try again shortly.</span></div>`;
+    console.error("Could not load shipping options:", methodError?.message || feeError?.message);
     updateProceedPaymentAvailability();
-    console.error("Could not load shipping fees:", error.message);
     return;
   }
 
-  shippingFees = data || [];
+  shippingMethods = methodData || [];
+  shippingFees = feeData || [];
+  selectedShippingMethod = null;
   selectedShippingFee = null;
-  if (selectedShippingInput) selectedShippingInput.value = "";
+  renderShippingMethods();
   renderShippingFees();
-  updateProceedPaymentAvailability();
+  updateShippingChoiceVisibility();
+}
+
+function renderShippingMethods() {
+  if (!shippingMethodOptions) return;
+  if (!shippingMethods.length) {
+    shippingMethodOptions.innerHTML = `<div class="shipping-fee-empty"><strong>No shipping options are available yet.</strong><span>Please contact the shop before checking out.</span></div>`;
+    return;
+  }
+  shippingMethodOptions.innerHTML = shippingMethods.map((method) => {
+    const selected = String(selectedShippingMethod?.id) === String(method.id);
+    return `<button class="shipping-method-option${selected ? " selected" : ""}" type="button" data-shipping-method="${method.id}" aria-pressed="${selected}">
+      <span class="shipping-fee-check" aria-hidden="true">${selected ? "✓" : "♡"}</span>
+      <span class="shipping-method-copy"><strong>${escapeHtml(method.name)}</strong><small>${escapeHtml(method.description || (method.method_type === "external" ? "Checkout through marketplace" : "Courier delivery"))}</small></span>
+      <span class="shipping-method-arrow" aria-hidden="true">›</span>
+    </button>`;
+  }).join("");
+  shippingMethodOptions.querySelectorAll("[data-shipping-method]").forEach((button) => {
+    button.addEventListener("click", () => selectShippingMethod(button.dataset.shippingMethod));
+  });
+}
+
+function feesForSelectedMethod() {
+  if (!selectedShippingMethod) return [];
+  return shippingFees.filter((fee) => String(fee.shipping_method_id) === String(selectedShippingMethod.id));
 }
 
 function renderShippingFees() {
   if (!shippingFeeOptions) return;
-
-  if (!shippingFees.length) {
-    shippingFeeOptions.innerHTML = `
-      <div class="shipping-fee-empty">
-        <strong>No shipping choices are available yet.</strong>
-        <span>Please contact the shop before checking out.</span>
-      </div>
-    `;
+  const availableFees = feesForSelectedMethod();
+  if (!selectedShippingMethod || selectedShippingMethod.method_type !== "courier") {
+    shippingFeeOptions.innerHTML = "";
+    return;
+  }
+  if (!availableFees.length) {
+    shippingFeeOptions.innerHTML = `<div class="shipping-fee-empty"><strong>No fees are configured for this courier.</strong><span>Please choose another option or contact the shop.</span></div>`;
     updateProceedPaymentAvailability();
     return;
   }
-
-  shippingFeeOptions.innerHTML = shippingFees
+  shippingFeeOptions.innerHTML = availableFees
     .map((fee) => {
       const isSelected = selectedShippingFee &&
         String(selectedShippingFee.id) === String(fee.id);
@@ -1233,6 +1264,40 @@ function renderShippingFees() {
         selectShippingFee(button.dataset.shippingSelect);
       });
     });
+}
+
+function updateShippingChoiceVisibility() {
+  const isCourier = selectedShippingMethod?.method_type === "courier";
+  const isExternal = selectedShippingMethod?.method_type === "external";
+  if (shippingFeeSection) shippingFeeSection.hidden = !isCourier;
+  if (externalCheckoutSection) externalCheckoutSection.hidden = !isExternal;
+  if (shippingFeeHelp && isCourier) shippingFeeHelp.textContent = `Choose the delivery area for ${selectedShippingMethod.name}.`;
+  if (externalCheckoutMessage && isExternal) externalCheckoutMessage.textContent = `Continue to ${selectedShippingMethod.name} to complete your checkout. Shipping fees will be calculated there.`;
+  if (externalCheckoutLink && isExternal) {
+    externalCheckoutLink.href = selectedShippingMethod.external_url || "#";
+    externalCheckoutLink.textContent = selectedShippingMethod.button_label || `Continue to ${selectedShippingMethod.name}`;
+  }
+  if (paymentMethodSection) paymentMethodSection.hidden = isExternal;
+  if (orderNotesField) orderNotesField.hidden = isExternal;
+  if (checkoutTotalRow) checkoutTotalRow.hidden = isExternal;
+  updateProceedPaymentAvailability();
+}
+
+function selectShippingMethod(methodId) {
+  const method = shippingMethods.find((item) => String(item.id) === String(methodId));
+  if (!method) return;
+  selectedShippingMethod = method;
+  selectedShippingFee = null;
+  if (selectedShippingMethodInput) selectedShippingMethodInput.value = method.name || "";
+  if (selectedShippingInput) {
+    selectedShippingInput.value = "";
+    delete selectedShippingInput.dataset.shippingId;
+  }
+  renderShippingMethods();
+  renderShippingFees();
+  updateShippingChoiceVisibility();
+  clearCheckoutFormError();
+  updateCheckoutTotal();
 }
 
 function selectShippingFee(feeId) {
@@ -1698,6 +1763,18 @@ async function deleteUploadedReceipt(storagePath) {
 }
 
 function openPaymentStep() {
+  if (!selectedShippingMethod) {
+    showCheckoutError("Please choose a shipping option to continue.");
+    shippingMethodOptions?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
+  if (selectedShippingMethod.method_type === "external") {
+    showCheckoutError(`Please use the ${selectedShippingMethod.name} checkout button.`);
+    externalCheckoutSection?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   if (!selectedShippingFee) {
     showCheckoutError("Please choose a shipping fee to continue.");
     shippingFeeOptions?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1754,6 +1831,7 @@ function openPaymentStep() {
         <p class="tiny-note">${escapeHtml(instructions)}</p>
       </div>
       <div class="cart-summary"><div><span>Product subtotal</span><strong>${formatCurrency(subtotal)}</strong></div></div>
+      <div class="cart-summary"><div><span>Shipping option</span><strong>${escapeHtml(selectedShippingMethod?.name || "—")}</strong></div></div>
       <div class="cart-summary"><div><span>Shipping fee</span><strong>${formatCurrency(shippingFee)}</strong></div></div>
       ${paymentBalanceRows}
       ${buyerPaymentNote ? `<p class="payment-step-custom-note">♡ ${escapeHtml(buyerPaymentNote)}</p>` : ""}
@@ -1806,6 +1884,7 @@ function openPaymentStep() {
 function resetCheckoutState() {
   checkoutForm.reset();
   selectedPaymentMethod = null;
+  selectedShippingMethod = null;
   selectedShippingFee = null;
   clearPaymentStepReceiptState();
   showPaymentStepFeedback("");
@@ -1816,7 +1895,10 @@ function resetCheckoutState() {
     selectedShippingInput.value = "";
     delete selectedShippingInput.dataset.shippingId;
   }
+  if (selectedShippingMethodInput) selectedShippingMethodInput.value = "";
+  renderShippingMethods();
   renderShippingFees();
+  updateShippingChoiceVisibility();
   renderPaymentMethods();
   clearCheckoutFormError();
 }
@@ -1912,6 +1994,8 @@ street,
 house_unit: houseUnit,
 zipcode: zipcode || null,
       payment_method: paymentMethodName,
+      shipping_method: selectedShippingMethod?.name || null,
+      shipping_method_type: selectedShippingMethod?.method_type || null,
       notes: String(formData.get("notes") || "").trim() || null,
       shipping_fee: shippingFee,
       subtotal,
@@ -2180,7 +2264,7 @@ async function initializeStorefront() {
             loadProducts(),
             loadStoreMenuItems(),
             loadPaymentMethods(),
-            loadShippingFees()
+            loadShippingOptions()
         ]);
     } finally {
         document.body.classList.remove("settings-loading");
