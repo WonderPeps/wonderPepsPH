@@ -112,6 +112,11 @@ const shippingFeeForm = document.querySelector("#shippingFeeForm");
 const shippingFeesList = document.querySelector("#shippingFeesList");
 const shippingFeesStatus = document.querySelector("#shippingFeesStatus");
 const cancelShippingFeeEdit = document.querySelector("#cancelShippingFeeEdit");
+const shippingMethodForm = document.querySelector("#shippingMethodForm");
+const shippingMethodsList = document.querySelector("#shippingMethodsList");
+const shippingMethodsStatus = document.querySelector("#shippingMethodsStatus");
+const cancelShippingMethodEdit = document.querySelector("#cancelShippingMethodEdit");
+const shippingFeeMethodSelect = document.querySelector("#shippingFeeMethodSelect");
 const changePasswordForm = document.querySelector("#changePasswordForm");
 const signOutAllButton = document.querySelector("#signOutAllButton");
 const inviteAdminForm = document.querySelector("#inviteAdminForm");
@@ -147,6 +152,7 @@ let paymentMethodQrPreviewUrl = null;
 let paymentMethodCurrentQrUrl = null;
 let paymentMethodRemoveQr = false;
 let shippingFees = [];
+let shippingMethods = [];
 
 /* -------------------------
    LOGIN AND ADMIN CHECK
@@ -234,7 +240,7 @@ async function showAdmin() {
     loadProducts(),
     loadMenuItems(),
     loadPaymentMethods(),
-    loadShippingFees(),
+    loadShippingSettings(),
     loadOrders()
   ]);
   await loadAdminAccounts();
@@ -651,6 +657,202 @@ alert("Shop profile saved online.");
    SHIPPING FEES
 ------------------------ */
 
+function setShippingMethodsStatus(message = "", state = "") {
+  if (!shippingMethodsStatus) return;
+  shippingMethodsStatus.textContent = message;
+  shippingMethodsStatus.dataset.state = state;
+}
+
+function syncShippingMethodFields() {
+  if (!shippingMethodForm) return;
+  const isExternal = shippingMethodForm.elements.methodType.value === "external";
+  shippingMethodForm.querySelectorAll(".shipping-method-link-field").forEach((field) => {
+    field.hidden = !isExternal;
+  });
+  shippingMethodForm.elements.externalUrl.required = isExternal;
+}
+
+function resetShippingMethodForm() {
+  if (!shippingMethodForm) return;
+  shippingMethodForm.reset();
+  shippingMethodForm.elements.id.value = "";
+  shippingMethodForm.elements.methodType.value = "courier";
+  shippingMethodForm.elements.isActive.checked = true;
+  cancelShippingMethodEdit.hidden = true;
+  syncShippingMethodFields();
+}
+
+function renderShippingFeeMethodChoices() {
+  if (!shippingFeeMethodSelect) return;
+  const courierMethods = shippingMethods.filter((method) => method.method_type === "courier");
+  const currentValue = shippingFeeMethodSelect.value;
+  shippingFeeMethodSelect.innerHTML = courierMethods.length
+    ? courierMethods.map((method) => `<option value="${method.id}">${escapeHtml(method.name)}</option>`).join("")
+    : '<option value="">Add a courier option first</option>';
+  shippingFeeMethodSelect.disabled = !courierMethods.length;
+  if (courierMethods.some((method) => String(method.id) === String(currentValue))) {
+    shippingFeeMethodSelect.value = currentValue;
+  }
+}
+
+async function loadShippingMethods() {
+  if (!shippingMethodsList) return;
+  shippingMethodsList.innerHTML = '<p class="empty">Loading shipping options…</p>';
+
+  const { data, error } = await supabaseClient
+    .from("shipping_methods")
+    .select("*")
+    .order("sort_order", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    shippingMethods = [];
+    shippingMethodsList.innerHTML = `
+      <div class="shipping-fees-setup-note">
+        <strong>Shipping options are not connected yet.</strong>
+        <p>Run <code>shipping-options-setup.sql</code> once in Supabase, then refresh this page.</p>
+      </div>`;
+    setShippingMethodsStatus(error.message, "error");
+    renderShippingFeeMethodChoices();
+    return;
+  }
+
+  shippingMethods = data || [];
+  setShippingMethodsStatus("");
+  renderShippingMethods();
+  renderShippingFeeMethodChoices();
+}
+
+function renderShippingMethods() {
+  if (!shippingMethodsList) return;
+  if (!shippingMethods.length) {
+    shippingMethodsList.innerHTML = '<p class="empty">No shipping options yet.</p>';
+    return;
+  }
+
+  shippingMethodsList.innerHTML = shippingMethods.map((method, index) => `
+    <article class="shipping-fee-admin-card${method.is_active ? "" : " is-hidden"}" data-shipping-method-id="${method.id}">
+      <div class="shipping-fee-admin-order">${index + 1}</div>
+      <div class="shipping-fee-admin-copy">
+        <strong>${escapeHtml(method.name || "Shipping option")}</strong>
+        <span>${method.method_type === "external" ? "External checkout" : "Courier"}</span>
+        <small>${escapeHtml(method.description || (method.is_active ? "Visible at checkout" : "Hidden from checkout"))}</small>
+        ${method.method_type === "external" && method.external_url ? `<small class="shipping-method-url">${escapeHtml(method.external_url)}</small>` : ""}
+      </div>
+      <div class="admin-actions shipping-fee-actions">
+        <button class="secondary-button" type="button" data-method-move="up" data-method-id="${method.id}" ${index === 0 ? "disabled" : ""}>↑</button>
+        <button class="secondary-button" type="button" data-method-move="down" data-method-id="${method.id}" ${index === shippingMethods.length - 1 ? "disabled" : ""}>↓</button>
+        <button class="secondary-button" type="button" data-method-edit="${method.id}">Edit</button>
+        <button class="secondary-button" type="button" data-method-toggle="${method.id}">${method.is_active ? "Hide" : "Show"}</button>
+        <button class="secondary-button danger" type="button" data-method-delete="${method.id}">Delete</button>
+      </div>
+    </article>`).join("");
+}
+
+function editShippingMethod(methodId) {
+  const method = shippingMethods.find((item) => String(item.id) === String(methodId));
+  if (!method || !shippingMethodForm) return;
+  shippingMethodForm.elements.id.value = method.id;
+  shippingMethodForm.elements.name.value = method.name || "";
+  shippingMethodForm.elements.methodType.value = method.method_type || "courier";
+  shippingMethodForm.elements.description.value = method.description || "";
+  shippingMethodForm.elements.externalUrl.value = method.external_url || "";
+  shippingMethodForm.elements.buttonLabel.value = method.button_label || "";
+  shippingMethodForm.elements.isActive.checked = Boolean(method.is_active);
+  cancelShippingMethodEdit.hidden = false;
+  syncShippingMethodFields();
+  shippingMethodForm.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+async function saveShippingMethodOrder(methodId, direction) {
+  const currentIndex = shippingMethods.findIndex((item) => String(item.id) === String(methodId));
+  const targetIndex = currentIndex + (direction === "up" ? -1 : 1);
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= shippingMethods.length) return;
+  const reordered = [...shippingMethods];
+  const [moved] = reordered.splice(currentIndex, 1);
+  reordered.splice(targetIndex, 0, moved);
+  setShippingMethodsStatus("Saving shipping option order…", "saving");
+  for (let index = 0; index < reordered.length; index += 1) {
+    const { error } = await supabaseClient.from("shipping_methods").update({ sort_order: (index + 1) * 10, updated_at: new Date().toISOString() }).eq("id", reordered[index].id);
+    if (error) {
+      setShippingMethodsStatus(`Could not reorder shipping options: ${error.message}`, "error");
+      await loadShippingMethods();
+      return;
+    }
+  }
+  await loadShippingMethods();
+  setShippingMethodsStatus("Shipping option order saved ✓", "saved");
+}
+
+async function toggleShippingMethod(methodId) {
+  const method = shippingMethods.find((item) => String(item.id) === String(methodId));
+  if (!method) return;
+  const { error } = await supabaseClient.from("shipping_methods").update({ is_active: !method.is_active, updated_at: new Date().toISOString() }).eq("id", method.id);
+  if (error) return setShippingMethodsStatus(`Could not update shipping option: ${error.message}`, "error");
+  await loadShippingMethods();
+  setShippingMethodsStatus("Shipping option updated ✓", "saved");
+}
+
+async function deleteShippingMethod(methodId) {
+  const method = shippingMethods.find((item) => String(item.id) === String(methodId));
+  if (!method || !confirm(`Delete the shipping option “${method.name}” and its courier fees?`)) return;
+  const { error } = await supabaseClient.from("shipping_methods").delete().eq("id", method.id);
+  if (error) return setShippingMethodsStatus(`Could not delete shipping option: ${error.message}`, "error");
+  resetShippingMethodForm();
+  await loadShippingSettings();
+  setShippingMethodsStatus("Shipping option deleted ✓", "saved");
+}
+
+shippingMethodForm?.elements.methodType?.addEventListener("change", syncShippingMethodFields);
+shippingMethodForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(shippingMethodForm);
+  const id = String(formData.get("id") || "").trim();
+  const methodType = String(formData.get("methodType") || "courier");
+  const externalUrl = String(formData.get("externalUrl") || "").trim();
+  const values = {
+    name: String(formData.get("name") || "").trim(),
+    method_type: methodType,
+    description: String(formData.get("description") || "").trim() || null,
+    external_url: methodType === "external" ? externalUrl : null,
+    button_label: methodType === "external" ? String(formData.get("buttonLabel") || "").trim() || null : null,
+    is_active: formData.get("isActive") === "on",
+    updated_at: new Date().toISOString()
+  };
+  if (!values.name || (methodType === "external" && !/^https?:\/\//i.test(externalUrl))) {
+    setShippingMethodsStatus("Enter a name and a complete https:// link for external checkout options.", "error");
+    return;
+  }
+  if (!id) values.sort_order = shippingMethods.length ? Math.max(...shippingMethods.map((item) => Number(item.sort_order || 0))) + 10 : 10;
+  const query = id
+    ? supabaseClient.from("shipping_methods").update(values).eq("id", id)
+    : supabaseClient.from("shipping_methods").insert(values);
+  const { error } = await query;
+  if (error) return setShippingMethodsStatus(`Could not save shipping option: ${error.message}`, "error");
+  resetShippingMethodForm();
+  await loadShippingSettings();
+  setShippingMethodsStatus("Shipping option saved ✓", "saved");
+});
+
+cancelShippingMethodEdit?.addEventListener("click", () => {
+  resetShippingMethodForm();
+  setShippingMethodsStatus("");
+});
+
+shippingMethodsList?.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  if (button.dataset.methodEdit) editShippingMethod(button.dataset.methodEdit);
+  else if (button.dataset.methodToggle) toggleShippingMethod(button.dataset.methodToggle);
+  else if (button.dataset.methodDelete) deleteShippingMethod(button.dataset.methodDelete);
+  else if (button.dataset.methodMove) saveShippingMethodOrder(button.dataset.methodId, button.dataset.methodMove);
+});
+
+async function loadShippingSettings() {
+  await loadShippingMethods();
+  await loadShippingFees();
+}
+
 function setShippingFeesStatus(message = "", state = "") {
   if (!shippingFeesStatus) return;
   shippingFeesStatus.textContent = message;
@@ -662,6 +864,7 @@ function resetShippingFeeForm() {
   shippingFeeForm.reset();
   shippingFeeForm.elements.id.value = "";
   shippingFeeForm.elements.isActive.checked = true;
+  renderShippingFeeMethodChoices();
   cancelShippingFeeEdit.hidden = true;
 }
 
@@ -710,7 +913,7 @@ function renderShippingFees() {
         <div class="shipping-fee-admin-copy">
           <strong>${escapeHtml(fee.label || "Delivery area")}</strong>
           <span>${formatCurrency(fee.amount || 0)}</span>
-          <small>${fee.is_active ? "Visible at checkout" : "Hidden from checkout"}</small>
+          <small>${escapeHtml(shippingMethods.find((method) => String(method.id) === String(fee.shipping_method_id))?.name || "Unassigned courier")} · ${fee.is_active ? "Visible" : "Hidden"}</small>
         </div>
         <div class="admin-actions shipping-fee-actions">
           <button class="secondary-button" type="button" data-shipping-move="up" data-shipping-id="${fee.id}" ${index === 0 ? "disabled" : ""} aria-label="Move ${escapeHtml(fee.label)} up">↑</button>
@@ -731,6 +934,7 @@ function editShippingFee(feeId) {
   shippingFeeForm.elements.id.value = fee.id;
   shippingFeeForm.elements.label.value = fee.label || "";
   shippingFeeForm.elements.amount.value = Number(fee.amount || 0);
+  shippingFeeForm.elements.shippingMethodId.value = fee.shipping_method_id || "";
   shippingFeeForm.elements.isActive.checked = Boolean(fee.is_active);
   cancelShippingFeeEdit.hidden = false;
   shippingFeeForm.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -822,15 +1026,17 @@ shippingFeeForm?.addEventListener("submit", async (event) => {
   const id = String(formData.get("id") || "").trim();
   const label = String(formData.get("label") || "").trim();
   const amount = Number(formData.get("amount"));
+  const shippingMethodId = String(formData.get("shippingMethodId") || "").trim();
 
-  if (!label || !Number.isFinite(amount) || amount < 0) {
-    setShippingFeesStatus("Enter a delivery label and a valid fee amount.", "error");
+  if (!shippingMethodId || !label || !Number.isFinite(amount) || amount < 0) {
+    setShippingFeesStatus("Choose a courier, then enter a delivery label and valid fee amount.", "error");
     return;
   }
 
   const values = {
     label,
     amount,
+    shipping_method_id: Number(shippingMethodId),
     is_active: formData.get("isActive") === "on",
     updated_at: new Date().toISOString()
   };
@@ -3500,6 +3706,11 @@ function renderOrders(ordersToRender) {
                 <span>Payment method</span>
                 <strong>${escapeHtml(order.payment_method || "—")}</strong>
               </div>
+
+              <div class="order-customer-row">
+                <span>Shipping option</span>
+                <strong>${escapeHtml(order.shipping_method || "—")}</strong>
+              </div>
             </section>
 
             ${customerNote ? `
@@ -3790,6 +4001,7 @@ const shippingAddress = shippingLines.length
           <div>
             <h4>Payment</h4>
             <p>Method: ${escapeHtml(order.payment_method || "—")}</p>
+            <p>Shipping option: ${escapeHtml(order.shipping_method || "—")}</p>
             <p>Status: ${escapeHtml(order.payment_status || "Pending")}</p>
             <p>Amount paid: ${currency(order.amount_paid || 0)}</p>
             <p>Reference: ${escapeHtml(order.reference_number || "—")}</p>

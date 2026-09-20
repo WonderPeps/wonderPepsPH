@@ -69,7 +69,7 @@
       <a href="#menuSection"><span class="nav-icon" aria-hidden="true">☰</span><span>Menu</span></a>
 
       <div class="nav-group-label">Store</div>
-      <a href="#shippingFeesSection"><span class="nav-icon" aria-hidden="true">♢</span><span>Shipping fees</span></a>
+      <a href="#shippingFeesSection"><span class="nav-icon" aria-hidden="true">♢</span><span>Shipping options</span></a>
       <a id="paymentMethodsNav" href="#paymentMethodsSection"><span class="nav-icon" aria-hidden="true">♡</span><span>Payment methods</span></a>
       <a href="#addProductSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add product</span></a>
       <a href="#addMenuSection"><span class="nav-icon" aria-hidden="true">＋</span><span>Add menu item</span></a>
@@ -390,13 +390,62 @@ Hero eyebrow
     <section id="shippingFeesSection" class="admin-card admin-panel-section">
       <div class="admin-section-header">
         <div>
-          <h2>Shipping fees</h2>
-          <p class="tiny-note">Create the cute delivery choices customers see during checkout.</p>
+          <h2>Shipping options</h2>
+          <p class="tiny-note">Manage couriers and marketplace shipping links. Customers pay for their items first, then use Shopee or TikTok only to arrange shipping.</p>
+        </div>
+      </div>
+
+      <form id="shippingMethodForm" class="admin-form shipping-method-form">
+        <input name="id" type="hidden" />
+        <label>
+          Option name
+          <input name="name" placeholder="Example: J&amp;T Express" required />
+        </label>
+        <label>
+          Option type
+          <select name="methodType" required>
+            <option value="courier">Courier with shipping fees</option>
+            <option value="external">Marketplace shipping link</option>
+          </select>
+        </label>
+        <label class="shipping-method-description-field">
+          Short description
+          <input name="description" placeholder="Example: Nationwide delivery" />
+        </label>
+        <label class="shipping-method-link-field" hidden>
+          Shipping checkout link
+          <input name="externalUrl" type="url" inputmode="url" placeholder="https://shopee.ph/..." />
+        </label>
+        <label class="shipping-method-link-field" hidden>
+          Button label
+          <input name="buttonLabel" placeholder="Continue to Shopee" />
+        </label>
+        <label class="shipping-active-toggle">
+          <input name="isActive" type="checkbox" checked />
+          Show this shipping option at checkout
+        </label>
+        <div class="shipping-fee-form-actions">
+          <button class="primary-button" type="submit">Save shipping option</button>
+          <button id="cancelShippingMethodEdit" class="secondary-button" type="button" hidden>Cancel editing</button>
+        </div>
+      </form>
+
+      <p id="shippingMethodsStatus" class="tiny-note shipping-fees-status" role="status" aria-live="polite"></p>
+      <div id="shippingMethodsList" class="shipping-methods-admin-list"></div>
+
+      <div class="admin-section-header shipping-fee-subheading">
+        <div>
+          <h3>Courier shipping fees</h3>
+          <p class="tiny-note">Choose a courier, then add its editable delivery areas and prices.</p>
         </div>
       </div>
 
       <form id="shippingFeeForm" class="admin-form shipping-fee-form">
         <input name="id" type="hidden" />
+        <label>
+          Courier
+          <select id="shippingFeeMethodSelect" name="shippingMethodId" required></select>
+        </label>
         <label>
           Delivery area or label
           <input name="label" placeholder="Example: Luzon" required />

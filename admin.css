@@ -1165,6 +1165,40 @@ html { font-size: 112.5%; }
   }
 }
 /* Shipping fee editor */
+.admin-page .shipping-method-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 20px;
+  padding: 18px;
+  border: 1px solid #f0cfdd;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fffafd, #fff2f7);
+}
+
+.admin-page .shipping-method-description-field,
+.admin-page .shipping-method-link-field {
+  grid-column: span 1;
+}
+
+.admin-page .shipping-methods-admin-list {
+  display: grid;
+  gap: 11px;
+}
+
+.admin-page .shipping-method-url {
+  overflow: hidden;
+  max-width: 540px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-page .shipping-fee-subheading {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid #f0cfdd;
+}
+
 .admin-page .shipping-fee-form {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(180px, .55fr);
@@ -1174,6 +1208,18 @@ html { font-size: 112.5%; }
   border: 1px solid #f0cfdd;
   border-radius: 20px;
   background: linear-gradient(145deg, #fffafd, #fff2f7);
+}
+
+@media (max-width: 760px) {
+  .admin-page .shipping-method-form,
+  .admin-page .shipping-fee-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page .shipping-method-description-field,
+  .admin-page .shipping-method-link-field {
+    grid-column: 1;
+  }
 }
 
 .admin-page .shipping-active-toggle,
