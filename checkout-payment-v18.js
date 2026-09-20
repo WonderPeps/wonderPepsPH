@@ -1830,7 +1830,7 @@ function openPaymentStep() {
       </div>
       <div class="cart-summary"><div><span>Product subtotal</span><strong>${formatCurrency(subtotal)}</strong></div></div>
       <div class="cart-summary"><div><span>Shipping option</span><strong>${escapeHtml(selectedShippingMethod?.name || "—")}</strong></div></div>
-      <div class="cart-summary"><div><span>Shipping fee</span><strong>${selectedShippingMethod?.method_type === "external" ? `Paid separately in ${escapeHtml(selectedShippingMethod.name)}` : formatCurrency(shippingFee)}</strong></div></div>
+      <div class="cart-summary"><div><span>Shipping fee</span><strong class="${selectedShippingMethod?.method_type === "external" ? "external-shipping-fee-value" : ""}">${selectedShippingMethod?.method_type === "external" ? `Paid separately via ${escapeHtml(selectedShippingMethod.name)}` : formatCurrency(shippingFee)}</strong></div></div>
       ${paymentBalanceRows}
       ${buyerPaymentNote ? `<p class="payment-step-custom-note">♡ ${escapeHtml(buyerPaymentNote)}</p>` : ""}
     </div>
@@ -2057,6 +2057,7 @@ resetCheckoutState();
 
     orderReference.textContent = order.order_ref;
     const usesExternalShipping = completedShippingMethod?.method_type === "external";
+    successDialog.classList.toggle("external-shipping-success", usesExternalShipping);
     if (successExternalCheckout) successExternalCheckout.hidden = !usesExternalShipping;
     if (usesExternalShipping && successExternalMessage) {
       successExternalMessage.textContent = `Your item payment was submitted. Now continue to ${completedShippingMethod.name} to arrange and pay for shipping.`;
