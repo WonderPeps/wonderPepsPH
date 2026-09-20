@@ -391,7 +391,7 @@ Hero eyebrow
       <div class="admin-section-header">
         <div>
           <h2>Shipping options</h2>
-          <p class="tiny-note">Manage couriers and marketplace checkout links. Courier fees appear only after customers select a courier.</p>
+          <p class="tiny-note">Manage couriers and marketplace shipping links. Customers pay for their items first, then use Shopee or TikTok only to arrange shipping.</p>
         </div>
       </div>
 
@@ -405,7 +405,7 @@ Hero eyebrow
           Option type
           <select name="methodType" required>
             <option value="courier">Courier with shipping fees</option>
-            <option value="external">External checkout link</option>
+            <option value="external">Marketplace shipping link</option>
           </select>
         </label>
         <label class="shipping-method-description-field">
@@ -413,7 +413,7 @@ Hero eyebrow
           <input name="description" placeholder="Example: Nationwide delivery" />
         </label>
         <label class="shipping-method-link-field" hidden>
-          Checkout link
+          Shipping checkout link
           <input name="externalUrl" type="url" inputmode="url" placeholder="https://shopee.ph/..." />
         </label>
         <label class="shipping-method-link-field" hidden>

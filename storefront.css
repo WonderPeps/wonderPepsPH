@@ -67,6 +67,24 @@
   line-height: 1.5;
 }
 
+.storefront-page .success-external-checkout {
+  margin: 18px 0 12px;
+  padding: 16px;
+  border: 1px solid var(--store-line);
+  border-radius: 20px;
+  background: var(--store-pink-soft);
+}
+
+.storefront-page .success-external-checkout p {
+  margin: 0 0 12px;
+  color: var(--store-muted);
+  line-height: 1.45;
+}
+
+.storefront-page .success-external-checkout + #closeSuccess {
+  margin-top: 10px;
+}
+
 /* No hard-coded bunny photo: use the saved Admin image only when it arrives. */
 .storefront-page .section-heading {
   background-image:

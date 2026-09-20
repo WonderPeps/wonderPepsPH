@@ -105,6 +105,9 @@ const paymentStepCloseButton = document.querySelector("#paymentStepCloseButton")
 const successDialog = document.querySelector("#successDialog");
 
 const orderReference = document.querySelector("#orderReference");
+const successExternalCheckout = document.querySelector("#successExternalCheckout");
+const successExternalMessage = document.querySelector("#successExternalMessage");
+const successExternalLink = document.querySelector("#successExternalLink");
 const closeSuccess = document.querySelector("#closeSuccess");
 const CART_STORAGE_KEY = "wonderPepsCart";
 
@@ -1169,9 +1172,11 @@ function getSelectedShippingFee() {
 
 function updateProceedPaymentAvailability() {
   if (!proceedPaymentButton) return;
-  const courierReady = selectedShippingMethod?.method_type === "courier" && Boolean(selectedShippingFee);
-  proceedPaymentButton.hidden = selectedShippingMethod?.method_type === "external";
-  proceedPaymentButton.disabled = !paymentMethods.length || !courierReady;
+  proceedPaymentButton.hidden = false;
+  // Keep this button usable so openPaymentStep() can explain exactly which
+  // shipping, fee, or payment selection is missing. A disabled button gives
+  // customers no feedback and looks broken on mobile.
+  proceedPaymentButton.disabled = false;
 }
 
 async function loadShippingOptions() {
@@ -1211,7 +1216,7 @@ function renderShippingMethods() {
     const selected = String(selectedShippingMethod?.id) === String(method.id);
     return `<button class="shipping-method-option${selected ? " selected" : ""}" type="button" data-shipping-method="${method.id}" aria-pressed="${selected}">
       <span class="shipping-fee-check" aria-hidden="true">${selected ? "✓" : "♡"}</span>
-      <span class="shipping-method-copy"><strong>${escapeHtml(method.name)}</strong><small>${escapeHtml(method.description || (method.method_type === "external" ? "Checkout through marketplace" : "Courier delivery"))}</small></span>
+      <span class="shipping-method-copy"><strong>${escapeHtml(method.name)}</strong><small>${escapeHtml(method.description || (method.method_type === "external" ? "Marketplace shipping checkout" : "Courier delivery"))}</small></span>
       <span class="shipping-method-arrow" aria-hidden="true">›</span>
     </button>`;
   }).join("");
@@ -1272,14 +1277,13 @@ function updateShippingChoiceVisibility() {
   if (shippingFeeSection) shippingFeeSection.hidden = !isCourier;
   if (externalCheckoutSection) externalCheckoutSection.hidden = !isExternal;
   if (shippingFeeHelp && isCourier) shippingFeeHelp.textContent = `Choose the delivery area for ${selectedShippingMethod.name}.`;
-  if (externalCheckoutMessage && isExternal) externalCheckoutMessage.textContent = `Continue to ${selectedShippingMethod.name} to complete your checkout. Shipping fees will be calculated there.`;
+  if (externalCheckoutMessage && isExternal) externalCheckoutMessage.textContent = `Pay for your items here first. After payment, you will continue to ${selectedShippingMethod.name} to arrange and pay for shipping.`;
   if (externalCheckoutLink && isExternal) {
-    externalCheckoutLink.href = selectedShippingMethod.external_url || "#";
-    externalCheckoutLink.textContent = selectedShippingMethod.button_label || `Continue to ${selectedShippingMethod.name}`;
+    externalCheckoutLink.hidden = true;
   }
-  if (paymentMethodSection) paymentMethodSection.hidden = isExternal;
-  if (orderNotesField) orderNotesField.hidden = isExternal;
-  if (checkoutTotalRow) checkoutTotalRow.hidden = isExternal;
+  if (paymentMethodSection) paymentMethodSection.hidden = false;
+  if (orderNotesField) orderNotesField.hidden = false;
+  if (checkoutTotalRow) checkoutTotalRow.hidden = false;
   updateProceedPaymentAvailability();
 }
 
@@ -1769,13 +1773,7 @@ function openPaymentStep() {
     return;
   }
 
-  if (selectedShippingMethod.method_type === "external") {
-    showCheckoutError(`Please use the ${selectedShippingMethod.name} checkout button.`);
-    externalCheckoutSection?.scrollIntoView({ behavior: "smooth", block: "center" });
-    return;
-  }
-
-  if (!selectedShippingFee) {
+  if (selectedShippingMethod.method_type === "courier" && !selectedShippingFee) {
     showCheckoutError("Please choose a shipping fee to continue.");
     shippingFeeOptions?.scrollIntoView({ behavior: "smooth", block: "center" });
     return;
@@ -1832,7 +1830,7 @@ function openPaymentStep() {
       </div>
       <div class="cart-summary"><div><span>Product subtotal</span><strong>${formatCurrency(subtotal)}</strong></div></div>
       <div class="cart-summary"><div><span>Shipping option</span><strong>${escapeHtml(selectedShippingMethod?.name || "—")}</strong></div></div>
-      <div class="cart-summary"><div><span>Shipping fee</span><strong>${formatCurrency(shippingFee)}</strong></div></div>
+      <div class="cart-summary"><div><span>Shipping fee</span><strong>${selectedShippingMethod?.method_type === "external" ? `Paid separately in ${escapeHtml(selectedShippingMethod.name)}` : formatCurrency(shippingFee)}</strong></div></div>
       ${paymentBalanceRows}
       ${buyerPaymentNote ? `<p class="payment-step-custom-note">♡ ${escapeHtml(buyerPaymentNote)}</p>` : ""}
     </div>
@@ -2037,6 +2035,7 @@ zipcode: zipcode || null,
   };
 });
 
+    const completedShippingMethod = selectedShippingMethod ? { ...selectedShippingMethod } : null;
     const { data: order, error: orderError } = await supabaseClient
       .rpc("place_storefront_order", {
         p_order: orderData,
@@ -2057,6 +2056,15 @@ paymentStepDialog.close();
 resetCheckoutState();
 
     orderReference.textContent = order.order_ref;
+    const usesExternalShipping = completedShippingMethod?.method_type === "external";
+    if (successExternalCheckout) successExternalCheckout.hidden = !usesExternalShipping;
+    if (usesExternalShipping && successExternalMessage) {
+      successExternalMessage.textContent = `Your item payment was submitted. Now continue to ${completedShippingMethod.name} to arrange and pay for shipping.`;
+    }
+    if (usesExternalShipping && successExternalLink) {
+      successExternalLink.href = completedShippingMethod.external_url || "#";
+      successExternalLink.textContent = completedShippingMethod.button_label || `Continue to ${completedShippingMethod.name}`;
+    }
     successDialog.showModal();
   } catch (error) {
     console.error("Checkout error:", error);
