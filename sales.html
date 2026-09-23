@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f9d8e5" />
+  <title>Sales Tracker · WonderPeps PH</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="sales.css?v=20260923-2" />
+</head>
+<body class="admin-page sales-page">
+  <main class="sales-shell">
+    <header class="sales-header">
+      <div>
+        <p class="eyebrow">WonderPeps accounting</p>
+        <h1>Sales Tracker <span aria-hidden="true">♡</span></h1>
+        <p>Approved website orders appear automatically. Add outside sales manually.</p>
+      </div>
+      <a class="secondary-button" href="admin.html">← Back to Admin</a>
+    </header>
+
+    <p id="salesPageStatus" class="sales-status" role="status" aria-live="polite">Loading sales…</p>
+
+    <section id="salesContent" hidden>
+      <div id="salesSummary" class="sales-summary"></div>
+
+      <section class="sales-card expense-calculator-card">
+        <div class="sales-section-heading">
+          <div>
+            <h2>Expense inventory</h2>
+            <p>Record how many pieces you bought and the total price. Cost per piece and remaining stock are calculated automatically.</p>
+          </div>
+          <strong id="expenseInventoryValue" class="recurring-expense-total">₱0 inventory</strong>
+        </div>
+        <form id="expensePurchaseForm" class="expense-purchase-form">
+          <select name="itemId" aria-label="Existing expense item"><option value="">New expense item</option></select>
+          <input name="name" placeholder="Example: Packaging pouch" required />
+          <input name="quantity" type="number" min="1" step="1" placeholder="Pieces purchased" required />
+          <input name="totalCost" type="number" min="0" step="0.01" placeholder="Total amount paid" required />
+          <button class="primary-button" type="submit">Add purchase</button>
+        </form>
+        <p class="tiny-note">Choose an existing item above when restocking it. Expense profiles control which items are used by each product.</p>
+        <p id="expensePurchaseStatus" class="sales-status" role="status"></p>
+        <div class="expense-list-tools">
+          <input id="expenseItemSearch" type="search" placeholder="Search expense items" />
+          <select id="expenseItemFilter" aria-label="Expense status"><option value="all">All items</option><option value="active">Active</option><option value="paused">Paused</option><option value="low">Low stock</option></select>
+        </div>
+        <div id="expenseItemsList" class="expense-rules-list"></div>
+        <div id="expenseItemsPagination" class="expense-pagination"></div>
+      </section>
+
+      <section class="sales-card">
+        <div class="sales-section-heading">
+          <div><h2>Expense profiles</h2><p>Group the packaging and freebies used by a product.</p></div>
+          <button id="newExpenseProfile" class="primary-button" type="button">＋ New profile</button>
+        </div>
+        <div id="expenseProfilesList" class="expense-profiles-list"></div>
+      </section>
+
+      <section class="sales-card">
+        <div class="sales-section-heading">
+          <div><h2>Sales records</h2><p>Filter the ledger or export the visible records for accounting.</p></div>
+          <div class="sales-actions">
+            <button id="openManualSale" class="primary-button" type="button">＋ Add manual sale</button>
+            <button id="exportSales" class="secondary-button" type="button">Export CSV</button>
+          </div>
+        </div>
+        <div class="sales-filters">
+          <input id="salesSearch" type="search" placeholder="Search reference, customer, or channel" />
+          <input id="salesDateFrom" type="date" aria-label="Date from" />
+          <input id="salesDateTo" type="date" aria-label="Date to" />
+          <select id="salesSource" aria-label="Sales source"><option value="all">All sources</option><option value="website">Website</option><option value="manual">Manual</option></select>
+          <select id="salesStatusFilter" aria-label="Record status"><option value="recorded">Active sales</option><option value="all">All records</option><option value="voided">Voided</option></select>
+        </div>
+        <div class="sales-table-wrap"><table class="sales-table"><thead><tr><th>Date</th><th>Reference</th><th>Source</th><th>Gross</th><th>Expenses</th><th>Net</th><th></th></tr></thead><tbody id="salesTableBody"></tbody></table></div>
+        <div id="salesCards" class="sales-mobile-cards"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="saleDialog">
+    <form id="saleForm" class="sales-form">
+      <input name="id" type="hidden" />
+      <input name="source" type="hidden" value="manual" />
+      <div class="sales-section-heading"><div><h2 id="saleDialogTitle">Add manual sale</h2><p>Use this for Facebook, walk-in, or other outside orders.</p></div><button id="closeSaleDialog" class="icon-button" type="button">×</button></div>
+      <div class="sales-form-grid">
+        <label>Sale date<input name="saleDate" type="datetime-local" required /></label>
+        <label>Reference<input name="reference" placeholder="Example: FB-1001" required /></label>
+        <label>Sales channel<input name="channel" placeholder="Facebook, walk-in, etc." required /></label>
+        <label>Customer name<input name="customerName" placeholder="Optional" /></label>
+        <label>Product sales (automatic)<input name="grossAmount" type="number" min="0" step="0.01" readonly required /></label>
+        <label>Shipping collected (₱)<input name="shippingAmount" type="number" min="0" step="0.01" value="0" required /></label>
+        <label>Product cost (₱)<input name="costAmount" type="number" min="0" step="0.01" value="0" required /></label>
+        <label>Platform/payment fees (₱)<input name="platformFees" type="number" min="0" step="0.01" value="0" required /></label>
+        <label>Other expenses (₱)<input name="otherExpenses" type="number" min="0" step="0.01" value="0" required /></label>
+      </div>
+      <section id="manualSaleProducts" class="manual-sale-products">
+        <div class="sales-section-heading"><div><h3>Products sold</h3><p>Stock is deducted when this manual sale is saved.</p></div><button id="addManualSaleProduct" class="secondary-button" type="button">＋ Add product</button></div>
+        <div id="manualSaleProductRows"></div>
+      </section>
+      <label>Accounting notes<textarea name="notes" rows="3" placeholder="Optional"></textarea></label>
+      <section id="saleExpenseUsageSection" class="sale-expense-usage" hidden>
+        <div class="sales-section-heading"><div><h3>Expenses used for this order</h3><p>Enter how many pieces were used. The total expense updates automatically.</p></div><strong id="saleExpenseUsageTotal">₱0</strong></div>
+        <div class="sale-profile-shortcut">
+          <select id="saleExpenseProfile" aria-label="Expense profile"><option value="">Choose an expense profile</option></select>
+          <button id="applySaleExpenseProfile" class="secondary-button" type="button">Apply profile</button>
+          <button id="clearSaleExpenses" class="secondary-button" type="button">Set all to 0</button>
+        </div>
+        <div id="saleExpenseUsageList"></div>
+      </section>
+      <p id="saleFormStatus" class="sales-status" role="status"></p>
+      <div class="sales-form-actions"><button class="secondary-button" id="cancelSale" type="button">Cancel</button><button class="primary-button" type="submit">Save sale</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="expenseItemDialog">
+    <form id="expenseItemForm" class="sales-form">
+      <input name="id" type="hidden" />
+      <div class="sales-section-heading"><div><h2>Edit expense item</h2><p>Correct its name, remaining stock, or current cost.</p></div><button class="icon-button" data-close-dialog type="button">×</button></div>
+      <div class="sales-form-grid">
+        <label>Item name<input name="name" required /></label>
+        <label>Remaining pieces<input name="quantityOnHand" type="number" min="0" step="1" required /></label>
+        <label>Cost per piece (automatic)<input name="unitCost" type="number" min="0" step="any" readonly required /></label>
+        <label>Default pieces per order<input name="defaultQuantity" type="number" min="0" step="1" required /></label>
+        <label>Cost per order (automatic)<input name="costPerOrder" type="text" readonly /></label>
+      </div>
+      <p id="expenseItemFormStatus" class="sales-status" role="status"></p>
+      <div class="sales-form-actions"><button class="secondary-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Save item</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="expenseProfileDialog">
+    <form id="expenseProfileForm" class="sales-form">
+      <input name="id" type="hidden" />
+      <div class="sales-section-heading"><div><h2 id="expenseProfileTitle">New expense profile</h2><p>Select the items automatically used by products assigned to this profile.</p></div><button class="icon-button" data-close-dialog type="button">×</button></div>
+      <label>Profile name<input name="name" placeholder="Example: Full Expenses" required /></label>
+      <div id="expenseProfileItems" class="profile-item-editor"></div>
+      <p id="expenseProfileStatus" class="sales-status" role="status"></p>
+      <div class="sales-form-actions"><button class="secondary-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Save profile</button></div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="sales.js?v=20260923-2"></script>
+</body>
+</html>

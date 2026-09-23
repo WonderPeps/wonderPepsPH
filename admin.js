@@ -6,6 +6,7 @@ const adminContent = document.querySelector("#adminContent");
 const settingsForm = document.querySelector("#settingsForm");
 const productForm = document.querySelector("#productForm");
 const productCategorySelect = document.querySelector("#productCategorySelect");
+const productExpenseProfileSelect = document.querySelector("#productExpenseProfileSelect");
 const newProductCategoryField = document.querySelector("#newProductCategoryField");
 const hasVariantsToggle = document.querySelector("#hasVariantsToggle");
 const variantManager = document.querySelector("#variantManager");
@@ -131,6 +132,7 @@ let activeSecurityTab = "accounts";
 
 let menuItems = [];
 let products = [];
+let expenseProfiles = [];
 let paymentMethods = [];
 let orders = [];
 let orderItemsByOrder = {};
@@ -2145,10 +2147,10 @@ async function changePaymentMethodOrder(id, direction) {
 ------------------------- */
 
 async function loadProducts() {
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .order("created_at", { ascending: false });
+  const [{ data, error }, profileResult] = await Promise.all([
+    supabaseClient.from("products").select("*").order("created_at", { ascending: false }),
+    supabaseClient.from("expense_profiles").select("id,name").order("name")
+  ]);
 
   if (error) {
     productsTableContainer.innerHTML =
@@ -2156,6 +2158,12 @@ async function loadProducts() {
     return;
   }
   products = data || [];
+  expenseProfiles = profileResult.error ? [] : (profileResult.data || []);
+  if (productExpenseProfileSelect) {
+    const selected = productExpenseProfileSelect.value;
+    productExpenseProfileSelect.innerHTML = `<option value="">No automatic expenses</option>${expenseProfiles.map((profile) => `<option value="${profile.id}">${escapeHtml(profile.name)}</option>`).join("")}`;
+    productExpenseProfileSelect.value = selected;
+  }
   categoryRegistry = Array.from(new Set([
     ...categoryRegistry,
     ...products.map((product) => String(product.category || "").trim()).filter(Boolean)
@@ -2916,6 +2924,7 @@ if (!categoryValue) {
     image_url: productImageUrl || null,
     description:
       String(formData.get("description") || "").trim() || null,
+    expense_profile_id: formData.get("expenseProfile") ? Number(formData.get("expenseProfile")) : null,
     is_visible: true,
     updated_at: new Date().toISOString()
   };
@@ -2994,6 +3003,7 @@ try {
   showProductImagePreview(product.image_url || "");
   productForm.elements.description.value =
     product.description || "";
+  productForm.elements.expenseProfile.value = product.expense_profile_id || "";
 
   formTitle.textContent = "Edit product";
   cancelEdit.hidden = false;
@@ -4129,16 +4139,25 @@ function renderDashboard() {
     dashboardOrders.map((order) => String(order.id))
   );
 
+  const liveProductsById = new Map(
+    products.map((product) => [String(product.id), product])
+  );
+
   const salesByProduct = Object.values((orderItemsByOrder || {}))
     .flat()
-    .filter((item) => dashboardOrderIds.has(String(item.order_id)))
+    .filter((item) =>
+      dashboardOrderIds.has(String(item.order_id)) &&
+      item.product_id != null &&
+      liveProductsById.has(String(item.product_id))
+    )
     .reduce((accumulator, item) => {
-      const key = String(item.product_id || item.product_name || "Unknown");
+      const key = String(item.product_id);
+      const liveProduct = liveProductsById.get(key);
 
       if (!accumulator[key]) {
         accumulator[key] = {
           id: item.product_id,
-          name: item.product_name || "Unknown",
+          name: liveProduct.name,
           quantity: 0
         };
       }
