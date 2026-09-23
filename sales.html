@@ -7,7 +7,7 @@
   <title>Sales Tracker · WonderPeps PH</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="admin.css" />
-  <link rel="stylesheet" href="sales.css" />
+  <link rel="stylesheet" href="sales.css?v=20260923-2" />
 </head>
 <body class="admin-page sales-page">
   <main class="sales-shell">
@@ -108,6 +108,7 @@
         <label>Item name<input name="name" required /></label>
         <label>Remaining pieces<input name="quantityOnHand" type="number" min="0" step="1" required /></label>
         <label>Cost per piece (₱)<input name="unitCost" type="number" min="0" step="0.01" required /></label>
+        <label>Default pieces per order<input name="defaultQuantity" type="number" min="0" step="1" required /></label>
       </div>
       <p id="expenseItemFormStatus" class="sales-status" role="status"></p>
       <div class="sales-form-actions"><button class="secondary-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Save item</button></div>
@@ -127,6 +128,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase.js"></script>
-  <script src="sales.js"></script>
+  <script src="sales.js?v=20260923-2"></script>
 </body>
 </html>
