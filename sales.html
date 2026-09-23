@@ -38,12 +38,19 @@
           <input name="name" placeholder="Example: Packaging pouch" required />
           <input name="quantity" type="number" min="1" step="1" placeholder="Pieces purchased" required />
           <input name="totalCost" type="number" min="0" step="0.01" placeholder="Total amount paid" required />
-          <input name="defaultQuantity" type="number" min="0" step="1" value="0" placeholder="Default pcs/order" title="Pieces automatically used for each new approved sale" required />
           <button class="primary-button" type="submit">Add purchase</button>
         </form>
-        <p class="tiny-note">Set Default pcs/order to 1 when every new sale normally uses one piece. Use 0 for optional freebies.</p>
+        <p class="tiny-note">Choose an existing item above when restocking it. Expense profiles control which items are used by each product.</p>
         <p id="expensePurchaseStatus" class="sales-status" role="status"></p>
         <div id="expenseItemsList" class="expense-rules-list"></div>
+      </section>
+
+      <section class="sales-card">
+        <div class="sales-section-heading">
+          <div><h2>Expense profiles</h2><p>Group the packaging and freebies used by a product.</p></div>
+          <button id="newExpenseProfile" class="primary-button" type="button">＋ New profile</button>
+        </div>
+        <div id="expenseProfilesList" class="expense-profiles-list"></div>
       </section>
 
       <section class="sales-card">
@@ -90,6 +97,31 @@
       </section>
       <p id="saleFormStatus" class="sales-status" role="status"></p>
       <div class="sales-form-actions"><button class="secondary-button" id="cancelSale" type="button">Cancel</button><button class="primary-button" type="submit">Save sale</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="expenseItemDialog">
+    <form id="expenseItemForm" class="sales-form">
+      <input name="id" type="hidden" />
+      <div class="sales-section-heading"><div><h2>Edit expense item</h2><p>Correct its name, remaining stock, or current cost.</p></div><button class="icon-button" data-close-dialog type="button">×</button></div>
+      <div class="sales-form-grid">
+        <label>Item name<input name="name" required /></label>
+        <label>Remaining pieces<input name="quantityOnHand" type="number" min="0" step="1" required /></label>
+        <label>Cost per piece (₱)<input name="unitCost" type="number" min="0" step="0.01" required /></label>
+      </div>
+      <p id="expenseItemFormStatus" class="sales-status" role="status"></p>
+      <div class="sales-form-actions"><button class="secondary-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Save item</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="expenseProfileDialog">
+    <form id="expenseProfileForm" class="sales-form">
+      <input name="id" type="hidden" />
+      <div class="sales-section-heading"><div><h2 id="expenseProfileTitle">New expense profile</h2><p>Select the items automatically used by products assigned to this profile.</p></div><button class="icon-button" data-close-dialog type="button">×</button></div>
+      <label>Profile name<input name="name" placeholder="Example: Full Expenses" required /></label>
+      <div id="expenseProfileItems" class="profile-item-editor"></div>
+      <p id="expenseProfileStatus" class="sales-status" role="status"></p>
+      <div class="sales-form-actions"><button class="secondary-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Save profile</button></div>
     </form>
   </dialog>
 
