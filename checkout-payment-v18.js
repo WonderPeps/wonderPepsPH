@@ -1844,12 +1844,12 @@ function openPaymentStep() {
     : "Amount due now";
   const amountDueRow = payOnDeliveryOnly
     ? ""
-    : `<div class="cart-summary"><div><span>${escapeHtml(amountDueLabel)}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>`;
+    : `<div class="cart-summary payment-row payment-due-row"><div><span>${escapeHtml(amountDueLabel)}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>`;
   const remainingBalanceRow = selectedPaymentMethod.deposit_required || payOnDeliveryOnly
-    ? `<div class="cart-summary"><div><span>${isCashOnDelivery ? "Pay upon delivery" : "Remaining balance"}</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
+    ? `<div class="cart-summary payment-row payment-total-row"><div><span>${isCashOnDelivery ? "Pay upon delivery" : "Remaining balance"}</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
     : "";
   const codFeeRow = isCashOnDelivery && codFee > 0
-    ? `<div class="cart-summary"><div><span>COD fee</span><strong>${formatCurrency(codFee)}</strong></div></div>`
+    ? `<div class="cart-summary payment-row payment-cod-row"><div><span>COD fee</span><strong>${formatCurrency(codFee)}</strong></div></div>`
     : "";
   const paymentBalanceRows = `${amountDueRow}${remainingBalanceRow}`;
   const noteIsVisible = selectedPaymentMethod.instructions_visible !== false;
@@ -1873,7 +1873,9 @@ function openPaymentStep() {
     <div class="payment-step-qr ${qrUrl ? "has-qr" : "no-qr"}">
       ${qrUrl
         ? `<img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" />`
-        : `<div class="payment-step-qr-placeholder">No QR code available</div>`}
+        : payOnDeliveryOnly
+        ? `<div class="payment-step-qr-placeholder payment-cod-status"><span class="payment-status-icon" aria-hidden="true">♡</span><span><strong>No payment needed now</strong><small>Pay when your courier delivers your order.</small></span></div>`
+        : `<div class="payment-step-qr-placeholder"><span class="payment-status-icon" aria-hidden="true">✦</span><span><strong>No QR code available</strong><small>Follow the payment instructions below.</small></span></div>`}
     </div>
     <div class="payment-step-summary payment-step-order-summary">
       <div class="payment-step-method">
@@ -1881,9 +1883,9 @@ function openPaymentStep() {
         <strong>${escapeHtml(selectedPaymentMethod.payment_name || "Payment method")}</strong>
         <p class="tiny-note">${escapeHtml(instructions)}</p>
       </div>
-      <div class="cart-summary"><div><span>Product subtotal</span><strong>${formatCurrency(subtotal)}</strong></div></div>
-      <div class="cart-summary"><div><span>Shipping option</span><strong>${escapeHtml(selectedShippingMethod?.name || "—")}</strong></div></div>
-      <div class="cart-summary"><div><span>Shipping fee</span><strong class="${selectedShippingMethod?.method_type === "external" ? "external-shipping-fee-value" : ""}">${selectedShippingMethod?.method_type === "external" ? `Paid separately via ${escapeHtml(selectedShippingMethod.name)}` : formatCurrency(shippingFee)}</strong></div></div>
+      <div class="cart-summary payment-row payment-product-row"><div><span>Product subtotal</span><strong>${formatCurrency(subtotal)}</strong></div></div>
+      <div class="cart-summary payment-row payment-shipping-row"><div><span>Shipping option</span><strong>${escapeHtml(selectedShippingMethod?.name || "—")}</strong></div></div>
+      <div class="cart-summary payment-row payment-fee-row"><div><span>Shipping fee</span><strong class="${selectedShippingMethod?.method_type === "external" ? "external-shipping-fee-value" : ""}">${selectedShippingMethod?.method_type === "external" ? `Paid separately via ${escapeHtml(selectedShippingMethod.name)}` : formatCurrency(shippingFee)}</strong></div></div>
       ${codFeeRow}
       ${paymentBalanceRows}
       ${buyerPaymentNote ? `<p class="payment-step-custom-note">♡ ${escapeHtml(buyerPaymentNote)}</p>` : ""}
