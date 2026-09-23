@@ -600,6 +600,211 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
     transform:translateY(-2px);
   }
 }
+
+/* Cute shared payment design for COD, QR, bank, and future payment methods. */
+#paymentStepDialog{
+  border:1px solid rgba(229,112,159,.32);
+  border-radius:30px;
+  background:#fffafb;
+  box-shadow:0 30px 80px rgba(69,35,50,.28);
+}
+#paymentStepDialog::backdrop{
+  background:rgba(48,30,39,.42);
+  -webkit-backdrop-filter:blur(7px);
+  backdrop-filter:blur(7px);
+}
+#paymentStepDialog .payment-step-card{
+  background:radial-gradient(circle at 92% 8%,rgba(255,216,231,.72),transparent 28%),linear-gradient(180deg,#fffdfd 0%,#fff8fb 100%);
+}
+#paymentStepDialog .drawer-header{
+  border-bottom:1px solid #f5d6e2;
+  background:rgba(255,253,254,.96);
+}
+#paymentStepDialog .drawer-header h2{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0;
+  color:#4b2638;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(2rem,5vw,2.7rem);
+  line-height:1;
+}
+#paymentStepDialog .drawer-header h2::after{
+  content:"♡ ✦";
+  color:#ed86ad;
+  font-family:inherit;
+  font-size:.55em;
+  letter-spacing:.08em;
+}
+#paymentStepDialog .icon-button{
+  width:46px;
+  height:46px;
+  border:1px solid #f4c4d7;
+  background:#fff0f6;
+  color:#c83270;
+  box-shadow:0 8px 18px rgba(205,62,119,.09);
+}
+#paymentStepDialog .payment-step-content{gap:16px}
+#paymentStepDialog .payment-step-qr{
+  border:1px dashed #efb8cf;
+  border-radius:24px;
+  background:linear-gradient(135deg,#fff7fa,#fff1f6);
+  box-shadow:0 10px 24px rgba(188,62,115,.08);
+}
+#paymentStepDialog .payment-step-qr.has-qr{
+  min-height:245px;
+  background:radial-gradient(circle at 50% 45%,#fff 0 42%,#fff1f7 78%);
+}
+#paymentStepDialog .payment-step-qr.has-qr img{
+  padding:10px;
+  border:1px solid #f3cfdd;
+  border-radius:20px;
+  background:#fff;
+  box-shadow:0 12px 30px rgba(111,43,72,.13);
+}
+#paymentStepDialog .payment-step-qr-placeholder{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+  width:100%;
+  color:#673649;
+  text-align:left;
+}
+#paymentStepDialog .payment-step-qr-placeholder>span:last-child{display:grid;gap:3px}
+#paymentStepDialog .payment-step-qr-placeholder strong{font-size:1rem;color:#4c2638}
+#paymentStepDialog .payment-step-qr-placeholder small{color:#906b7a;font-size:.82rem;line-height:1.35}
+#paymentStepDialog .payment-status-icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 48px;
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:linear-gradient(145deg,#ffdce9,#fff5f9);
+  color:#d83f7b;
+  font-size:1.6rem;
+  box-shadow:0 8px 18px rgba(205,62,119,.12);
+}
+#paymentStepDialog .payment-step-order-summary{
+  padding:20px;
+  border:1px solid #f1c7d8;
+  border-radius:25px;
+  background:linear-gradient(145deg,#fff4f8,#ffedf4);
+  box-shadow:0 14px 34px rgba(174,55,106,.10);
+}
+#paymentStepDialog .payment-step-method{
+  position:relative;
+  padding:0 52px 16px 2px;
+}
+#paymentStepDialog .payment-step-method::after{
+  content:"♥ ✦";
+  position:absolute;
+  top:5px;
+  right:3px;
+  color:#efa1bf;
+  font-size:1.15rem;
+  letter-spacing:.12em;
+}
+#paymentStepDialog .payment-step-method>span{color:#8b6574;text-transform:uppercase;letter-spacing:.08em;font-size:.72rem}
+#paymentStepDialog .payment-step-method>strong{color:#452333;font-family:Georgia,"Times New Roman",serif;font-size:1.45rem}
+#paymentStepDialog .payment-step-method .tiny-note{color:#866171}
+#paymentStepDialog .payment-row{
+  margin:7px 0 0;
+  padding:0!important;
+  border:1px solid #f3d3df!important;
+  border-radius:17px;
+  background:rgba(255,255,255,.82)!important;
+  box-shadow:0 6px 16px rgba(117,47,77,.05)!important;
+}
+#paymentStepDialog .payment-row>div{
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr) auto!important;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  margin:0!important;
+  padding:8px 13px!important;
+}
+#paymentStepDialog .payment-row>div::before{
+  content:"♡";
+  display:grid;
+  place-items:center;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#ffe4ee;
+  color:#d83978;
+  font-size:1rem;
+}
+#paymentStepDialog .payment-shipping-row>div::before{content:"▣"}
+#paymentStepDialog .payment-fee-row>div::before{content:"✦"}
+#paymentStepDialog .payment-cod-row>div::before{content:"＋"}
+#paymentStepDialog .payment-due-row>div::before{content:"✿"}
+#paymentStepDialog .payment-total-row>div::before{content:"♥"}
+#paymentStepDialog .payment-row span{grid-column:2;color:#74465a}
+#paymentStepDialog .payment-row strong{grid-column:3;margin:0;color:#53283c;font-size:1.05rem;text-align:right}
+#paymentStepDialog .payment-total-row{
+  border-color:#ec88ae!important;
+  background:linear-gradient(100deg,#fff4f8,#ffe4ef)!important;
+}
+#paymentStepDialog .payment-total-row span,#paymentStepDialog .payment-total-row strong{color:#a91954;font-weight:800}
+#paymentStepDialog .payment-total-row strong{font-size:1.3rem}
+#paymentStepDialog .payment-step-custom-note{
+  margin:13px 0 0;
+  padding:12px 14px;
+  border:1px solid #f1bfd2;
+  border-radius:16px;
+  background:rgba(255,255,255,.68);
+  color:#704657;
+  font-size:.86rem;
+  line-height:1.45;
+}
+#paymentStepDialog .payment-step-field{
+  padding:14px;
+  border:1px solid #f1c9d9;
+  border-radius:18px;
+  background:#fff7fa;
+}
+#paymentStepDialog .payment-step-actions{
+  gap:12px;
+  background:rgba(255,253,254,.97);
+}
+#paymentStepDialog .payment-step-actions button{min-height:48px;border-radius:999px;font-weight:800}
+#paymentStepDialog .payment-step-actions .primary-button{
+  background:linear-gradient(135deg,#e94e8d,#cf2f70);
+  box-shadow:0 12px 24px rgba(203,45,108,.24);
+}
+#paymentStepDialog .payment-step-actions .secondary-button{border-color:#efbfd2;color:#542b3e;background:#fff}
+
+@media (max-width:600px){
+  #paymentStepDialog{border:0;border-radius:0}
+  #paymentStepDialog .drawer-header h2::after{font-size:.45em}
+  #paymentStepDialog .payment-step-qr.has-qr{min-height:190px;height:190px}
+  #paymentStepDialog .payment-step-qr.no-qr{
+    min-height:108px;
+    height:auto;
+    padding:12px 14px;
+    overflow:visible;
+    box-sizing:border-box;
+  }
+  #paymentStepDialog .payment-step-qr-placeholder{
+    justify-content:flex-start;
+    min-width:0;
+    padding:8px 4px;
+    text-align:left;
+  }
+  #paymentStepDialog .payment-step-qr-placeholder>span:last-child{min-width:0}
+  #paymentStepDialog .payment-step-qr-placeholder strong{font-size:.94rem;line-height:1.25}
+  #paymentStepDialog .payment-step-qr-placeholder small{font-size:.78rem;line-height:1.35}
+  #paymentStepDialog .payment-status-icon{flex-basis:44px;width:44px;height:44px;font-size:1.4rem}
+  #paymentStepDialog .payment-step-order-summary{padding:14px;border-radius:22px}
+  #paymentStepDialog .payment-row>div{grid-template-columns:32px minmax(0,1fr) auto!important;min-height:50px;padding:7px 9px!important;font-size:.86rem!important}
+  #paymentStepDialog .payment-row>div::before{width:30px;height:30px;font-size:.82rem}
+  #paymentStepDialog .payment-row strong{font-size:.92rem}
+  #paymentStepDialog .payment-total-row strong{font-size:1.08rem}
+}
 .tiny-note{font-size:.78rem;color:var(--muted);line-height:1.5}
 .success-card{text-align:center}
 .success-icon{font-size:3rem;color:var(--pink-3)}
