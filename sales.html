@@ -25,6 +25,23 @@
     <section id="salesContent" hidden>
       <div id="salesSummary" class="sales-summary"></div>
 
+      <section class="sales-card expense-calculator-card">
+        <div class="sales-section-heading">
+          <div>
+            <h2>Per-sale expense calculator</h2>
+            <p>Add recurring costs such as packaging or freebies. The active total is automatically included in every sale.</p>
+          </div>
+          <strong id="recurringExpenseTotal" class="recurring-expense-total">₱0 per sale</strong>
+        </div>
+        <form id="expenseRuleForm" class="expense-rule-form">
+          <input name="name" placeholder="Example: Packaging" required />
+          <input name="amount" type="number" min="0" step="0.01" placeholder="Cost per sale" required />
+          <button class="primary-button" type="submit">Add expense</button>
+        </form>
+        <p id="expenseRuleStatus" class="sales-status" role="status"></p>
+        <div id="expenseRulesList" class="expense-rules-list"></div>
+      </section>
+
       <section class="sales-card">
         <div class="sales-section-heading">
           <div><h2>Sales records</h2><p>Filter the ledger or export the visible records for accounting.</p></div>
