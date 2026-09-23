@@ -1822,7 +1822,10 @@ function openPaymentStep() {
 
   const subtotal = calculateSubtotal();
   const shippingFee = getSelectedShippingFee();
-  const total = roundToTwo(subtotal + shippingFee);
+  const codFee = isCashOnDelivery
+    ? Math.max(0, Number(selectedPaymentMethod.cod_fee || 0))
+    : 0;
+  const total = roundToTwo(subtotal + shippingFee + codFee);
   const depositPercentage = Number(selectedPaymentMethod.deposit_percentage || 0);
   // A deposit covers the selected percentage of the products, plus the full
   // delivery charge. Shipping should never be left for the remaining balance.
@@ -1845,12 +1848,23 @@ function openPaymentStep() {
   const remainingBalanceRow = selectedPaymentMethod.deposit_required || payOnDeliveryOnly
     ? `<div class="cart-summary"><div><span>${isCashOnDelivery ? "Pay upon delivery" : "Remaining balance"}</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
     : "";
+  const codFeeRow = isCashOnDelivery && codFee > 0
+    ? `<div class="cart-summary"><div><span>COD fee</span><strong>${formatCurrency(codFee)}</strong></div></div>`
+    : "";
   const paymentBalanceRows = `${amountDueRow}${remainingBalanceRow}`;
-  const buyerPaymentNote = payOnDeliveryOnly
-    ? `No payment or receipt is required now. Pay ${formatCurrency(total)} when your courier delivers the order.`
+  const noteIsVisible = selectedPaymentMethod.instructions_visible !== false;
+  const customInstructions = String(selectedPaymentMethod.instructions || "").trim();
+  const formatBuyerNote = (value) => String(value || "")
+    .replaceAll("{total}", formatCurrency(total))
+    .replaceAll("{cod_fee}", formatCurrency(codFee))
+    .replaceAll("{shipping_fee}", formatCurrency(shippingFee));
+  const buyerPaymentNote = !noteIsVisible
+    ? ""
+    : payOnDeliveryOnly
+    ? formatBuyerNote(customInstructions || "No payment or receipt is required now. Pay {total} when your courier delivers the order.")
     : isCashOnDelivery
-    ? `Pay ${formatCurrency(amountDueNow)} now using the QR code and upload your receipt. The remaining ${formatCurrency(remainingBalance)} will be paid when your order is delivered.`
-    : String(selectedPaymentMethod.instructions || "").trim();
+    ? formatBuyerNote(customInstructions || `Pay ${formatCurrency(amountDueNow)} now using the QR code and upload your receipt. The remaining ${formatCurrency(remainingBalance)} will be paid when your order is delivered.`)
+    : formatBuyerNote(customInstructions);
 
   clearPaymentStepReceiptState();
   showPaymentStepFeedback("");
@@ -1870,6 +1884,7 @@ function openPaymentStep() {
       <div class="cart-summary"><div><span>Product subtotal</span><strong>${formatCurrency(subtotal)}</strong></div></div>
       <div class="cart-summary"><div><span>Shipping option</span><strong>${escapeHtml(selectedShippingMethod?.name || "—")}</strong></div></div>
       <div class="cart-summary"><div><span>Shipping fee</span><strong class="${selectedShippingMethod?.method_type === "external" ? "external-shipping-fee-value" : ""}">${selectedShippingMethod?.method_type === "external" ? `Paid separately via ${escapeHtml(selectedShippingMethod.name)}` : formatCurrency(shippingFee)}</strong></div></div>
+      ${codFeeRow}
       ${paymentBalanceRows}
       ${buyerPaymentNote ? `<p class="payment-step-custom-note">♡ ${escapeHtml(buyerPaymentNote)}</p>` : ""}
     </div>
@@ -1990,11 +2005,14 @@ const formattedAddress = [
 ]
 .filter(Boolean)
 .join(", ");
-    const total = roundToTwo(subtotal + shippingFee);
+    const isCashOnDelivery = isCashOnDeliveryMethod();
+    const codFee = isCashOnDelivery
+      ? Math.max(0, Number(selectedPaymentMethod?.cod_fee || 0))
+      : 0;
+    const total = roundToTwo(subtotal + shippingFee + codFee);
     const paymentMethodName = String(
       selectedPaymentMethod?.payment_name || formData.get("payment") || ""
     ).trim();
-    const isCashOnDelivery = isCashOnDeliveryMethod();
     const payOnDeliveryOnly = isCashOnDelivery
       && !selectedPaymentMethod?.deposit_required
       && !selectedPaymentMethod?.receipt_required
@@ -2049,6 +2067,7 @@ zipcode: zipcode || null,
       shipping_method_type: selectedShippingMethod?.method_type || null,
       notes: String(formData.get("notes") || "").trim() || null,
       shipping_fee: shippingFee,
+      payment_fee: codFee,
       subtotal,
       total,
       amount_paid: amountDueNow,

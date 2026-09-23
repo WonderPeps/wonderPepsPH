@@ -1815,6 +1815,8 @@ function renderPaymentMethods() {
             <div>${escapeHtml(depositText)}</div>
             <div>${method.receipt_required ? "Receipt required" : "No receipt"}</div>
             <div>${method.reference_required ? "Reference required" : "No reference"}</div>
+            <div>${method.instructions_visible === false ? "Buyer note hidden" : "Buyer note shown"}</div>
+            <div>COD fee: ${formatCurrency(method.cod_fee || 0)}</div>
             <div>${method.is_visible ? "Visible" : "Hidden"}</div>
           </div>
 
@@ -1927,6 +1929,8 @@ function populatePaymentMethodForm(method) {
   paymentMethodForm.elements.payment_name.value = method.payment_name || "";
   paymentMethodForm.elements.short_description.value = method.short_description || "";
   paymentMethodForm.elements.instructions.value = method.instructions || "";
+  paymentMethodForm.elements.instructions_visible.checked = method.instructions_visible !== false;
+  paymentMethodForm.elements.cod_fee.value = Number(method.cod_fee || 0);
   paymentMethodForm.elements.receipt_required.checked = method.receipt_required;
   paymentMethodForm.elements.reference_required.checked = method.reference_required;
   paymentMethodForm.elements.deposit_required.checked = method.deposit_required;
@@ -2010,6 +2014,8 @@ paymentMethodForm.addEventListener("submit", async (event) => {
     payment_name: String(formData.get("payment_name") || "").trim(),
     short_description: String(formData.get("short_description") || "").trim() || null,
     instructions: String(formData.get("instructions") || "").trim() || null,
+    instructions_visible: formData.get("instructions_visible") === "on",
+    cod_fee: Math.max(0, Number(formData.get("cod_fee") || 0)),
     receipt_required: formData.get("receipt_required") === "on",
     reference_required: formData.get("reference_required") === "on",
     deposit_required: formData.get("deposit_required") === "on",
@@ -3797,6 +3803,8 @@ function renderOrders(ordersToRender) {
       <span>${formatCurrency(order.shipping_fee || 0)}</span>
     </div>
 
+    ${Number(order.payment_fee || 0) > 0 ? `<div class="order-total-line"><span>COD fee</span><span>${formatCurrency(order.payment_fee)}</span></div>` : ""}
+
     <div class="order-grand-total">
       <span>TOTAL</span>
       <strong>${formatCurrency(order.total || 0)}</strong>
@@ -4135,7 +4143,7 @@ function openInvoice(order) {
   const items = orderItemsByOrder[String(order.id)] || [];
   const subtotal = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
   const address = [[order.house_unit, order.street].filter(Boolean).join(", "), order.barangay ? `Brgy. ${order.barangay}` : "", [order.city, order.province].filter(Boolean).join(", "), order.zipcode || ""].filter(Boolean).map(escapeHtml).join("<br>") || "—";
-  invoiceContent.innerHTML = `<article class="invoice-sheet"><header class="invoice-head"><div><h2>WonderPeps PH</h2><p>Admin order invoice</p></div><div><strong>INVOICE</strong><p>${escapeHtml(getOrderReferenceLabel(order))}</p></div></header><div class="invoice-grid"><section class="invoice-box invoice-customer"><h4>BILL TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${escapeHtml(order.email || "Not provided")}<br>${escapeHtml(order.phone || "Not provided")}</p></section><section class="invoice-box invoice-customer"><h4>SHIP TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${address}</p></section></div><table class="invoice-table"><thead><tr><th>Item</th><th>Variant</th><th>Qty</th><th>Total</th></tr></thead><tbody>${items.map((item) => `<tr><td>${escapeHtml(item.product_name || "Product")}</td><td>${escapeHtml(item.variant_name || "—")}</td><td>${Number(item.quantity || 0)}</td><td>${formatCurrency(item.line_total || 0)}</td></tr>`).join("")}</tbody></table><div class="invoice-grid"><section class="invoice-box invoice-payment"><h4>PAYMENT INFORMATION</h4><p><span>Method</span><strong>${escapeHtml(order.payment_method || "—")}</strong></p><p><span>Status</span><strong>${escapeHtml(order.payment_status || "Pending")}</strong></p></section><section class="invoice-box invoice-summary"><h4>ORDER SUMMARY ♡</h4><p><span>Subtotal</span><strong>${formatCurrency(subtotal)}</strong></p><p><span>Shipping</span><strong>${formatCurrency(order.shipping_fee || 0)}</strong></p></section></div>${String(order.notes || "").trim() ? `<section class="invoice-customer-note"><strong>🌸 Customer note</strong><p>${escapeHtml(String(order.notes).trim())}</p></section>` : ""}<div class="invoice-total"><span>TOTAL</span><span>${formatCurrency(order.total || 0)}</span></div><footer class="invoice-actions"><button class="secondary-button" type="button" data-close-invoice>Close</button><button class="primary-button" type="button" data-download-invoice>Download invoice image</button></footer></article>`;
+  invoiceContent.innerHTML = `<article class="invoice-sheet"><header class="invoice-head"><div><h2>WonderPeps PH</h2><p>Admin order invoice</p></div><div><strong>INVOICE</strong><p>${escapeHtml(getOrderReferenceLabel(order))}</p></div></header><div class="invoice-grid"><section class="invoice-box invoice-customer"><h4>BILL TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${escapeHtml(order.email || "Not provided")}<br>${escapeHtml(order.phone || "Not provided")}</p></section><section class="invoice-box invoice-customer"><h4>SHIP TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${address}</p></section></div><table class="invoice-table"><thead><tr><th>Item</th><th>Variant</th><th>Qty</th><th>Total</th></tr></thead><tbody>${items.map((item) => `<tr><td>${escapeHtml(item.product_name || "Product")}</td><td>${escapeHtml(item.variant_name || "—")}</td><td>${Number(item.quantity || 0)}</td><td>${formatCurrency(item.line_total || 0)}</td></tr>`).join("")}</tbody></table><div class="invoice-grid"><section class="invoice-box invoice-payment"><h4>PAYMENT INFORMATION</h4><p><span>Method</span><strong>${escapeHtml(order.payment_method || "—")}</strong></p><p><span>Status</span><strong>${escapeHtml(order.payment_status || "Pending")}</strong></p></section><section class="invoice-box invoice-summary"><h4>ORDER SUMMARY ♡</h4><p><span>Subtotal</span><strong>${formatCurrency(subtotal)}</strong></p><p><span>Shipping</span><strong>${formatCurrency(order.shipping_fee || 0)}</strong></p>${Number(order.payment_fee || 0) > 0 ? `<p><span>COD fee</span><strong>${formatCurrency(order.payment_fee)}</strong></p>` : ""}</section></div>${String(order.notes || "").trim() ? `<section class="invoice-customer-note"><strong>🌸 Customer note</strong><p>${escapeHtml(String(order.notes).trim())}</p></section>` : ""}<div class="invoice-total"><span>TOTAL</span><span>${formatCurrency(order.total || 0)}</span></div><footer class="invoice-actions"><button class="secondary-button" type="button" data-close-invoice>Close</button><button class="primary-button" type="button" data-download-invoice>Download invoice image</button></footer></article>`;
   const [billingBox, shippingBox] = invoiceContent.querySelectorAll(".invoice-customer");
   if (billingBox) {
     billingBox.innerHTML = `<h4>BILL TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p><span>Email</span><strong>${escapeHtml(order.email || "Not provided")}</strong></p><p><span>Number</span><strong>${escapeHtml(order.phone || "Not provided")}</strong></p></div>`;

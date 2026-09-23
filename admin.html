@@ -692,8 +692,19 @@ Hero eyebrow
 
         <label>
           Buyer payment note
-          <textarea name="instructions" rows="4" placeholder="Example: Send payment before the order can be processed."></textarea>
-          <span class="tiny-note">Shown in its own note card after this payment method is selected at checkout.</span>
+          <textarea name="instructions" rows="4" placeholder="Example: No payment or receipt is required now. Pay {total} when your courier delivers the order."></textarea>
+          <span class="tiny-note">Shown after this payment method is selected. You may use {total}, {cod_fee}, and {shipping_fee}.</span>
+        </label>
+
+        <label>
+          <input name="instructions_visible" type="checkbox" checked />
+          Show buyer payment note
+        </label>
+
+        <label>
+          Cash on Delivery fee (₱)
+          <input name="cod_fee" type="number" min="0" step="0.01" value="0" />
+          <span class="tiny-note">Applied only to Cash on Delivery and included in the amount paid upon delivery.</span>
         </label>
 
         <label for="paymentQrFile">
@@ -769,7 +780,7 @@ Hero eyebrow
 <script src="supabase.js"></script>
 <script src="variants.js?v=clean-console-v1"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="admin.js?v=courier-payment-filter-v1"></script>
+<script src="admin.js?v=cod-fee-settings-v1"></script>
 <script src="admin-ui.js?v=stable-section-nav-v2"></script>
 </body>
 </html>
