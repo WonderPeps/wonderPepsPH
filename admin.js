@@ -104,6 +104,7 @@ const paymentMethodQrRemoveBtn = document.querySelector("#paymentQrRemoveBtn");
 const paymentMethodQrPreviewBox = document.querySelector("#paymentQrPreviewBox");
 const paymentMethodQrPreviewImage = document.querySelector("#paymentQrPreviewImage");
 const paymentMethodQrPreviewText = document.querySelector("#paymentQrPreviewText");
+const paymentCourierOptions = document.querySelector("#paymentCourierOptions");
 const categoryForm = document.querySelector("#categoryForm");
 const cancelCategoryEdit = document.querySelector("#cancelCategoryEdit");
 const categoryProductsEditor = document.querySelector("#categoryProductsEditor");
@@ -134,6 +135,7 @@ let menuItems = [];
 let products = [];
 let expenseProfiles = [];
 let paymentMethods = [];
+let paymentMethodShippingLinks = [];
 let orders = [];
 let orderItemsByOrder = {};
 let activeOrderFilter = "all";
@@ -723,6 +725,7 @@ async function loadShippingMethods() {
   setShippingMethodsStatus("");
   renderShippingMethods();
   renderShippingFeeMethodChoices();
+  if (paymentMethods.length) renderPaymentMethods();
 }
 
 function renderShippingMethods() {
@@ -1749,10 +1752,10 @@ async function deletePaymentMethodQr(publicUrl) {
 }
 
 async function loadPaymentMethods() {
-  const { data, error } = await supabaseClient
-    .from("payment_methods")
-    .select("*")
-    .order("sort_order", { ascending: true });
+  const [{ data, error }, linksResult] = await Promise.all([
+    supabaseClient.from("payment_methods").select("*").order("sort_order", { ascending: true }),
+    supabaseClient.from("payment_method_shipping_methods").select("payment_method_id,shipping_method_id")
+  ]);
 
   if (error) {
     paymentMethodsContainer.innerHTML =
@@ -1761,7 +1764,21 @@ async function loadPaymentMethods() {
   }
 
   paymentMethods = data || [];
+  paymentMethodShippingLinks = linksResult.error ? [] : (linksResult.data || []);
   renderPaymentMethods();
+}
+
+function courierNamesForPayment(methodId) {
+  const ids = new Set(paymentMethodShippingLinks.filter((link) => String(link.payment_method_id) === String(methodId)).map((link) => String(link.shipping_method_id)));
+  return shippingMethods.filter((method) => ids.has(String(method.id))).map((method) => method.name);
+}
+
+function renderPaymentCourierOptions(methodId = null) {
+  if (!paymentCourierOptions) return;
+  const selected = new Set(paymentMethodShippingLinks.filter((link) => String(link.payment_method_id) === String(methodId)).map((link) => String(link.shipping_method_id)));
+  paymentCourierOptions.innerHTML = shippingMethods.length
+    ? shippingMethods.map((method) => `<label class="payment-courier-option"><input type="checkbox" name="shipping_method_ids" value="${method.id}" ${selected.has(String(method.id)) ? "checked" : ""}> <span>${escapeHtml(method.name)}</span></label>`).join("")
+    : '<p class="tiny-note">Add a shipping option first.</p>';
 }
 
 function renderPaymentMethods() {
@@ -1803,6 +1820,7 @@ function renderPaymentMethods() {
 
           <div class="payment-tags">
             <span class="payment-tag">Sort order: ${Number(method.sort_order ?? 0)}</span>
+            <span class="payment-tag">${escapeHtml(courierNamesForPayment(method.id).join(", ") || "No shipping options assigned")}</span>
           </div>
 
           <div class="admin-actions">
@@ -1893,6 +1911,7 @@ function openPaymentMethodModal(isEdit = false) {
     ? "Edit payment method"
     : "Add payment method";
 
+  renderPaymentCourierOptions(isEdit ? paymentMethodForm.elements.id.value : null);
   paymentMethodModal.showModal();
 }
 
@@ -1984,6 +2003,7 @@ paymentMethodForm.addEventListener("submit", async (event) => {
 
   const formData = new FormData(paymentMethodForm);
   const id = String(formData.get("id") || "").trim();
+  const selectedShippingMethodIds = formData.getAll("shipping_method_ids").map((value) => Number(value));
 
   const requestedSortOrder = formData.get("sort_order");
   const payload = {
@@ -2040,6 +2060,7 @@ paymentMethodForm.addEventListener("submit", async (event) => {
   payload.qr_url = qrUrl;
 
   let error;
+  let savedMethodId = id;
 
   if (id) {
     ({ error } = await supabaseClient
@@ -2047,14 +2068,38 @@ paymentMethodForm.addEventListener("submit", async (event) => {
       .update(payload)
       .eq("id", id));
   } else {
-    ({ error } = await supabaseClient
+    const result = await supabaseClient
       .from("payment_methods")
-      .insert(payload));
+      .insert(payload)
+      .select("id")
+      .single();
+    error = result.error;
+    savedMethodId = result.data?.id || "";
   }
 
   if (error) {
     alert(`Could not save payment method: ${error.message}`);
     return;
+  }
+
+  const deleteLinks = await supabaseClient
+    .from("payment_method_shipping_methods")
+    .delete()
+    .eq("payment_method_id", savedMethodId);
+
+  if (deleteLinks.error) {
+    alert(`Payment method saved, but courier assignments could not be updated: ${deleteLinks.error.message}`);
+    return;
+  }
+
+  if (selectedShippingMethodIds.length) {
+    const { error: linkError } = await supabaseClient
+      .from("payment_method_shipping_methods")
+      .insert(selectedShippingMethodIds.map((shippingMethodId) => ({ payment_method_id: savedMethodId, shipping_method_id: shippingMethodId })));
+    if (linkError) {
+      alert(`Payment method saved, but courier assignments could not be updated: ${linkError.message}`);
+      return;
+    }
   }
 
   closePaymentMethodDialog();

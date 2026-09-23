@@ -736,6 +736,12 @@ Hero eyebrow
           <input name="is_visible" type="checkbox" checked />
         </label>
 
+        <fieldset class="payment-courier-fieldset">
+          <legend>Available for shipping options</legend>
+          <p class="tiny-note">Choose every courier or marketplace checkout where this payment method should appear.</p>
+          <div id="paymentCourierOptions" class="payment-courier-options"></div>
+        </fieldset>
+
         <label>
           Sort order
           <input name="sort_order" type="number" min="0" step="1" />
@@ -763,7 +769,7 @@ Hero eyebrow
 <script src="supabase.js"></script>
 <script src="variants.js?v=clean-console-v1"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="admin.js?v=customer-note-v1"></script>
+<script src="admin.js?v=courier-payment-filter-v1"></script>
 <script src="admin-ui.js?v=stable-section-nav-v2"></script>
 </body>
 </html>
