@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f9d8e5" />
+  <title>Sales Tracker · WonderPeps PH</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="sales.css" />
+</head>
+<body class="admin-page sales-page">
+  <main class="sales-shell">
+    <header class="sales-header">
+      <div>
+        <p class="eyebrow">WonderPeps accounting</p>
+        <h1>Sales Tracker <span aria-hidden="true">♡</span></h1>
+        <p>Approved website orders appear automatically. Add outside sales manually.</p>
+      </div>
+      <a class="secondary-button" href="admin.html">← Back to Admin</a>
+    </header>
+
+    <p id="salesPageStatus" class="sales-status" role="status" aria-live="polite">Loading sales…</p>
+
+    <section id="salesContent" hidden>
+      <div id="salesSummary" class="sales-summary"></div>
+
+      <section class="sales-card">
+        <div class="sales-section-heading">
+          <div><h2>Sales records</h2><p>Filter the ledger or export the visible records for accounting.</p></div>
+          <div class="sales-actions">
+            <button id="openManualSale" class="primary-button" type="button">＋ Add manual sale</button>
+            <button id="exportSales" class="secondary-button" type="button">Export CSV</button>
+          </div>
+        </div>
+        <div class="sales-filters">
+          <input id="salesSearch" type="search" placeholder="Search reference, customer, or channel" />
+          <input id="salesDateFrom" type="date" aria-label="Date from" />
+          <input id="salesDateTo" type="date" aria-label="Date to" />
+          <select id="salesSource" aria-label="Sales source"><option value="all">All sources</option><option value="website">Website</option><option value="manual">Manual</option></select>
+          <select id="salesStatusFilter" aria-label="Record status"><option value="recorded">Active sales</option><option value="all">All records</option><option value="voided">Voided</option></select>
+        </div>
+        <div class="sales-table-wrap"><table class="sales-table"><thead><tr><th>Date</th><th>Reference</th><th>Source</th><th>Gross</th><th>Expenses</th><th>Net</th><th></th></tr></thead><tbody id="salesTableBody"></tbody></table></div>
+        <div id="salesCards" class="sales-mobile-cards"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="saleDialog">
+    <form id="saleForm" class="sales-form">
+      <input name="id" type="hidden" />
+      <input name="source" type="hidden" value="manual" />
+      <div class="sales-section-heading"><div><h2 id="saleDialogTitle">Add manual sale</h2><p>Use this for Facebook, walk-in, or other outside orders.</p></div><button id="closeSaleDialog" class="icon-button" type="button">×</button></div>
+      <div class="sales-form-grid">
+        <label>Sale date<input name="saleDate" type="datetime-local" required /></label>
+        <label>Reference<input name="reference" placeholder="Example: FB-1001" required /></label>
+        <label>Sales channel<input name="channel" placeholder="Facebook, walk-in, etc." required /></label>
+        <label>Customer name<input name="customerName" placeholder="Optional" /></label>
+        <label>Product sales (₱)<input name="grossAmount" type="number" min="0" step="0.01" required /></label>
+        <label>Shipping collected (₱)<input name="shippingAmount" type="number" min="0" step="0.01" value="0" required /></label>
+        <label>Product cost (₱)<input name="costAmount" type="number" min="0" step="0.01" value="0" required /></label>
+        <label>Platform/payment fees (₱)<input name="platformFees" type="number" min="0" step="0.01" value="0" required /></label>
+        <label>Other expenses (₱)<input name="otherExpenses" type="number" min="0" step="0.01" value="0" required /></label>
+      </div>
+      <label>Accounting notes<textarea name="notes" rows="3" placeholder="Optional"></textarea></label>
+      <p id="saleFormStatus" class="sales-status" role="status"></p>
+      <div class="sales-form-actions"><button class="secondary-button" id="cancelSale" type="button">Cancel</button><button class="primary-button" type="submit">Save sale</button></div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="sales.js"></script>
+</body>
+</html>
