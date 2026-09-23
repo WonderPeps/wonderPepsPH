@@ -28,18 +28,22 @@
       <section class="sales-card expense-calculator-card">
         <div class="sales-section-heading">
           <div>
-            <h2>Per-sale expense calculator</h2>
-            <p>Add recurring costs such as packaging or freebies. The active total is automatically included in every sale.</p>
+            <h2>Expense inventory</h2>
+            <p>Record how many pieces you bought and the total price. Cost per piece and remaining stock are calculated automatically.</p>
           </div>
-          <strong id="recurringExpenseTotal" class="recurring-expense-total">₱0 per sale</strong>
+          <strong id="expenseInventoryValue" class="recurring-expense-total">₱0 inventory</strong>
         </div>
-        <form id="expenseRuleForm" class="expense-rule-form">
-          <input name="name" placeholder="Example: Packaging" required />
-          <input name="amount" type="number" min="0" step="0.01" placeholder="Cost per sale" required />
-          <button class="primary-button" type="submit">Add expense</button>
+        <form id="expensePurchaseForm" class="expense-purchase-form">
+          <select name="itemId" aria-label="Existing expense item"><option value="">New expense item</option></select>
+          <input name="name" placeholder="Example: Packaging pouch" required />
+          <input name="quantity" type="number" min="1" step="1" placeholder="Pieces purchased" required />
+          <input name="totalCost" type="number" min="0" step="0.01" placeholder="Total amount paid" required />
+          <input name="defaultQuantity" type="number" min="0" step="1" value="0" placeholder="Default pcs/order" title="Pieces automatically used for each new approved sale" required />
+          <button class="primary-button" type="submit">Add purchase</button>
         </form>
-        <p id="expenseRuleStatus" class="sales-status" role="status"></p>
-        <div id="expenseRulesList" class="expense-rules-list"></div>
+        <p class="tiny-note">Set Default pcs/order to 1 when every new sale normally uses one piece. Use 0 for optional freebies.</p>
+        <p id="expensePurchaseStatus" class="sales-status" role="status"></p>
+        <div id="expenseItemsList" class="expense-rules-list"></div>
       </section>
 
       <section class="sales-card">
@@ -80,6 +84,10 @@
         <label>Other expenses (₱)<input name="otherExpenses" type="number" min="0" step="0.01" value="0" required /></label>
       </div>
       <label>Accounting notes<textarea name="notes" rows="3" placeholder="Optional"></textarea></label>
+      <section id="saleExpenseUsageSection" class="sale-expense-usage" hidden>
+        <div class="sales-section-heading"><div><h3>Expenses used for this order</h3><p>Enter how many pieces were used. The total expense updates automatically.</p></div><strong id="saleExpenseUsageTotal">₱0</strong></div>
+        <div id="saleExpenseUsageList"></div>
+      </section>
       <p id="saleFormStatus" class="sales-status" role="status"></p>
       <div class="sales-form-actions"><button class="secondary-button" id="cancelSale" type="button">Cancel</button><button class="primary-button" type="submit">Save sale</button></div>
     </form>
