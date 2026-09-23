@@ -42,7 +42,12 @@
         </form>
         <p class="tiny-note">Choose an existing item above when restocking it. Expense profiles control which items are used by each product.</p>
         <p id="expensePurchaseStatus" class="sales-status" role="status"></p>
+        <div class="expense-list-tools">
+          <input id="expenseItemSearch" type="search" placeholder="Search expense items" />
+          <select id="expenseItemFilter" aria-label="Expense status"><option value="all">All items</option><option value="active">Active</option><option value="paused">Paused</option><option value="low">Low stock</option></select>
+        </div>
         <div id="expenseItemsList" class="expense-rules-list"></div>
+        <div id="expenseItemsPagination" class="expense-pagination"></div>
       </section>
 
       <section class="sales-card">
@@ -84,12 +89,16 @@
         <label>Reference<input name="reference" placeholder="Example: FB-1001" required /></label>
         <label>Sales channel<input name="channel" placeholder="Facebook, walk-in, etc." required /></label>
         <label>Customer name<input name="customerName" placeholder="Optional" /></label>
-        <label>Product sales (₱)<input name="grossAmount" type="number" min="0" step="0.01" required /></label>
+        <label>Product sales (automatic)<input name="grossAmount" type="number" min="0" step="0.01" readonly required /></label>
         <label>Shipping collected (₱)<input name="shippingAmount" type="number" min="0" step="0.01" value="0" required /></label>
         <label>Product cost (₱)<input name="costAmount" type="number" min="0" step="0.01" value="0" required /></label>
         <label>Platform/payment fees (₱)<input name="platformFees" type="number" min="0" step="0.01" value="0" required /></label>
         <label>Other expenses (₱)<input name="otherExpenses" type="number" min="0" step="0.01" value="0" required /></label>
       </div>
+      <section id="manualSaleProducts" class="manual-sale-products">
+        <div class="sales-section-heading"><div><h3>Products sold</h3><p>Stock is deducted when this manual sale is saved.</p></div><button id="addManualSaleProduct" class="secondary-button" type="button">＋ Add product</button></div>
+        <div id="manualSaleProductRows"></div>
+      </section>
       <label>Accounting notes<textarea name="notes" rows="3" placeholder="Optional"></textarea></label>
       <section id="saleExpenseUsageSection" class="sale-expense-usage" hidden>
         <div class="sales-section-heading"><div><h3>Expenses used for this order</h3><p>Enter how many pieces were used. The total expense updates automatically.</p></div><strong id="saleExpenseUsageTotal">₱0</strong></div>
