@@ -1380,3 +1380,4 @@ html { font-size: 112.5%; }
 .invoice-detail-rows strong { color:#4b2c3e; font-size:.98rem; text-align:right; }
 .invoice-detail-rows .invoice-address-row { align-items:flex-start; }
 .invoice-detail-rows .invoice-address-row strong { max-width:70%; line-height:1.32; }
+.payment-courier-fieldset{border:1px solid #efcfdb;border-radius:18px;padding:14px;margin:10px 0}.payment-courier-fieldset legend{font-weight:800;padding:0 6px}.payment-courier-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:10px}.payment-courier-option{display:flex!important;align-items:center;gap:8px;padding:10px 12px;border:1px solid #f2d7e1;border-radius:13px;background:#fffafd}.payment-courier-option input{width:18px!important;height:18px!important;margin:0}

@@ -150,6 +150,7 @@ let selectedVariantQuantity = 1;
 let variantSourceButton = null;
 let cart = loadSavedCart();
 let paymentMethods = [];
+let paymentMethodShippingLinks = [];
 let selectedPaymentMethod = null;
 let shippingFees = [];
 let selectedShippingFee = null;
@@ -1298,6 +1299,10 @@ function selectShippingMethod(methodId) {
   if (!method) return;
   selectedShippingMethod = method;
   selectedShippingFee = null;
+  if (selectedPaymentMethod && !availablePaymentMethods().some((payment) => String(payment.id) === String(selectedPaymentMethod.id))) {
+    selectedPaymentMethod = null;
+    if (selectedPaymentInput) selectedPaymentInput.value = "";
+  }
   if (selectedShippingMethodInput) selectedShippingMethodInput.value = method.name || "";
   if (selectedShippingInput) {
     selectedShippingInput.value = "";
@@ -1306,6 +1311,7 @@ function selectShippingMethod(methodId) {
   renderShippingMethods();
   renderShippingFees();
   updateShippingChoiceVisibility();
+  renderPaymentMethods();
   clearCheckoutFormError();
   updateCheckoutTotal();
 }
@@ -1571,11 +1577,10 @@ async function loadPaymentMethods() {
 
   paymentMethodsList.innerHTML = `<p class="empty">Loading payment methods…</p>`;
 
-  const { data, error } = await supabaseClient
-    .from("payment_methods")
-    .select("*")
-    .eq("is_visible", true)
-    .order("sort_order", { ascending: true });
+  const [{ data, error }, linksResult] = await Promise.all([
+    supabaseClient.from("payment_methods").select("*").eq("is_visible", true).order("sort_order", { ascending: true }),
+    supabaseClient.from("payment_method_shipping_methods").select("payment_method_id,shipping_method_id")
+  ]);
 
   if (error) {
     paymentMethods = [];
@@ -1594,6 +1599,7 @@ async function loadPaymentMethods() {
   }
 
   paymentMethods = data || [];
+  paymentMethodShippingLinks = linksResult.error ? [] : (linksResult.data || []);
   selectedPaymentMethod = null;
   if (selectedPaymentInput) {
     selectedPaymentInput.value = "";
@@ -1601,23 +1607,35 @@ async function loadPaymentMethods() {
   renderPaymentMethods();
 }
 
+function availablePaymentMethods() {
+  if (!selectedShippingMethod) return [];
+  const allowedIds = new Set(paymentMethodShippingLinks.filter((link) => String(link.shipping_method_id) === String(selectedShippingMethod.id)).map((link) => String(link.payment_method_id)));
+  return paymentMethods.filter((method) => allowedIds.has(String(method.id)));
+}
+
 function renderPaymentMethods() {
   if (!paymentMethodsList) {
     return;
   }
 
-  if (!paymentMethods.length) {
+  const availableMethods = availablePaymentMethods();
+  if (!selectedShippingMethod) {
+    paymentMethodsList.innerHTML = `<div class="payment-step-summary"><strong>Choose a shipping option first</strong><p class="tiny-note">Available payment methods depend on your selected courier.</p></div>`;
+    updateProceedPaymentAvailability();
+    return;
+  }
+  if (!availableMethods.length) {
     paymentMethodsList.innerHTML = `
       <div class="payment-step-summary">
         <strong>No payment methods available</strong>
-        <p class="tiny-note">Payment options will appear here once they are enabled in the admin dashboard.</p>
+        <p class="tiny-note">No payment method is assigned to ${escapeHtml(selectedShippingMethod.name || "this shipping option")}.</p>
       </div>
     `;
     updateProceedPaymentAvailability();
     return;
   }
 
-  paymentMethodsList.innerHTML = paymentMethods
+  paymentMethodsList.innerHTML = availableMethods
     .map((method) => {
       const isSelected = selectedPaymentMethod && String(selectedPaymentMethod.id) === String(method.id);
       const depositText = method.deposit_required
@@ -1652,7 +1670,7 @@ function renderPaymentMethods() {
 }
 
 function selectPaymentMethod(methodId) {
-  const method = paymentMethods.find(
+  const method = availablePaymentMethods().find(
     (item) => String(item.id) === String(methodId)
   );
 
