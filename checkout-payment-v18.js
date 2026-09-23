@@ -204,6 +204,12 @@ function roundToTwo(value) {
   return Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
 }
 
+function isCashOnDeliveryMethod(method = selectedPaymentMethod) {
+  return /cash\s*on\s*delivery|\bcod\b/i.test(
+    String(method?.payment_name || "")
+  );
+}
+
 function showStoreNotice(message, type = "warning", title = "Just a moment 🌸") {
   let notice = document.getElementById("storeNotice");
 
@@ -1784,13 +1790,27 @@ function openPaymentStep() {
     return;
   }
 
+  const isCashOnDelivery = isCashOnDeliveryMethod();
+  const payOnDeliveryOnly = isCashOnDelivery
+    && !selectedPaymentMethod.deposit_required
+    && !selectedPaymentMethod.receipt_required
+    && !selectedPaymentMethod.reference_required;
+
+  if (selectedShippingMethod.method_type === "external" && payOnDeliveryOnly) {
+    showCheckoutError(`Shopee and TikTok shipping require the item to be paid first. Please choose an online payment method.`);
+    paymentMethodSection?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+
   const subtotal = calculateSubtotal();
   const shippingFee = getSelectedShippingFee();
   const total = roundToTwo(subtotal + shippingFee);
   const depositPercentage = Number(selectedPaymentMethod.deposit_percentage || 0);
   // A deposit covers the selected percentage of the products, plus the full
   // delivery charge. Shipping should never be left for the remaining balance.
-  const amountDueNow = selectedPaymentMethod.deposit_required
+  const amountDueNow = payOnDeliveryOnly
+    ? 0
+    : selectedPaymentMethod.deposit_required
     ? roundToTwo(subtotal * (depositPercentage / 100) + shippingFee)
     : roundToTwo(subtotal + shippingFee);
   const remainingBalance = roundToTwo(total - amountDueNow);
@@ -1798,18 +1818,19 @@ function openPaymentStep() {
   const qrUrl = selectedPaymentMethod.qr_url && String(selectedPaymentMethod.qr_url).trim();
   const requiresReceipt = Boolean(selectedPaymentMethod.receipt_required);
   const requiresReference = Boolean(selectedPaymentMethod.reference_required);
-  const isCashOnDelivery = /cash\s*on\s*delivery|\bcod\b/i.test(
-    String(selectedPaymentMethod.payment_name || "")
-  );
-  const amountDueLabel = isCashOnDelivery
+  const amountDueLabel = isCashOnDelivery && selectedPaymentMethod.deposit_required
     ? `Pay now (${depositPercentage}% deposit + shipping)`
     : "Amount due now";
-  const amountDueRow = `<div class="cart-summary"><div><span>${escapeHtml(amountDueLabel)}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>`;
-  const remainingBalanceRow = selectedPaymentMethod.deposit_required
+  const amountDueRow = payOnDeliveryOnly
+    ? ""
+    : `<div class="cart-summary"><div><span>${escapeHtml(amountDueLabel)}</span><strong>${formatCurrency(amountDueNow)}</strong></div></div>`;
+  const remainingBalanceRow = selectedPaymentMethod.deposit_required || payOnDeliveryOnly
     ? `<div class="cart-summary"><div><span>${isCashOnDelivery ? "Pay upon delivery" : "Remaining balance"}</span><strong>${formatCurrency(remainingBalance)}</strong></div></div>`
     : "";
   const paymentBalanceRows = `${amountDueRow}${remainingBalanceRow}`;
-  const buyerPaymentNote = isCashOnDelivery
+  const buyerPaymentNote = payOnDeliveryOnly
+    ? `No payment or receipt is required now. Pay ${formatCurrency(total)} when your courier delivers the order.`
+    : isCashOnDelivery
     ? `Pay ${formatCurrency(amountDueNow)} now using the QR code and upload your receipt. The remaining ${formatCurrency(remainingBalance)} will be paid when your order is delivered.`
     : String(selectedPaymentMethod.instructions || "").trim();
 
@@ -1871,6 +1892,13 @@ function openPaymentStep() {
     paymentStepReceiptFile = file;
     renderPaymentStepReceiptPreview(file);
   });
+
+  if (paymentStepContinueButton) {
+    paymentStepContinueButton.disabled = false;
+    paymentStepContinueButton.textContent = payOnDeliveryOnly || (!requiresReceipt && !requiresReference)
+      ? "Place Order"
+      : "Continue Payment";
+  }
 
   clearCheckoutFormError();
   checkoutDialog.close();
@@ -1948,7 +1976,14 @@ const formattedAddress = [
     const paymentMethodName = String(
       selectedPaymentMethod?.payment_name || formData.get("payment") || ""
     ).trim();
-    const amountDueNow = selectedPaymentMethod?.deposit_required
+    const isCashOnDelivery = isCashOnDeliveryMethod();
+    const payOnDeliveryOnly = isCashOnDelivery
+      && !selectedPaymentMethod?.deposit_required
+      && !selectedPaymentMethod?.receipt_required
+      && !selectedPaymentMethod?.reference_required;
+    const amountDueNow = payOnDeliveryOnly
+      ? 0
+      : selectedPaymentMethod?.deposit_required
       ? roundToTwo(
           subtotal * (Number(selectedPaymentMethod.deposit_percentage || 0) / 100) + shippingFee
         )
