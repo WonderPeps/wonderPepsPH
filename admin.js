@@ -4139,16 +4139,25 @@ function renderDashboard() {
     dashboardOrders.map((order) => String(order.id))
   );
 
+  const liveProductsById = new Map(
+    products.map((product) => [String(product.id), product])
+  );
+
   const salesByProduct = Object.values((orderItemsByOrder || {}))
     .flat()
-    .filter((item) => dashboardOrderIds.has(String(item.order_id)))
+    .filter((item) =>
+      dashboardOrderIds.has(String(item.order_id)) &&
+      item.product_id != null &&
+      liveProductsById.has(String(item.product_id))
+    )
     .reduce((accumulator, item) => {
-      const key = String(item.product_id || item.product_name || "Unknown");
+      const key = String(item.product_id);
+      const liveProduct = liveProductsById.get(key);
 
       if (!accumulator[key]) {
         accumulator[key] = {
           id: item.product_id,
-          name: item.product_name || "Unknown",
+          name: liveProduct.name,
           quantity: 0
         };
       }

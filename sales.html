@@ -93,6 +93,11 @@
       <label>Accounting notes<textarea name="notes" rows="3" placeholder="Optional"></textarea></label>
       <section id="saleExpenseUsageSection" class="sale-expense-usage" hidden>
         <div class="sales-section-heading"><div><h3>Expenses used for this order</h3><p>Enter how many pieces were used. The total expense updates automatically.</p></div><strong id="saleExpenseUsageTotal">₱0</strong></div>
+        <div class="sale-profile-shortcut">
+          <select id="saleExpenseProfile" aria-label="Expense profile"><option value="">Choose an expense profile</option></select>
+          <button id="applySaleExpenseProfile" class="secondary-button" type="button">Apply profile</button>
+          <button id="clearSaleExpenses" class="secondary-button" type="button">Set all to 0</button>
+        </div>
         <div id="saleExpenseUsageList"></div>
       </section>
       <p id="saleFormStatus" class="sales-status" role="status"></p>
