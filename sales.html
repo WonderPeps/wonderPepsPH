@@ -107,8 +107,9 @@
       <div class="sales-form-grid">
         <label>Item name<input name="name" required /></label>
         <label>Remaining pieces<input name="quantityOnHand" type="number" min="0" step="1" required /></label>
-        <label>Cost per piece (₱)<input name="unitCost" type="number" min="0" step="0.01" required /></label>
+        <label>Cost per piece (automatic)<input name="unitCost" type="number" min="0" step="any" readonly required /></label>
         <label>Default pieces per order<input name="defaultQuantity" type="number" min="0" step="1" required /></label>
+        <label>Cost per order (automatic)<input name="costPerOrder" type="text" readonly /></label>
       </div>
       <p id="expenseItemFormStatus" class="sales-status" role="status"></p>
       <div class="sales-form-actions"><button class="secondary-button" data-close-dialog type="button">Cancel</button><button class="primary-button" type="submit">Save item</button></div>
