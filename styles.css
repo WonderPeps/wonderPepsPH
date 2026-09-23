@@ -782,7 +782,23 @@ dialog::backdrop{background:rgba(41,24,31,.45)}
   #paymentStepDialog{border:0;border-radius:0}
   #paymentStepDialog .drawer-header h2::after{font-size:.45em}
   #paymentStepDialog .payment-step-qr.has-qr{min-height:190px;height:190px}
-  #paymentStepDialog .payment-step-qr-placeholder{justify-content:flex-start;padding:10px 12px;text-align:left}
+  #paymentStepDialog .payment-step-qr.no-qr{
+    min-height:108px;
+    height:auto;
+    padding:12px 14px;
+    overflow:visible;
+    box-sizing:border-box;
+  }
+  #paymentStepDialog .payment-step-qr-placeholder{
+    justify-content:flex-start;
+    min-width:0;
+    padding:8px 4px;
+    text-align:left;
+  }
+  #paymentStepDialog .payment-step-qr-placeholder>span:last-child{min-width:0}
+  #paymentStepDialog .payment-step-qr-placeholder strong{font-size:.94rem;line-height:1.25}
+  #paymentStepDialog .payment-step-qr-placeholder small{font-size:.78rem;line-height:1.35}
+  #paymentStepDialog .payment-status-icon{flex-basis:44px;width:44px;height:44px;font-size:1.4rem}
   #paymentStepDialog .payment-step-order-summary{padding:14px;border-radius:22px}
   #paymentStepDialog .payment-row>div{grid-template-columns:32px minmax(0,1fr) auto!important;min-height:50px;padding:7px 9px!important;font-size:.86rem!important}
   #paymentStepDialog .payment-row>div::before{width:30px;height:30px;font-size:.82rem}
