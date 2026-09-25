@@ -3846,7 +3846,7 @@ function renderOrders(ordersToRender) {
     ? `
       <button
         type="button"
-        class="primary-button"
+        class="${order.receipt_image ? "primary-button" : "secondary-button"}"
         data-order-approve="${escapeHtml(String(order.id))}"
       >
         ${order.receipt_image ? "Approve Payment" : "Approve Order"}
