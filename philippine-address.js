@@ -15,7 +15,7 @@
   let provinces = [];
   let localities = [];
   let barangays = [];
-  let strictSelection = false;
+  let strictSelection = true;
   let provinceRequest = 0;
   let localityRequest = 0;
   const comboControllers = [];
@@ -69,6 +69,10 @@
 
   function createAddressCombobox(input, list, getItems, emptyText) {
     input.removeAttribute("list");
+    input.readOnly = true;
+    input.inputMode = "none";
+    input.setAttribute("aria-readonly", "true");
+    input.setAttribute("autocomplete", "off");
     list.hidden = true;
 
     const wrapper = document.createElement("div");
@@ -89,7 +93,7 @@
 
     wrapper.append(toggle, panel);
     input.setAttribute("role", "combobox");
-    input.setAttribute("aria-autocomplete", "list");
+    input.setAttribute("aria-autocomplete", "none");
     input.setAttribute("aria-expanded", "false");
 
     function close() {
@@ -99,8 +103,7 @@
     }
 
     function render(showAll = false) {
-      const query = showAll ? "" : normalize(input.value);
-      const matches = sortByName(getItems()).filter((item) => !query || normalize(item.name).includes(query));
+      const matches = sortByName(getItems());
       panel.replaceChildren();
 
       if (!matches.length) {
@@ -140,13 +143,13 @@
       input.setAttribute("aria-expanded", "true");
     }
 
-    input.addEventListener("focus", () => open(Boolean(findExact(getItems(), input.value))));
-    input.addEventListener("input", () => open(false));
+    input.addEventListener("focus", () => open(true));
+    input.addEventListener("click", () => open(true));
     input.addEventListener("keydown", (event) => {
       if (event.key === "Escape") close();
       if (event.key === "ArrowDown") {
         event.preventDefault();
-        open(Boolean(findExact(getItems(), input.value)));
+        open(true);
         panel.querySelector(".address-combobox-option")?.focus();
       }
     });
@@ -209,12 +212,11 @@
       if (requestId !== provinceRequest) return;
       localities = results;
       renderOptions(cityList, localities);
-      cityInput.placeholder = "Choose or type a city / municipality";
+      cityInput.placeholder = "Choose a city / municipality";
       setStatus("♡ Now choose your city or municipality.");
     } catch (error) {
-      strictSelection = false;
-      cityInput.placeholder = "Type your city / municipality";
-      setStatus("Address choices are temporarily unavailable. You may type the address manually.", true);
+      cityInput.placeholder = "City choices unavailable";
+      setStatus("City choices could not load. Please choose the province again.", true);
     } finally {
       if (requestId === provinceRequest) setLoading(cityInput, false);
     }
@@ -242,12 +244,11 @@
       if (requestId !== localityRequest) return;
       barangays = results;
       renderOptions(barangayList, barangays);
-      barangayInput.placeholder = "Choose or type a barangay / district";
+      barangayInput.placeholder = "Choose a barangay / district";
       setStatus("♡ Your Philippine address choices are ready.");
     } catch (error) {
-      strictSelection = false;
-      barangayInput.placeholder = "Type your barangay / district";
-      setStatus("Barangay choices are temporarily unavailable. You may type it manually.", true);
+      barangayInput.placeholder = "Barangay choices unavailable";
+      setStatus("Barangay choices could not load. Please choose the city again.", true);
     } finally {
       if (requestId === localityRequest) setLoading(barangayInput, false);
     }
@@ -271,8 +272,14 @@
     provinceInput.setCustomValidity(findExact(provinces, provinceInput.value) ? "" : "Please select a province from the official list.");
     cityInput.setCustomValidity(findExact(localities, cityInput.value) ? "" : "Please select a city or municipality from the official list.");
     barangayInput.setCustomValidity(findExact(barangays, barangayInput.value) ? "" : "Please select a barangay from the official list.");
-    if (!checkoutForm.checkValidity()) {
+    const addressIsValid = Boolean(
+      findExact(provinces, provinceInput.value)
+      && findExact(localities, cityInput.value)
+      && findExact(barangays, barangayInput.value)
+    );
+    if (!addressIsValid || !checkoutForm.checkValidity()) {
       event.preventDefault();
+      event.stopImmediatePropagation();
       checkoutForm.reportValidity();
     }
   }, true);
@@ -287,14 +294,13 @@
       provinces.push({ code: "NCR", name: "Metro Manila (NCR)", isNcr: true });
       renderOptions(provinceList, provinces);
       strictSelection = true;
-      provinceInput.placeholder = "Choose or type a province";
+      provinceInput.placeholder = "Choose a province";
       setStatus("♡ Start with your province, then choose your city and barangay.");
     } catch (error) {
-      strictSelection = false;
-      provinceInput.placeholder = "Type your province";
-      cityInput.placeholder = "Type your city / municipality";
-      barangayInput.placeholder = "Type your barangay / district";
-      setStatus("Address choices are temporarily unavailable. You may type the address manually.", true);
+      provinceInput.placeholder = "Province choices unavailable";
+      cityInput.placeholder = "Choose a province first";
+      barangayInput.placeholder = "Choose a city first";
+      setStatus("Address choices could not load. Please check your connection and reopen checkout.", true);
     } finally {
       setLoading(provinceInput, false);
       setLoading(cityInput, false);

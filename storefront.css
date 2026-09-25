@@ -1344,11 +1344,20 @@ body.storefront-page.page-scroll-locked {
 .storefront-page .checkout-city-field { grid-area: city; }
 .storefront-page .checkout-barangay-field { grid-area: barangay; }
 .storefront-page .checkout-zipcode-field { grid-area: zipcode; }
+.storefront-page .checkout-province-field,
+.storefront-page .checkout-city-field,
+.storefront-page .checkout-barangay-field,
+.storefront-page .checkout-zipcode-field,
+.storefront-page .checkout-address-card .checkout-field-full {
+  min-width: 0;
+  max-width: 100%;
+}
 .storefront-page .checkout-address-card .checkout-field-full { grid-area: address; }
 .storefront-page .checkout-address-status{
   grid-column:1 / -1;
-  width:max-content;
+  width:100%;
   max-width:100%;
+  box-sizing:border-box;
   margin:2px 0 0;
   padding:7px 11px;
   border:1px solid #f5ccdc;
@@ -1357,16 +1366,28 @@ body.storefront-page.page-scroll-locked {
   color:#9a506d;
   font-size:.78rem;
   line-height:1.4;
+  white-space:normal;
+  overflow-wrap:anywhere;
 }
 .storefront-page .checkout-address-status.is-error{border-color:#efb6c8;background:#fff0f4;color:#a83d67}
 
 .storefront-page .address-combobox{
   position:relative;
   width:100%;
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
   z-index:3;
 }
 .storefront-page .address-combobox.is-open{z-index:40}
-.storefront-page .address-combobox input{padding-right:48px}
+.storefront-page .address-combobox input{
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+  padding-right:48px;
+  cursor:pointer;
+  caret-color:transparent;
+}
 .storefront-page .address-combobox-toggle{
   position:absolute;
   z-index:4;
@@ -1864,9 +1885,22 @@ body.storefront-page.page-scroll-locked {
     grid-template-areas:
       "province"
       "city"
-      "zipcode"
       "barangay"
+      "zipcode"
       "address";
+  }
+
+  .storefront-page .checkout-address-card,
+  .storefront-page .checkout-address-card .checkout-field-grid,
+  .storefront-page .checkout-address-card label {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .storefront-page .address-combobox-panel {
+    max-height: 190px;
+    border-radius: 15px;
   }
 
   .storefront-page .checkout-field-full {
