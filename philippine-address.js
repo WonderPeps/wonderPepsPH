@@ -68,6 +68,7 @@
   }
 
   function createAddressCombobox(input, list, getItems, emptyText) {
+    let suppressNextOpen = false;
     input.removeAttribute("list");
     input.readOnly = true;
     input.inputMode = "none";
@@ -126,7 +127,8 @@
           input.setCustomValidity("");
           close();
           input.dispatchEvent(new Event("change", { bubbles: true }));
-          input.focus();
+          suppressNextOpen = true;
+          input.focus({ preventScroll: true });
         });
         panel.append(option);
       });
@@ -143,7 +145,13 @@
       input.setAttribute("aria-expanded", "true");
     }
 
-    input.addEventListener("focus", () => open(true));
+    input.addEventListener("focus", () => {
+      if (suppressNextOpen) {
+        suppressNextOpen = false;
+        return;
+      }
+      open(true);
+    });
     input.addEventListener("click", () => open(true));
     input.addEventListener("keydown", (event) => {
       if (event.key === "Escape") close();

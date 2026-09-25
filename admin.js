@@ -3710,10 +3710,10 @@ function renderOrders(ordersToRender) {
           : `<div class="tiny-note">No products found</div>`;
 
     const shippingLines = [
-        [order.house_unit, order.street].filter(Boolean).join(", "),
-        order.barangay ? `Brgy. ${order.barangay}` : "",
-        [order.city, order.province].filter(Boolean).join(", "),
-        order.zipcode || ""
+        order.province || "",
+        order.city || "",
+        order.barangay || "",
+        [order.house_unit, order.street].filter(Boolean).join(", ")
     ].filter(Boolean);
 
     const shippingAddress = shippingLines.length
@@ -3759,8 +3759,13 @@ function renderOrders(ordersToRender) {
               </div>
 
               <div class="order-customer-row order-address-row">
-                <span>Full address</span>
-                <address>${shippingAddress}</address>
+                <span>Address</span>
+                <address class="order-address-details">
+                  <span><b>Province</b><em>${escapeHtml(order.province || "—")}</em></span>
+                  <span><b>City</b><em>${escapeHtml(order.city || "—")}</em></span>
+                  <span><b>District</b><em>${escapeHtml(order.barangay || "—")}</em></span>
+                  <span><b>Full address</b><em>${escapeHtml([order.house_unit, order.street].filter(Boolean).join(", ") || order.address || "—")}</em></span>
+                </address>
               </div>
 
               <div class="order-customer-row">
@@ -4030,10 +4035,10 @@ function openOrderDetails(order) {
   const orderTotals = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
   const currency = formatCurrency;
 const shippingLines = [
-    [order.house_unit, order.street].filter(Boolean).join(", "),
-    order.barangay ? `Brgy. ${order.barangay}` : "",
-    [order.city, order.province].filter(Boolean).join(", "),
-    order.zipcode || ""
+    order.province || "",
+    order.city || "",
+    order.barangay || "",
+    [order.house_unit, order.street].filter(Boolean).join(", ")
 ].filter(Boolean);
 
 const shippingAddress = shippingLines.length
@@ -4054,10 +4059,10 @@ const shippingAddress = shippingLines.length
             <h4>Customer</h4>
             <p>${escapeHtml(order.customer_name || "—")}</p>
             <p>${escapeHtml(order.phone || "—")}</p>
-            <p>
-  <strong>📍 Shipping</strong><br>
-  ${shippingAddress}
-</p>
+            <p><strong>Province:</strong> ${escapeHtml(order.province || "—")}</p>
+            <p><strong>City:</strong> ${escapeHtml(order.city || "—")}</p>
+            <p><strong>District:</strong> ${escapeHtml(order.barangay || "—")}</p>
+            <p><strong>Full address:</strong> ${escapeHtml([order.house_unit, order.street].filter(Boolean).join(", ") || order.address || "—")}</p>
           </div>
           <div>
             <h4>Payment</h4>
@@ -4140,14 +4145,14 @@ const shippingAddress = shippingLines.length
 function openInvoice(order) {
   const items = orderItemsByOrder[String(order.id)] || [];
   const subtotal = items.reduce((sum, item) => sum + Number(item.line_total || 0), 0);
-  const address = [[order.house_unit, order.street].filter(Boolean).join(", "), order.barangay ? `Brgy. ${order.barangay}` : "", [order.city, order.province].filter(Boolean).join(", "), order.zipcode || ""].filter(Boolean).map(escapeHtml).join("<br>") || "—";
+  const address = [order.province || "", order.city || "", order.barangay || "", [order.house_unit, order.street].filter(Boolean).join(", ")].filter(Boolean).map(escapeHtml).join("<br>") || "—";
   invoiceContent.innerHTML = `<article class="invoice-sheet"><header class="invoice-head"><div><h2>WonderPeps PH</h2><p>Admin order invoice</p></div><div><strong>INVOICE</strong><p>${escapeHtml(getOrderReferenceLabel(order))}</p></div></header><div class="invoice-grid"><section class="invoice-box invoice-customer"><h4>BILL TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${escapeHtml(order.email || "Not provided")}<br>${escapeHtml(order.phone || "Not provided")}</p></section><section class="invoice-box invoice-customer"><h4>SHIP TO</h4><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong><p>${address}</p></section></div><table class="invoice-table"><thead><tr><th>Item</th><th>Variant</th><th>Qty</th><th>Total</th></tr></thead><tbody>${items.map((item) => `<tr><td>${escapeHtml(item.product_name || "Product")}</td><td>${escapeHtml(item.variant_name || "—")}</td><td>${Number(item.quantity || 0)}</td><td>${formatCurrency(item.line_total || 0)}</td></tr>`).join("")}</tbody></table><div class="invoice-grid"><section class="invoice-box invoice-payment"><h4>PAYMENT INFORMATION</h4><p><span>Method</span><strong>${escapeHtml(order.payment_method || "—")}</strong></p><p><span>Status</span><strong>${escapeHtml(order.payment_status || "Pending")}</strong></p></section><section class="invoice-box invoice-summary"><h4>ORDER SUMMARY ♡</h4><p><span>Subtotal</span><strong>${formatCurrency(subtotal)}</strong></p><p><span>Shipping</span><strong>${formatCurrency(order.shipping_fee || 0)}</strong></p>${Number(order.payment_fee || 0) > 0 ? `<p><span>COD fee</span><strong>${formatCurrency(order.payment_fee)}</strong></p>` : ""}</section></div>${String(order.notes || "").trim() ? `<section class="invoice-customer-note"><strong>🌸 Customer note</strong><p>${escapeHtml(String(order.notes).trim())}</p></section>` : ""}<div class="invoice-total"><span>TOTAL</span><span>${formatCurrency(order.total || 0)}</span></div><footer class="invoice-actions"><button class="secondary-button" type="button" data-close-invoice>Close</button><button class="primary-button" type="button" data-download-invoice>Download invoice image</button></footer></article>`;
   const [billingBox, shippingBox] = invoiceContent.querySelectorAll(".invoice-customer");
   if (billingBox) {
     billingBox.innerHTML = `<h4>BILL TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p><span>Email</span><strong>${escapeHtml(order.email || "Not provided")}</strong></p><p><span>Number</span><strong>${escapeHtml(order.phone || "Not provided")}</strong></p></div>`;
   }
   if (shippingBox) {
-    shippingBox.innerHTML = `<h4>SHIP TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p class="invoice-address-row"><span>Full address</span><strong>${address}</strong></p></div>`;
+    shippingBox.innerHTML = `<h4>SHIP TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p><span>Province</span><strong>${escapeHtml(order.province || "—")}</strong></p><p><span>City</span><strong>${escapeHtml(order.city || "—")}</strong></p><p><span>District</span><strong>${escapeHtml(order.barangay || "—")}</strong></p><p class="invoice-address-row"><span>Full address</span><strong>${escapeHtml([order.house_unit, order.street].filter(Boolean).join(", ") || order.address || "—")}</strong></p></div>`;
   }
   invoiceDialog.showModal();
   invoiceDialog.scrollTop = 0;

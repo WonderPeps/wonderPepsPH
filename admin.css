@@ -150,8 +150,13 @@
     radial-gradient(circle at 100% 0%, rgba(255,255,255,.78), transparent 12rem),
     linear-gradient(160deg, #fff 0%, #fff2f7 100%);
   box-shadow: 0 22px 50px rgba(110, 44, 74, 0.11);
-  scrollbar-width: thin;
-  scrollbar-color: #eab6ca transparent;
+  scrollbar-width: none;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .admin-sidebar-title {
@@ -540,6 +545,14 @@
 .order-customer-row strong,
 .order-customer-row address { color: #5e3e4d; font-size: .9rem; line-height: 1.55; }
 .order-customer-row address { overflow-wrap: anywhere; font-style: normal; }
+.order-address-details { display: grid; gap: 5px; }
+.order-address-details > span {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+}
+.order-address-details b { color: #9b7788; font-size: .78rem; }
+.order-address-details em { color: #5e3e4d; font-style: normal; }
 .order-customer-note {
   display: flex;
   gap: 11px;
@@ -588,12 +601,9 @@
 }
 .order-products-details summary::-webkit-details-marker { display: none; }
 .order-products-details summary::after {
-  content: "⌄";
-  color: var(--admin-rose);
-  font-size: 1.05rem;
-  transition: transform .18s ease;
+  display: none;
+  content: none;
 }
-.order-products-details[open] summary::after { transform: rotate(180deg); }
 .order-products-body {
   display: grid;
   gap: 0;
