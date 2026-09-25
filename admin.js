@@ -3759,7 +3759,7 @@ function renderOrders(ordersToRender) {
               </div>
 
               <div class="order-customer-row order-address-row">
-                <span>Full address</span>
+                <span>Address</span>
                 <address class="order-address-details">
                   <span><b>Province</b><em>${escapeHtml(order.province || "—")}</em></span>
                   <span><b>City</b><em>${escapeHtml(order.city || "—")}</em></span>
