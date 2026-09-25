@@ -18,7 +18,7 @@
     window.addEventListener("pageshow", startAtTop);
   </script>
   <link rel="stylesheet" href="styles.css?v=cute-payment-v2" />
-  <link rel="stylesheet" href="storefront.css?v=mobile-descriptions-v1" />
+  <link rel="stylesheet" href="storefront.css?v=select-address-v4" />
 </head>
 <body class="storefront-page settings-loading">
   <header class="site-header">
@@ -373,33 +373,42 @@
 
         <div class="checkout-field-grid">
           <label class="checkout-province-field">
-            Province
+            Province / NCR District
             <input
               name="province"
+              id="checkoutProvince"
+              list="checkoutProvinceOptions"
               autocomplete="address-level1"
-              placeholder="Laguna"
+              placeholder="Choose a province"
               required
             >
+            <datalist id="checkoutProvinceOptions"></datalist>
           </label>
 
           <label class="checkout-city-field">
             City / Municipality
             <input
               name="city"
+              id="checkoutCity"
+              list="checkoutCityOptions"
               autocomplete="address-level2"
-              placeholder="Biñan City"
+              placeholder="Choose a province first"
               required
             >
+            <datalist id="checkoutCityOptions"></datalist>
           </label>
 
           <label class="checkout-barangay-field">
-            Barangay
+            Barangay / District
             <input
               name="barangay"
+              id="checkoutBarangay"
+              list="checkoutBarangayOptions"
               autocomplete="address-level3"
-              placeholder="San Antonio"
+              placeholder="Choose a city first"
               required
             >
+            <datalist id="checkoutBarangayOptions"></datalist>
           </label>
 
           <label class="checkout-zipcode-field">
@@ -422,6 +431,7 @@
               required
             ></textarea>
           </label>
+          <p id="checkoutAddressStatus" class="checkout-address-status" role="status" aria-live="polite">Loading Philippine address choices…</p>
         </div>
       </section>
       <section class="checkout-shipping-card" aria-labelledby="shippingMethodTitle">
@@ -515,6 +525,7 @@
 <script src="supabase.js"></script>
 <script src="variants.js"></script>
 <script src="favorites.js?v=prune-deleted-v1"></script>
+<script src="philippine-address.js?v=select-address-v4"></script>
 <script src="checkout-payment-v18.js?v=cod-fee-settings-v1"></script>
 </body>
 </html>
