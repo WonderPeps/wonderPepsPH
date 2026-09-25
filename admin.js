@@ -3758,9 +3758,24 @@ function renderOrders(ordersToRender) {
                 <strong>${escapeHtml(order.email || "Not provided")}</strong>
               </div>
 
+              <div class="order-customer-row">
+                <span>Province</span>
+                <strong>${escapeHtml(order.province || "—")}</strong>
+              </div>
+
+              <div class="order-customer-row">
+                <span>City</span>
+                <strong>${escapeHtml(order.city || "—")}</strong>
+              </div>
+
+              <div class="order-customer-row">
+                <span>District</span>
+                <strong>${escapeHtml(order.barangay || "—")}</strong>
+              </div>
+
               <div class="order-customer-row order-address-row">
                 <span>Full address</span>
-                <address>${shippingAddress}</address>
+                <address>${escapeHtml([order.house_unit, order.street].filter(Boolean).join(", ") || order.address || "—")}</address>
               </div>
 
               <div class="order-customer-row">
@@ -4054,10 +4069,10 @@ const shippingAddress = shippingLines.length
             <h4>Customer</h4>
             <p>${escapeHtml(order.customer_name || "—")}</p>
             <p>${escapeHtml(order.phone || "—")}</p>
-            <p>
-  <strong>📍 Shipping</strong><br>
-  ${shippingAddress}
-</p>
+            <p><strong>Province:</strong> ${escapeHtml(order.province || "—")}</p>
+            <p><strong>City:</strong> ${escapeHtml(order.city || "—")}</p>
+            <p><strong>District:</strong> ${escapeHtml(order.barangay || "—")}</p>
+            <p><strong>Full address:</strong> ${escapeHtml([order.house_unit, order.street].filter(Boolean).join(", ") || order.address || "—")}</p>
           </div>
           <div>
             <h4>Payment</h4>
@@ -4147,7 +4162,7 @@ function openInvoice(order) {
     billingBox.innerHTML = `<h4>BILL TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p><span>Email</span><strong>${escapeHtml(order.email || "Not provided")}</strong></p><p><span>Number</span><strong>${escapeHtml(order.phone || "Not provided")}</strong></p></div>`;
   }
   if (shippingBox) {
-    shippingBox.innerHTML = `<h4>SHIP TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p class="invoice-address-row"><span>Full address</span><strong>${address}</strong></p></div>`;
+    shippingBox.innerHTML = `<h4>SHIP TO</h4><div class="invoice-detail-rows"><p><span>Name</span><strong>${escapeHtml(order.customer_name || "Guest customer")}</strong></p><p><span>Province</span><strong>${escapeHtml(order.province || "—")}</strong></p><p><span>City</span><strong>${escapeHtml(order.city || "—")}</strong></p><p><span>District</span><strong>${escapeHtml(order.barangay || "—")}</strong></p><p class="invoice-address-row"><span>Full address</span><strong>${escapeHtml([order.house_unit, order.street].filter(Boolean).join(", ") || order.address || "—")}</strong></p></div>`;
   }
   invoiceDialog.showModal();
   invoiceDialog.scrollTop = 0;
