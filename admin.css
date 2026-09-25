@@ -545,6 +545,14 @@
 .order-customer-row strong,
 .order-customer-row address { color: #5e3e4d; font-size: .9rem; line-height: 1.55; }
 .order-customer-row address { overflow-wrap: anywhere; font-style: normal; }
+.order-address-details { display: grid; gap: 5px; }
+.order-address-details > span {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 10px;
+}
+.order-address-details b { color: #9b7788; font-size: .78rem; }
+.order-address-details em { color: #5e3e4d; font-style: normal; }
 .order-customer-note {
   display: flex;
   gap: 11px;

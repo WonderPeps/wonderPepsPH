@@ -3758,24 +3758,14 @@ function renderOrders(ordersToRender) {
                 <strong>${escapeHtml(order.email || "Not provided")}</strong>
               </div>
 
-              <div class="order-customer-row">
-                <span>Province</span>
-                <strong>${escapeHtml(order.province || "—")}</strong>
-              </div>
-
-              <div class="order-customer-row">
-                <span>City</span>
-                <strong>${escapeHtml(order.city || "—")}</strong>
-              </div>
-
-              <div class="order-customer-row">
-                <span>District</span>
-                <strong>${escapeHtml(order.barangay || "—")}</strong>
-              </div>
-
               <div class="order-customer-row order-address-row">
                 <span>Full address</span>
-                <address>${escapeHtml([order.house_unit, order.street].filter(Boolean).join(", ") || order.address || "—")}</address>
+                <address class="order-address-details">
+                  <span><b>Province</b><em>${escapeHtml(order.province || "—")}</em></span>
+                  <span><b>City</b><em>${escapeHtml(order.city || "—")}</em></span>
+                  <span><b>District</b><em>${escapeHtml(order.barangay || "—")}</em></span>
+                  <span><b>Full address</b><em>${escapeHtml([order.house_unit, order.street].filter(Boolean).join(", ") || order.address || "—")}</em></span>
+                </address>
               </div>
 
               <div class="order-customer-row">
