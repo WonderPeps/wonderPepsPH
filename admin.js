@@ -3314,7 +3314,7 @@ async function updateOrderPaymentStatus(id, paymentStatus) {
     const rejectingPayment = paymentStatus === "Rejected";
     const { data: order, error: orderError } = await supabaseClient
       .from("orders")
-      .select("id, payment_status, stock_deducted")
+      .select("id, payment_status, stock_deducted, receipt_image")
       .eq("id", id)
       .single();
 
@@ -3540,8 +3540,8 @@ if (reversingApprovedPayment) {
 
     alert(
       approvingPayment
-        ? "Payment approved and stock updated."
-        : `Payment marked as ${paymentStatus}.`
+        ? `${order.receipt_image ? "Payment" : "Order"} approved and stock updated.`
+        : `${order.receipt_image ? "Payment" : "Order"} marked as ${paymentStatus}.`
     );
   } catch (error) {
     alert(
@@ -3841,7 +3841,6 @@ function renderOrders(ordersToRender) {
       `
   }
  ${
-  order.receipt_image &&
   order.payment_status !== "Approved" &&
   !Boolean(order.archived)
     ? `
@@ -3850,14 +3849,13 @@ function renderOrders(ordersToRender) {
         class="primary-button"
         data-order-approve="${escapeHtml(String(order.id))}"
       >
-        Approve Payment
+        ${order.receipt_image ? "Approve Payment" : "Approve Order"}
       </button>
     `
     : ""
 }
 
 ${
-  order.receipt_image &&
   order.payment_status !== "Rejected" &&
   !Boolean(order.archived)
     ? `
@@ -3866,7 +3864,7 @@ ${
         class="secondary-button"
         data-order-reject="${escapeHtml(String(order.id))}"
       >
-        Reject Payment
+        ${order.receipt_image ? "Reject Payment" : "Reject Order"}
       </button>
     `
     : ""
@@ -4102,8 +4100,8 @@ const shippingAddress = shippingLines.length
         </div>
         <div class="order-actions detail-actions">
           ${order.receipt_image ? `<button class="secondary-button" type="button" data-order-view-receipt-modal="${order.id}">View Receipt</button>` : ""}
-          <button class="secondary-button" type="button" data-order-approve-modal="${order.id}">Approve Payment</button>
-          <button class="secondary-button danger" type="button" data-order-reject-modal="${order.id}">Reject Payment</button>
+          ${!Boolean(order.archived) && order.payment_status !== "Approved" ? `<button class="secondary-button" type="button" data-order-approve-modal="${order.id}">${order.receipt_image ? "Approve Payment" : "Approve Order"}</button>` : ""}
+          ${!Boolean(order.archived) && order.payment_status !== "Rejected" ? `<button class="secondary-button danger" type="button" data-order-reject-modal="${order.id}">${order.receipt_image ? "Reject Payment" : "Reject Order"}</button>` : ""}
           ${Boolean(order.archived) ? `<button class="secondary-button" type="button" data-order-restore-modal="${order.id}">Restore Order</button>` : `<button class="secondary-button" type="button" data-order-archive-modal="${order.id}">Archive Order</button>`}
         </div>
       </div>
