@@ -150,8 +150,13 @@
     radial-gradient(circle at 100% 0%, rgba(255,255,255,.78), transparent 12rem),
     linear-gradient(160deg, #fff 0%, #fff2f7 100%);
   box-shadow: 0 22px 50px rgba(110, 44, 74, 0.11);
-  scrollbar-width: thin;
-  scrollbar-color: #eab6ca transparent;
+  scrollbar-width: none;
+}
+
+.admin-sidebar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .admin-sidebar-title {
@@ -588,12 +593,9 @@
 }
 .order-products-details summary::-webkit-details-marker { display: none; }
 .order-products-details summary::after {
-  content: "⌄";
-  color: var(--admin-rose);
-  font-size: 1.05rem;
-  transition: transform .18s ease;
+  display: none;
+  content: none;
 }
-.order-products-details[open] summary::after { transform: rotate(180deg); }
 .order-products-body {
   display: grid;
   gap: 0;
