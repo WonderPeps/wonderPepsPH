@@ -1345,6 +1345,14 @@ body.storefront-page.page-scroll-locked {
 .storefront-page .checkout-barangay-field { grid-area: barangay; }
 .storefront-page .checkout-zipcode-field { grid-area: zipcode; }
 .storefront-page .checkout-address-card .checkout-field-full { grid-area: address; }
+.storefront-page .checkout-address-status{
+  grid-column:1 / -1;
+  margin:0;
+  color:#8b6878;
+  font-size:.78rem;
+  line-height:1.4;
+}
+.storefront-page .checkout-address-status.is-error{color:#a83d67}
 
 .storefront-page .checkout-section-card label {
   gap: 7px;
