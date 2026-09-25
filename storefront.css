@@ -1384,7 +1384,7 @@ body.storefront-page.page-scroll-locked {
   min-width:0;
   max-width:100%;
   box-sizing:border-box;
-  padding-right:48px;
+  padding-right:15px;
   cursor:pointer;
   caret-color:transparent;
 }
@@ -1393,7 +1393,7 @@ body.storefront-page.page-scroll-locked {
   z-index:4;
   top:50%;
   right:9px;
-  display:grid;
+  display:none;
   place-items:center;
   width:34px;
   height:34px;
