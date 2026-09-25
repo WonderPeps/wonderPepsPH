@@ -18,6 +18,7 @@
   let strictSelection = false;
   let provinceRequest = 0;
   let localityRequest = 0;
+  const comboControllers = [];
 
   const normalize = (value) => String(value || "").trim().toLocaleLowerCase("en-PH");
 
@@ -62,7 +63,108 @@
 
   function setLoading(input, loading, placeholder) {
     input.disabled = loading;
+    input.closest(".address-combobox")?.classList.toggle("is-disabled", loading);
     if (placeholder) input.placeholder = placeholder;
+  }
+
+  function createAddressCombobox(input, list, getItems, emptyText) {
+    input.removeAttribute("list");
+    list.hidden = true;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "address-combobox";
+    input.before(wrapper);
+    wrapper.append(input);
+
+    const toggle = document.createElement("button");
+    toggle.className = "address-combobox-toggle";
+    toggle.type = "button";
+    toggle.tabIndex = -1;
+    toggle.setAttribute("aria-label", `Show ${input.name} choices`);
+    toggle.innerHTML = '<span aria-hidden="true">⌄</span>';
+
+    const panel = document.createElement("div");
+    panel.className = "address-combobox-panel";
+    panel.hidden = true;
+
+    wrapper.append(toggle, panel);
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-autocomplete", "list");
+    input.setAttribute("aria-expanded", "false");
+
+    function close() {
+      panel.hidden = true;
+      wrapper.classList.remove("is-open");
+      input.setAttribute("aria-expanded", "false");
+    }
+
+    function render(showAll = false) {
+      const query = showAll ? "" : normalize(input.value);
+      const matches = sortByName(getItems()).filter((item) => !query || normalize(item.name).includes(query));
+      panel.replaceChildren();
+
+      if (!matches.length) {
+        const empty = document.createElement("p");
+        empty.className = "address-combobox-empty";
+        empty.textContent = emptyText;
+        panel.append(empty);
+        return;
+      }
+
+      matches.forEach((item) => {
+        const option = document.createElement("button");
+        option.type = "button";
+        option.className = "address-combobox-option";
+        option.innerHTML = `<span aria-hidden="true">♡</span><strong></strong>`;
+        option.querySelector("strong").textContent = String(item.name || "");
+        if (normalize(item.name) === normalize(input.value)) option.classList.add("is-selected");
+        option.addEventListener("click", () => {
+          input.value = String(item.name || "");
+          input.setCustomValidity("");
+          close();
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+          input.focus();
+        });
+        panel.append(option);
+      });
+    }
+
+    function open(showAll = false) {
+      if (input.disabled) return;
+      comboControllers.forEach((controller) => {
+        if (controller.input !== input) controller.close();
+      });
+      render(showAll);
+      panel.hidden = false;
+      wrapper.classList.add("is-open");
+      input.setAttribute("aria-expanded", "true");
+    }
+
+    input.addEventListener("focus", () => open(Boolean(findExact(getItems(), input.value))));
+    input.addEventListener("input", () => open(false));
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") close();
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        open(Boolean(findExact(getItems(), input.value)));
+        panel.querySelector(".address-combobox-option")?.focus();
+      }
+    });
+    toggle.addEventListener("click", () => {
+      if (panel.hidden) {
+        open(true);
+        input.focus({ preventScroll: true });
+      } else {
+        close();
+      }
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (!wrapper.contains(event.target)) close();
+    });
+
+    const controller = { input, close, render };
+    comboControllers.push(controller);
+    return controller;
   }
 
   function clearLocality() {
@@ -108,7 +210,7 @@
       localities = results;
       renderOptions(cityList, localities);
       cityInput.placeholder = "Choose or type a city / municipality";
-      setStatus(`${localities.length} city and municipality choices loaded.`);
+      setStatus("♡ Now choose your city or municipality.");
     } catch (error) {
       strictSelection = false;
       cityInput.placeholder = "Type your city / municipality";
@@ -141,7 +243,7 @@
       barangays = results;
       renderOptions(barangayList, barangays);
       barangayInput.placeholder = "Choose or type a barangay / district";
-      setStatus(`${barangays.length} barangay choices loaded.`);
+      setStatus("♡ Your Philippine address choices are ready.");
     } catch (error) {
       strictSelection = false;
       barangayInput.placeholder = "Type your barangay / district";
@@ -159,6 +261,10 @@
       barangayInput.setCustomValidity("Please select a barangay from the official list.");
     }
   });
+
+  createAddressCombobox(provinceInput, provinceList, () => provinces, "No matching province found.");
+  createAddressCombobox(cityInput, cityList, () => localities, "Choose a province first.");
+  createAddressCombobox(barangayInput, barangayList, () => barangays, "Choose a city or municipality first.");
 
   checkoutForm?.addEventListener("submit", (event) => {
     if (!strictSelection) return;
@@ -182,7 +288,7 @@
       renderOptions(provinceList, provinces);
       strictSelection = true;
       provinceInput.placeholder = "Choose or type a province";
-      setStatus("Start with your province, then choose your city and barangay.");
+      setStatus("♡ Start with your province, then choose your city and barangay.");
     } catch (error) {
       strictSelection = false;
       provinceInput.placeholder = "Type your province";
