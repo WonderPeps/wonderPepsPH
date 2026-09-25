@@ -1,5 +1,5 @@
 (() => {
-  const API_BASE = "https://psgc.cloud/api/v1";
+  const API_BASE = "https://psgc.cloud/api";
   const provinceInput = document.querySelector("#checkoutProvince");
   const cityInput = document.querySelector("#checkoutCity");
   const barangayInput = document.querySelector("#checkoutBarangay");
