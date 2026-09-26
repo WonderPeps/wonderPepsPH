@@ -1816,7 +1816,7 @@ function renderPaymentMethods() {
             <div>${method.receipt_required ? "Receipt required" : "No receipt"}</div>
             <div>${method.reference_required ? "Reference required" : "No reference"}</div>
             <div>${method.instructions_visible === false ? "Buyer note hidden" : "Buyer note shown"}</div>
-            <div>COD fee: ${formatCurrency(method.cod_fee || 0)}</div>
+            <div>Fallback COD fee: ${formatCurrency(method.cod_fee || 0)}</div>
             <div>${method.is_visible ? "Visible" : "Hidden"}</div>
           </div>
 
@@ -2970,6 +2970,7 @@ if (!categoryValue) {
     name: String(formData.get("name") || "").trim(),
    price: basePrice,
    stock: baseStock,
+   cod_fee: Math.max(0, Number(formData.get("codFee") || 0)),
    category: categoryValue,
     badge: String(formData.get("badge") || "").trim().slice(0, 24) || null,
     image_url: productImageUrl || null,
@@ -3045,6 +3046,7 @@ try {
   productForm.elements.name.value = product.name || "";
   productForm.elements.price.value = product.price ?? 0;
   productForm.elements.stock.value = product.stock ?? 0;
+  productForm.elements.codFee.value = product.cod_fee ?? 0;
   updateProductCategoryChoices(product.category || "");
   productForm.elements.badge.value = product.badge || "";
   productForm.elements.image.value = product.image_url || "";

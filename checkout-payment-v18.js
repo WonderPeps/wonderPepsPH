@@ -1171,6 +1171,24 @@ return total + itemPrice * Number(item.quantity || 0);
   }, 0);
 }
 
+function calculateProductCodFee() {
+  return roundToTwo(cart.reduce((total, item) => {
+    const product = getProductById(item.productId);
+    if (!product) return total;
+    return total + Math.max(0, Number(product.cod_fee || 0)) * Number(item.quantity || 0);
+  }, 0));
+}
+
+function getCodFeeForCart() {
+  const hasProductCodFee = cart.some((item) => {
+    const product = getProductById(item.productId);
+    return Math.max(0, Number(product?.cod_fee || 0)) > 0;
+  });
+  return hasProductCodFee
+    ? calculateProductCodFee()
+    : Math.max(0, Number(selectedPaymentMethod?.cod_fee || 0));
+}
+
 function getSelectedShippingFee() {
   return selectedShippingFee
     ? Number(selectedShippingFee.amount || 0)
@@ -1823,7 +1841,7 @@ function openPaymentStep() {
   const subtotal = calculateSubtotal();
   const shippingFee = getSelectedShippingFee();
   const codFee = isCashOnDelivery
-    ? Math.max(0, Number(selectedPaymentMethod.cod_fee || 0))
+    ? getCodFeeForCart()
     : 0;
   const total = roundToTwo(subtotal + shippingFee + codFee);
   const depositPercentage = Number(selectedPaymentMethod.deposit_percentage || 0);
@@ -2009,7 +2027,7 @@ const formattedAddress = [
 .join(", ");
     const isCashOnDelivery = isCashOnDeliveryMethod();
     const codFee = isCashOnDelivery
-      ? Math.max(0, Number(selectedPaymentMethod?.cod_fee || 0))
+      ? getCodFeeForCart()
       : 0;
     const total = roundToTwo(subtotal + shippingFee + codFee);
     const paymentMethodName = String(
