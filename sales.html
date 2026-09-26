@@ -91,7 +91,7 @@
         <label>Customer name<input name="customerName" placeholder="Optional" /></label>
         <label>Product sales (automatic)<input name="grossAmount" type="number" min="0" step="0.01" readonly required /></label>
         <label class="manual-pass-through-field">Manual shipping collected (₱)<input name="shippingAmount" type="number" min="0" step="0.01" value="0" required /><small>Recorded only—not counted as sales or profit.</small></label>
-        <label class="manual-pass-through-field">Manual COD fee collected (₱)<input name="codAmount" type="number" min="0" step="0.01" value="0" required /><small>Recorded only—not counted as sales or profit.</small></label>
+        <label class="manual-pass-through-field">Manual COD fee collected (₱)<input name="codAmount" type="number" min="0" step="0.01" value="0" required /><small>Automatically calculated from the products below, but you may adjust it. It is not counted as sales or profit.</small></label>
         <label>Product cost (₱)<input name="costAmount" type="number" min="0" step="0.01" value="0" required /></label>
         <label>Platform/payment fees (₱)<input name="platformFees" type="number" min="0" step="0.01" value="0" required /></label>
         <label>Other expenses (₱)<input name="otherExpenses" type="number" min="0" step="0.01" value="0" required /></label>
@@ -144,6 +144,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase.js"></script>
-  <script src="sales.js?v=manual-pass-through-v4"></script>
+  <script src="sales.js?v=manual-variant-cod-v6"></script>
 </body>
 </html>

@@ -2804,6 +2804,14 @@ function createVariantCard(variant = {}) {
   stockInput.required = true;
   stockInput.dataset.variantField = "stock";
 
+  const codFeeInput = document.createElement("input");
+  codFeeInput.type = "number";
+  codFeeInput.min = "0";
+  codFeeInput.step = "0.01";
+  codFeeInput.placeholder = "Use product fee";
+  codFeeInput.value = variant.cod_fee ?? "";
+  codFeeInput.dataset.variantCodFee = "";
+
   const badgeInput = document.createElement("input");
   badgeInput.type = "text";
   badgeInput.placeholder = "Example: Best Seller";
@@ -2819,6 +2827,7 @@ function createVariantCard(variant = {}) {
     createVariantFieldLabel("Variant name", nameInput),
     createVariantFieldLabel("Price (₱)", priceInput),
     createVariantFieldLabel("Stock", stockInput),
+    createVariantFieldLabel("COD fee/item (optional)", codFeeInput),
     createVariantFieldLabel("Badge", badgeInput),
     createVariantFieldLabel("Variant image", imageInput)
   );
@@ -2911,6 +2920,32 @@ function createVariantCard(variant = {}) {
   ensureDefaultVariant();
 
   return card;
+}
+
+async function saveVariantCodFees(productId) {
+  const cards = [...variantRows.querySelectorAll(".variant-card")];
+  if (!cards.length) return;
+  const { data: savedVariants, error: loadError } = await supabaseClient
+    .from("product_variants")
+    .select("id,name,sku,sort_order")
+    .eq("product_id", productId);
+  if (loadError) throw loadError;
+  for (const card of cards) {
+    const id = card.dataset.variantId;
+    const name = card.querySelector('[data-variant-field="name"]')?.value.trim();
+    const sku = card.querySelector('[data-variant-field="sku"]')?.value.trim();
+    const sortOrder = Number(card.querySelector('[data-variant-field="sort_order"]')?.value || 0);
+    const saved = savedVariants.find((variant) => String(variant.id) === String(id))
+      || savedVariants.find((variant) => variant.name === name && String(variant.sku || "") === String(sku || ""))
+      || savedVariants.find((variant) => variant.name === name && Number(variant.sort_order || 0) === sortOrder);
+    if (!saved) continue;
+    const rawFee = card.querySelector("[data-variant-cod-fee]")?.value.trim();
+    const { error } = await supabaseClient
+      .from("product_variants")
+      .update({ cod_fee: rawFee === "" ? null : Math.max(0, Number(rawFee || 0)) })
+      .eq("id", saved.id);
+    if (error) throw error;
+  }
 }
 
 addVariantButton?.addEventListener("click", () => {
@@ -3010,6 +3045,7 @@ if (id) {
 
 try {
   await VariantManager.save(savedProductId);
+  await saveVariantCodFees(savedProductId);
 } catch (variantError) {
   alert(
     `The product was saved, but its variants could not be saved: ${

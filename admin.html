@@ -507,12 +507,13 @@ Hero eyebrow
         <input name="stock" type="number" min="0" required />
     </label>
 
-    <label>
-        COD fee per item (₱)
-        <input name="codFee" type="number" min="0" step="0.01" value="0" required />
-        <small class="tiny-note">Used only when the customer selects Cash on Delivery.</small>
-    </label>
 </div>
+
+<label>
+    COD fee per item (₱)
+    <input name="codFee" type="number" min="0" step="0.01" value="0" required />
+    <small class="tiny-note">Always available for this product, including products with variants.</small>
+</label>
 
 <label>
     Category
@@ -785,7 +786,7 @@ Hero eyebrow
 <script src="supabase.js"></script>
 <script src="variants.js?v=clean-console-v1"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="admin.js?v=product-cod-fee-v8"></script>
+<script src="admin.js?v=variant-cod-fee-v10"></script>
 <script src="admin-ui.js?v=stable-section-nav-v2"></script>
 </body>
 </html>

@@ -1175,14 +1175,22 @@ function calculateProductCodFee() {
   return roundToTwo(cart.reduce((total, item) => {
     const product = getProductById(item.productId);
     if (!product) return total;
-    return total + Math.max(0, Number(product.cod_fee || 0)) * Number(item.quantity || 0);
+    const variant = item.variantId
+      ? product.variants?.find((entry) => String(entry.id) === String(item.variantId))
+      : null;
+    const fee = variant?.cod_fee == null ? product.cod_fee : variant.cod_fee;
+    return total + Math.max(0, Number(fee || 0)) * Number(item.quantity || 0);
   }, 0));
 }
 
 function getCodFeeForCart() {
   const hasProductCodFee = cart.some((item) => {
     const product = getProductById(item.productId);
-    return Math.max(0, Number(product?.cod_fee || 0)) > 0;
+    const variant = item.variantId
+      ? product?.variants?.find((entry) => String(entry.id) === String(item.variantId))
+      : null;
+    const fee = variant?.cod_fee == null ? product?.cod_fee : variant.cod_fee;
+    return Math.max(0, Number(fee || 0)) > 0;
   });
   return hasProductCodFee
     ? calculateProductCodFee()
