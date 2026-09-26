@@ -73,7 +73,7 @@
           <select id="salesSource" aria-label="Sales source"><option value="all">All sources</option><option value="website">Website</option><option value="manual">Manual</option></select>
           <select id="salesStatusFilter" aria-label="Record status"><option value="recorded">Active sales</option><option value="all">All records</option><option value="voided">Voided</option></select>
         </div>
-        <div class="sales-table-wrap"><table class="sales-table"><thead><tr><th>Date</th><th>Reference</th><th>Source</th><th>Gross</th><th>Expenses</th><th>Net</th><th></th></tr></thead><tbody id="salesTableBody"></tbody></table></div>
+        <div class="sales-table-wrap"><table class="sales-table"><thead><tr><th>Date</th><th>Reference</th><th>Source</th><th>Product sales</th><th>Expenses</th><th>Net</th><th></th></tr></thead><tbody id="salesTableBody"></tbody></table></div>
         <div id="salesCards" class="sales-mobile-cards"></div>
       </section>
     </section>
@@ -90,7 +90,8 @@
         <label>Sales channel<input name="channel" placeholder="Facebook, walk-in, etc." required /></label>
         <label>Customer name<input name="customerName" placeholder="Optional" /></label>
         <label>Product sales (automatic)<input name="grossAmount" type="number" min="0" step="0.01" readonly required /></label>
-        <label>Shipping collected (₱)<input name="shippingAmount" type="number" min="0" step="0.01" value="0" required /></label>
+        <label class="manual-pass-through-field">Manual shipping collected (₱)<input name="shippingAmount" type="number" min="0" step="0.01" value="0" required /><small>Recorded only—not counted as sales or profit.</small></label>
+        <label class="manual-pass-through-field">Manual COD fee collected (₱)<input name="codAmount" type="number" min="0" step="0.01" value="0" required /><small>Recorded only—not counted as sales or profit.</small></label>
         <label>Product cost (₱)<input name="costAmount" type="number" min="0" step="0.01" value="0" required /></label>
         <label>Platform/payment fees (₱)<input name="platformFees" type="number" min="0" step="0.01" value="0" required /></label>
         <label>Other expenses (₱)<input name="otherExpenses" type="number" min="0" step="0.01" value="0" required /></label>
@@ -143,6 +144,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase.js"></script>
-  <script src="sales.js?v=20260923-2"></script>
+  <script src="sales.js?v=manual-pass-through-v4"></script>
 </body>
 </html>
