@@ -2294,6 +2294,7 @@ function renderProducts() {
             <th>Category</th>
             <th>Badge</th>
             <th>Price</th>
+            <th>Main product cost</th>
             <th>Stock</th>
             <th>Visibility</th>
             <th>Sales</th>
@@ -2309,6 +2310,7 @@ function renderProducts() {
               <td>${escapeHtml(product.category || "Uncategorized")}</td>
               <td>${escapeHtml(product.badge || "—")}</td>
               <td>${formatCurrency(product.price)}</td>
+              <td>${formatCurrency(product.cost_price || 0)}</td>
               <td>${Number(product.stock || 0)}</td>
               <td>${product.is_visible ? "Visible" : "Hidden"}</td>
               <td>${getProductSalesCount(product.id)}</td>
@@ -2812,6 +2814,14 @@ function createVariantCard(variant = {}) {
   codFeeInput.value = variant.cod_fee ?? "";
   codFeeInput.dataset.variantCodFee = "";
 
+  const costPriceInput = document.createElement("input");
+  costPriceInput.type = "number";
+  costPriceInput.min = "0";
+  costPriceInput.step = "0.01";
+  costPriceInput.placeholder = "Use product cost";
+  costPriceInput.value = variant.cost_price ?? "";
+  costPriceInput.dataset.variantCostPrice = "";
+
   const badgeInput = document.createElement("input");
   badgeInput.type = "text";
   badgeInput.placeholder = "Example: Best Seller";
@@ -2828,6 +2838,7 @@ function createVariantCard(variant = {}) {
     createVariantFieldLabel("Price (₱)", priceInput),
     createVariantFieldLabel("Stock", stockInput),
     createVariantFieldLabel("COD fee/item (optional)", codFeeInput),
+    createVariantFieldLabel("Product cost/item (optional)", costPriceInput),
     createVariantFieldLabel("Badge", badgeInput),
     createVariantFieldLabel("Variant image", imageInput)
   );
@@ -2940,9 +2951,13 @@ async function saveVariantCodFees(productId) {
       || savedVariants.find((variant) => variant.name === name && Number(variant.sort_order || 0) === sortOrder);
     if (!saved) continue;
     const rawFee = card.querySelector("[data-variant-cod-fee]")?.value.trim();
+    const rawCost = card.querySelector("[data-variant-cost-price]")?.value.trim();
     const { error } = await supabaseClient
       .from("product_variants")
-      .update({ cod_fee: rawFee === "" ? null : Math.max(0, Number(rawFee || 0)) })
+      .update({
+        cod_fee: rawFee === "" ? null : Math.max(0, Number(rawFee || 0)),
+        cost_price: rawCost === "" ? null : Math.max(0, Number(rawCost || 0))
+      })
       .eq("id", saved.id);
     if (error) throw error;
   }
@@ -3006,6 +3021,7 @@ if (!categoryValue) {
    price: basePrice,
    stock: baseStock,
    cod_fee: Math.max(0, Number(formData.get("codFee") || 0)),
+   cost_price: Math.max(0, Number(formData.get("costPrice") || 0)),
    category: categoryValue,
     badge: String(formData.get("badge") || "").trim().slice(0, 24) || null,
     image_url: productImageUrl || null,
@@ -3083,6 +3099,7 @@ try {
   productForm.elements.price.value = product.price ?? 0;
   productForm.elements.stock.value = product.stock ?? 0;
   productForm.elements.codFee.value = product.cod_fee ?? 0;
+  productForm.elements.costPrice.value = product.cost_price ?? 0;
   updateProductCategoryChoices(product.category || "");
   productForm.elements.badge.value = product.badge || "";
   productForm.elements.image.value = product.image_url || "";

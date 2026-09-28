@@ -516,6 +516,12 @@ Hero eyebrow
 </label>
 
 <label>
+    Product cost per item (₱)
+    <input name="costPrice" type="number" min="0" step="0.01" value="0" required />
+    <small class="tiny-note">Automatically deducted from sales profit. Variants may override this cost.</small>
+</label>
+
+<label>
     Category
     <select id="productCategorySelect" name="category" required>
       <option value="">Choose an active category</option>
@@ -786,7 +792,7 @@ Hero eyebrow
 <script src="supabase.js"></script>
 <script src="variants.js?v=clean-console-v1"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="admin.js?v=variant-cod-fee-v10"></script>
+<script src="admin.js?v=automatic-product-cost-v12"></script>
 <script src="admin-ui.js?v=stable-section-nav-v2"></script>
 </body>
 </html>
