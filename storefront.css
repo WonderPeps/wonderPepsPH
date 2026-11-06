@@ -2547,20 +2547,21 @@ body.storefront-page.page-scroll-locked {
 }
 
 
-/* Shipping option text: keep the title and description vertically centered
-   within each option, including when the description wraps on mobile. */
-.storefront-page .shipping-method-option {
-  align-items: center;
-}
-.storefront-page .shipping-method-copy {
-  align-self: center;
-  align-content: center;
-  justify-content: center;
-  min-width: 0;
-  min-height: 100%;
-  margin: 0;
-}
-.storefront-page .shipping-method-copy strong,
-.storefront-page .shipping-method-copy small {
-  margin-block: 0;
+/* Mobile shipping choices: bring the text closer to the heart and lower it
+   slightly within the card without changing the icon or selection behavior. */
+@media (max-width: 760px) {
+  .storefront-page .shipping-method-option {
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    column-gap: 10px;
+    align-items: center;
+  }
+
+  .storefront-page .shipping-method-copy {
+    min-width: 0;
+    min-height: 0;
+    align-self: center;
+    justify-content: center;
+    margin: 0;
+    transform: translateY(4px);
+  }
 }
