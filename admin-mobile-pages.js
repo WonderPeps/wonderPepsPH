@@ -26,7 +26,6 @@
     { title: "Shop Settings", description: "Store information and appearance", icon: "⚙", target: "shopSettingsSection" },
     { title: "COA & Protocol media", description: "Upload and manage page images or videos", icon: "▧", target: "infoMediaSection" },
     { title: "Change Password", description: "Admin account security", icon: "♡", target: "securitySection" },
-    { title: "Add product", description: "Add a new item to your catalog", icon: "＋", target: "addProductSection" },
     { title: "Add menu item", description: "Create a new storefront link", icon: "＋", target: "addMenuSection" },
     { title: "Sales tracker", description: "View sales and business performance", icon: "₱", href: "sales.html" }
   ];
@@ -214,4 +213,151 @@
 
   // Start on Dashboard once the admin UI is available.
   applyResponsiveMode();
+})();
+
+
+/* Mobile-only order accordion and product card renderer.
+   Moves existing action buttons so their original admin.js listeners remain attached. */
+(() => {
+  "use strict";
+  const mobile = window.matchMedia("(max-width: 760px)");
+  const ordersList = document.getElementById("ordersList");
+  const productsContainer = document.getElementById("productsTableContainer");
+
+  function enhanceOrderCards() {
+    if (!mobile.matches || !ordersList) return;
+    ordersList.querySelectorAll(".order-card").forEach((card) => {
+      const header = card.querySelector(".order-card-header");
+      if (!header) return;
+      header.setAttribute("role", "button");
+      header.setAttribute("tabindex", "0");
+      header.setAttribute("aria-label", "Expand order details");
+      header.setAttribute("aria-expanded", card.classList.contains("mobile-order-expanded") ? "true" : "false");
+      if (!header.querySelector(".mobile-order-peek")) {
+        const customer = card.querySelector(".order-customer-row strong")?.textContent?.trim() || "Customer details";
+        const status = card.querySelector(".order-status-badge")?.textContent?.trim() || "Order";
+        const peek = document.createElement("div");
+        peek.className = "mobile-order-peek";
+        const name = document.createElement("strong");
+        name.textContent = customer;
+        const state = document.createElement("span");
+        state.textContent = status;
+        peek.append(name, state);
+        header.appendChild(peek);
+      }
+    });
+  }
+
+  if (ordersList) {
+    ordersList.addEventListener("click", (event) => {
+      const header = event.target.closest(".order-card-header");
+      if (!mobile.matches || !header || !ordersList.contains(header)) return;
+      const card = header.closest(".order-card");
+      if (!card) return;
+      card.classList.toggle("mobile-order-expanded");
+      header.setAttribute("aria-expanded", card.classList.contains("mobile-order-expanded") ? "true" : "false");
+    });
+    ordersList.addEventListener("keydown", (event) => {
+      const header = event.target.closest(".order-card-header");
+      if (!mobile.matches || !header || !["Enter", " "].includes(event.key)) return;
+      event.preventDefault();
+      header.click();
+    });
+    new MutationObserver(enhanceOrderCards).observe(ordersList, { childList: true, subtree: true });
+    enhanceOrderCards();
+  }
+
+  function buildMobileProductCards() {
+    if (!mobile.matches || !productsContainer) return;
+    const table = productsContainer.querySelector("table.data-table");
+    if (!table || table.dataset.mobileCardsBuilt === "true") return;
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+    if (!rows.length) return;
+
+    productsContainer.querySelector(".mobile-product-list")?.remove();
+    const list = document.createElement("div");
+    list.className = "mobile-product-list";
+    list.setAttribute("aria-label", "Products");
+
+    rows.forEach((row) => {
+      const cells = Array.from(row.cells);
+      if (cells.length < 11) return;
+      const card = document.createElement("article");
+      card.className = "mobile-product-card";
+
+      const imageWrap = document.createElement("div");
+      imageWrap.className = "mobile-product-image";
+      const image = cells[0].querySelector("img");
+      if (image) {
+        imageWrap.appendChild(image);
+      } else {
+        imageWrap.textContent = "No image";
+      }
+
+      const info = document.createElement("div");
+      info.className = "mobile-product-info";
+      const name = document.createElement("strong");
+      name.className = "mobile-product-name";
+      name.textContent = cells[1].textContent.trim() || "Untitled product";
+      const description = document.createElement("span");
+      description.className = "mobile-product-description";
+      description.textContent = cells[2].textContent.trim();
+      info.append(name);
+      if (description.textContent && description.textContent !== "—") info.append(description);
+
+      const meta = document.createElement("div");
+      meta.className = "mobile-product-meta";
+      [
+        ["Category", cells[3].textContent],
+        ["Price", cells[5].textContent],
+        ["Stock", cells[7].textContent],
+        ["Status", cells[8].textContent],
+        ["Sales", cells[9].textContent]
+      ].forEach(([label, value]) => {
+        const span = document.createElement("span");
+        const bold = document.createElement("b");
+        bold.textContent = `${label}: `;
+        span.append(bold, document.createTextNode(value.trim() || "—"));
+        meta.appendChild(span);
+      });
+      info.appendChild(meta);
+
+      const actions = document.createElement("div");
+      actions.className = "mobile-product-actions";
+      const actionContainer = cells[10].querySelector(".admin-actions");
+      if (actionContainer) {
+        Array.from(actionContainer.querySelectorAll("button")).forEach((button) => actions.appendChild(button));
+      }
+
+      card.append(imageWrap, info);
+      if (actions.childElementCount) card.appendChild(actions);
+      list.appendChild(card);
+    });
+
+    if (list.childElementCount) {
+      productsContainer.insertBefore(list, productsContainer.firstChild);
+      table.dataset.mobileCardsBuilt = "true";
+    }
+  }
+
+  if (productsContainer) {
+    new MutationObserver(buildMobileProductCards).observe(productsContainer, { childList: true, subtree: true });
+    buildMobileProductCards();
+  }
+
+  function refreshMobileViews() {
+    if (mobile.matches) {
+      enhanceOrderCards();
+      buildMobileProductCards();
+    } else {
+      ordersList?.querySelectorAll(".order-card").forEach((card) => {
+        card.classList.remove("mobile-order-expanded");
+        card.querySelector(".order-card-header")?.removeAttribute("aria-expanded");
+      });
+      productsContainer?.querySelector(".mobile-product-list")?.remove();
+      productsContainer?.querySelector("table.data-table")?.removeAttribute("data-mobile-cards-built");
+    }
+  }
+  if (mobile.addEventListener) mobile.addEventListener("change", refreshMobileViews);
+  else mobile.addListener(refreshMobileViews);
 })();

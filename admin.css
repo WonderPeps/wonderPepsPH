@@ -1681,3 +1681,246 @@ html { font-size: 112.5%; }
 @media (min-width: 761px) {
   .admin-page .mobile-admin-page-active { display: revert; }
 }
+
+
+/* WonderPeps mobile refinement: full-width work area, compact order accordions,
+   and mobile product cards. Desktop rules are intentionally unaffected. */
+@media (max-width: 760px) {
+  /* Let every admin page use the full available mobile canvas.
+     Keep the smaller cards/forms inside each page as individual components. */
+  .admin-page .admin-main-content {
+    padding: 0 0 calc(84px + env(safe-area-inset-bottom)) !important;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    background: transparent;
+  }
+  .admin-page .admin-panel-section {
+    box-sizing: border-box;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    margin: 0 !important;
+    padding: 17px 14px 22px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  .admin-page .admin-panel-section > .admin-section-header {
+    margin-top: 0;
+  }
+  .admin-page .mobile-admin-menu-page {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 20px 14px 24px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  /* Orders: each order starts as a compact summary and expands on tap. */
+  .admin-page #ordersList { display: grid; gap: 11px; }
+  .admin-page #ordersList .order-card {
+    min-width: 0;
+    overflow: hidden;
+    margin: 0;
+    border: 1px solid #f0cbd9;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(105,54,76,.045);
+  }
+  .admin-page #ordersList .order-card-header {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0,1fr) auto;
+    align-items: center;
+    gap: 9px;
+    min-height: 76px;
+    padding: 13px 42px 13px 14px;
+    cursor: pointer;
+    background: linear-gradient(110deg,#fff8fb,#fff0f6);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .admin-page #ordersList .order-card-header::after {
+    content: "＋";
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    color: #c13a75;
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+  .admin-page #ordersList .order-card.mobile-order-expanded .order-card-header::after {
+    content: "−";
+  }
+  .admin-page #ordersList .order-card-header > div:first-child {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+  }
+  .admin-page #ordersList .order-card-label {
+    color: #a57f90;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .admin-page #ordersList .order-reference {
+    overflow-wrap: anywhere;
+    font-size: .91rem;
+  }
+  .admin-page #ordersList .order-date {
+    max-width: 112px;
+    color: #a17f8f;
+    font-size: .68rem;
+    line-height: 1.3;
+    text-align: right;
+  }
+  .admin-page #ordersList .mobile-order-peek {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 4px 10px;
+    grid-column: 1 / -1;
+    color: #8e7180;
+    font-size: .76rem;
+  }
+  .admin-page #ordersList .mobile-order-peek strong {
+    color: #684656;
+    font-weight: 750;
+  }
+  .admin-page #ordersList .order-card-body,
+  .admin-page #ordersList .order-card-footer {
+    display: none;
+  }
+  .admin-page #ordersList .order-card.mobile-order-expanded .order-card-body,
+  .admin-page #ordersList .order-card.mobile-order-expanded .order-card-footer {
+    display: block;
+  }
+  .admin-page #ordersList .order-card-body { padding: 12px; }
+  .admin-page #ordersList .order-customer-panel {
+    padding: 11px;
+    border-radius: 15px;
+  }
+  .admin-page #ordersList .order-customer-row {
+    padding: 9px 0;
+    overflow-wrap: anywhere;
+  }
+  .admin-page #ordersList .order-card-footer {
+    padding: 12px;
+    border-top: 1px solid #f4dce5;
+  }
+  .admin-page #ordersList .order-card-actions {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+  }
+  .admin-page #ordersList .order-card-actions > * { min-width: 0; }
+  .admin-page #ordersList .order-card-actions button {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 9px;
+    white-space: normal;
+    font-size: .78rem;
+  }
+
+  /* Products: convert the wide table rows into readable, compact cards. */
+  .admin-page #productsTableContainer > .table-shell {
+    display: none !important;
+  }
+  .admin-page .mobile-product-list {
+    display: grid;
+    gap: 11px;
+    width: 100%;
+    min-width: 0;
+    margin-top: 12px;
+  }
+  .admin-page .mobile-product-card {
+    display: grid;
+    grid-template-columns: 76px minmax(0,1fr);
+    gap: 11px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #f0cbd9;
+    border-radius: 17px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(105,54,76,.04);
+  }
+  .admin-page .mobile-product-image {
+    display: grid;
+    width: 76px;
+    height: 76px;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 13px;
+    background: #fff2f7;
+    color: #b48a9c;
+    font-size: .75rem;
+  }
+  .admin-page .mobile-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .admin-page .mobile-product-info { display: grid; align-content: start; gap: 5px; min-width: 0; }
+  .admin-page .mobile-product-name {
+    color: #583747;
+    font-size: .94rem;
+    font-weight: 800;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+  .admin-page .mobile-product-description {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #967b88;
+    font-size: .74rem;
+    line-height: 1.35;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .admin-page .mobile-product-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 10px;
+    margin-top: 3px;
+    color: #775666;
+    font-size: .74rem;
+  }
+  .admin-page .mobile-product-meta span { overflow-wrap: anywhere; }
+  .admin-page .mobile-product-meta b { color: #a27e8e; font-weight: 700; }
+  .admin-page .mobile-product-actions {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    gap: 7px;
+    padding-top: 9px;
+    border-top: 1px solid #f4dce5;
+  }
+  .admin-page .mobile-product-actions button {
+    flex: 1 1 65px;
+    min-height: 37px;
+    padding: 7px 9px;
+    font-size: .76rem;
+  }
+  .admin-page #productsSummary {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 9px;
+  }
+  .admin-page #productsSummary .stat-card { min-width: 0; padding: 12px; }
+  .admin-page #productsPagination { justify-content: center; gap: 10px; }
+  .admin-page #productsPagination button { min-height: 39px; padding-inline: 12px; }
+
+  /* Search and filter controls stay within the full-width mobile canvas. */
+  .admin-page .admin-toolbar,
+  .admin-page .product-toolbar { min-width: 0; }
+  .admin-page .search-field,
+  .admin-page select,
+  .admin-page input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+    max-width: 100%;
+  }
+}
