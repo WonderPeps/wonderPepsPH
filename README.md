@@ -25,3 +25,4 @@ The next upgrade is Supabase for:
 - online orders
 - online image storage
 - editing from any device
+
