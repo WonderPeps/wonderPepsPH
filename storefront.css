@@ -2547,21 +2547,43 @@ body.storefront-page.page-scroll-locked {
 }
 
 
-/* Mobile shipping choices: bring the text closer to the heart and lower it
-   slightly within the card without changing the icon or selection behavior. */
+/* Mobile shipping cards: explicitly position the heart, copy, and arrow.
+   This keeps the copy close to the heart instead of allowing a wide
+   automatically-sized first grid column. */
 @media (max-width: 760px) {
   .storefront-page .shipping-method-option {
-    grid-template-columns: 38px minmax(0, 1fr) auto;
-    column-gap: 10px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) 12px;
+    column-gap: 8px;
     align-items: center;
+    padding-inline: 14px;
   }
 
-  .storefront-page .shipping-method-copy {
+  .storefront-page .shipping-method-option > .shipping-fee-check {
+    grid-column: 1;
+    grid-row: 1;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    justify-self: start;
+    align-self: center;
+  }
+
+  .storefront-page .shipping-method-option > .shipping-method-copy {
+    grid-column: 2;
+    grid-row: 1;
     min-width: 0;
     min-height: 0;
+    margin: 0;
     align-self: center;
     justify-content: center;
-    margin: 0;
     transform: translateY(4px);
+  }
+
+  .storefront-page .shipping-method-option > .shipping-method-arrow {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
   }
 }
