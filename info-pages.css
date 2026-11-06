@@ -616,3 +616,145 @@
     border-radius: 0 0 20px 20px !important;
   }
 }
+
+
+/* FINAL FIX: place the brand and media title OUTSIDE the image.
+   They remain visually floating on the dimmed viewer backdrop, with no
+   header/footer panels and no text drawn over the media itself. */
+.info-lightbox {
+  box-sizing: border-box;
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 9px;
+  width: min(calc(100vw - 28px), 980px);
+  max-width: min(calc(100vw - 28px), 980px);
+  max-height: 96dvh;
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.info-lightbox[open] {
+  display: flex;
+}
+.info-lightbox::backdrop {
+  background: rgba(43, 21, 32, .86);
+}
+.info-lightbox-header {
+  position: relative !important;
+  inset: auto !important;
+  order: 0;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0;
+  padding: 0 52px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+.info-lightbox-brand {
+  display: block;
+  position: static !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #fff !important;
+  background: transparent !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 0 2px 7px rgba(30, 0, 15, .95), 0 0 16px rgba(30, 0, 15, .8);
+}
+.info-lightbox-close {
+  position: absolute !important;
+  top: 50% !important;
+  right: 0 !important;
+  z-index: 5;
+  transform: translateY(-50%);
+  border-radius: 50% !important;
+  pointer-events: auto;
+}
+.info-lightbox-content {
+  order: 1;
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: calc(96dvh - 104px);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px !important;
+  background: transparent !important;
+}
+.info-lightbox-content img,
+.info-lightbox-content video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(96dvh - 104px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 20px !important;
+  background: transparent !important;
+  object-fit: contain;
+}
+.info-lightbox-title {
+  position: static !important;
+  inset: auto !important;
+  order: 2;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #fff !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 0 2px 7px rgba(30, 0, 15, .95), 0 0 16px rgba(30, 0, 15, .8);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+@media (max-width: 520px) {
+  .info-lightbox {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    max-height: 96dvh;
+    gap: 8px;
+  }
+  .info-lightbox-brand { font-size: 1.05rem; }
+  .info-lightbox-content,
+  .info-lightbox-content img,
+  .info-lightbox-content video {
+    max-height: calc(96dvh - 100px);
+    border-radius: 18px !important;
+  }
+  .info-lightbox-title { font-size: 1rem; }
+}
