@@ -2490,3 +2490,58 @@ body.storefront-page.page-scroll-locked {
     margin-top: 7px;
   }
 }
+
+
+/* WonderPepsPH menu refresh: compact rounded navigation cards inspired by the supplied reference. */
+.storefront-page .menu-drawer .drawer-panel {
+  display: flex;
+  flex-direction: column;
+}
+.storefront-page .menu-drawer-brand {
+  padding: 22px 22px;
+}
+.storefront-page .store-menu-items {
+  gap: 24px;
+  padding: 24px 22px 38px;
+}
+.storefront-page .store-menu-section {
+  gap: 12px;
+}
+.storefront-page .store-menu-heading {
+  padding: 0 2px;
+  font-size: .76rem;
+  letter-spacing: .14em;
+}
+.storefront-page .store-menu-links {
+  gap: 10px;
+}
+.storefront-page .store-menu-link {
+  grid-template-columns: minmax(0, 1fr) 18px;
+  min-height: 53px;
+  padding: 12px 15px;
+  border: 1px solid #f3cddd;
+  border-radius: 15px;
+  background: rgba(255,255,255,.92);
+  font-size: .96rem;
+  font-weight: 550;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.storefront-page .store-menu-link .store-menu-icon {
+  display: none;
+}
+.storefront-page .store-menu-link:hover,
+.storefront-page .store-menu-link:focus-visible {
+  border-color: #e9a9c3;
+  background: #fff3f8;
+  transform: translateY(-1px);
+}
+.storefront-page .store-menu-page-link {
+  color: #8e204a;
+  font-weight: 650;
+}
+@media (max-width: 520px) {
+  .storefront-page .menu-drawer .drawer-panel { width: min(440px, 92vw); }
+  .storefront-page .menu-drawer-brand { padding: 20px 18px; }
+  .storefront-page .store-menu-items { padding: 22px 18px 34px; gap: 22px; }
+  .storefront-page .store-menu-link { min-height: 52px; padding: 11px 14px; }
+}
