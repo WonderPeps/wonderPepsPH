@@ -2253,6 +2253,22 @@ paymentStepCloseButton?.addEventListener("click", () => {
 ------------------------ */
 
 async function loadStoreMenuItems() {
+  // These two informational pages are built-in storefront links. Keep them
+  // visible even if the admin-managed menu is empty or temporarily unavailable.
+  const featuredPages = `
+    <section class="store-menu-section store-menu-featured" aria-label="Shop information">
+      <div class="store-menu-links">
+        <a class="store-menu-link store-menu-page-link" href="coa.html">
+          <span class="store-menu-label">COA</span>
+          <span class="store-menu-arrow" aria-hidden="true">›</span>
+        </a>
+        <a class="store-menu-link store-menu-page-link" href="protocol.html">
+          <span class="store-menu-label">Protocol</span>
+          <span class="store-menu-arrow" aria-hidden="true">›</span>
+        </a>
+      </div>
+    </section>`;
+
   const { data, error } = await supabaseClient
     .from("menu_items")
     .select("*")
@@ -2261,19 +2277,12 @@ async function loadStoreMenuItems() {
 
   if (error) {
     console.error("Could not load menu items:", error.message);
-    storeMenuItems.innerHTML =
-      `<p class="empty">Menu could not be loaded.</p>`;
+    storeMenuItems.innerHTML = featuredPages +
+      `<p class="empty">Other menu items could not be loaded.</p>`;
     return;
   }
 
   const items = data || [];
-
-  if (!items.length) {
-    storeMenuItems.innerHTML =
-      `<p class="empty">No menu items available.</p>`;
-    return;
-  }
-
   const menuGroups = [];
 
   items.forEach((item) => {
@@ -2288,7 +2297,7 @@ async function loadStoreMenuItems() {
     group.items.push(item);
   });
 
-  storeMenuItems.innerHTML = menuGroups
+  const managedMenu = menuGroups
     .map((group, groupIndex) => `
       <section class="store-menu-section" aria-labelledby="menuGroup${groupIndex}">
         <h3 id="menuGroup${groupIndex}" class="store-menu-heading">
@@ -2314,6 +2323,9 @@ async function loadStoreMenuItems() {
       </section>
     `)
     .join("");
+
+  storeMenuItems.innerHTML = featuredPages +
+    (managedMenu || `<p class="empty">No other menu items available.</p>`);
 }
 
 function getStoreMenuIcon(item) {
