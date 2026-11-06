@@ -2199,3 +2199,46 @@ html { font-size: 112.5%; }
     justify-self: stretch;
   }
 }
+
+/* Pending order mobile status row: Payment status | receipt note | badge. */
+@media (max-width: 760px) {
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-footer {
+    display: grid !important; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+    column-gap: 7px; row-gap: 10px; align-items: center;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-status-summary,
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-actions { display: contents !important; }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-status-summary > span:first-child {
+    grid-column: 1; grid-row: 1; justify-self: start; white-space: nowrap; font-size: .72rem;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-status-badge {
+    grid-column: 3; grid-row: 1; justify-self: end;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-actions .tiny-note {
+    grid-column: 2; grid-row: 1; justify-self: center; width: max-content; max-width: 100%;
+    margin: 0; white-space: nowrap; text-align: center; font-size: .66rem;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-actions [data-order-invoice],
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-actions [data-order-view-receipt] {
+    grid-column: 1 / -1; grid-row: 2; width: 100%;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-actions [data-order-approve] {
+    grid-column: 1 / 2; grid-row: 3; width: 100%;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-actions [data-order-reject] {
+    grid-column: 2 / 4; grid-row: 3; width: 100%;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-actions [data-order-archive] {
+    grid-column: 1 / -1; grid-row: 4; width: 100%;
+  }
+  /* Visually hide scrollbars; scrolling stays enabled. */
+  html, body, .admin-page, .admin-page main, .admin-page .admin-content,
+  .admin-page #ordersList, .admin-page .admin-sidebar-nav {
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar, .admin-page::-webkit-scrollbar,
+  .admin-page main::-webkit-scrollbar, .admin-page .admin-content::-webkit-scrollbar,
+  .admin-page #ordersList::-webkit-scrollbar, .admin-page .admin-sidebar-nav::-webkit-scrollbar {
+    display: none; width: 0; height: 0;
+  }
+}
