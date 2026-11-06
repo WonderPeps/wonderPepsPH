@@ -2547,11 +2547,38 @@ body.storefront-page.page-scroll-locked {
 }
 
 
-/* Mobile-only copy positioning: move the text toward the existing heart
-   without changing the shipping card's grid, padding, width, or height. */
+/* Final mobile shipping layout: keep the original card dimensions and place
+   the copy beside (not over) the heart with a modest 10px gap. */
 @media (max-width: 760px) {
+  .storefront-page .shipping-method-option {
+    grid-template-columns: 34px minmax(0, 1fr) 12px;
+    column-gap: 10px;
+  }
+
+  .storefront-page .shipping-method-option > .shipping-fee-check {
+    grid-column: 1;
+    grid-row: 1;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    justify-self: start;
+    align-self: center;
+  }
+
   .storefront-page .shipping-method-option > .shipping-method-copy {
-    width: calc(100% + 34px);
-    transform: translate(-34px, 4px);
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    align-self: center;
+    transform: translateY(2px);
+  }
+
+  .storefront-page .shipping-method-option > .shipping-method-arrow {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
   }
 }
