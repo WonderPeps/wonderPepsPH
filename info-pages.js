@@ -19,19 +19,25 @@
       <span class="info-lightbox-brand">WonderPeps</span>
       <button class="info-lightbox-close" type="button" aria-label="Close expanded media">×</button>
     </div>
-    <div class="info-lightbox-content"></div>`;
+    <div class="info-lightbox-content"></div>
+    <h2 class="info-lightbox-title"></h2>`;
   document.body.appendChild(lightbox);
   const lightboxContent = lightbox.querySelector(".info-lightbox-content");
+  const lightboxTitle = lightbox.querySelector(".info-lightbox-title");
 
   function closeLightbox() {
     if (lightbox.open) lightbox.close();
     lightboxContent.replaceChildren();
+    lightboxTitle.textContent = "";
   }
   lightbox.querySelector(".info-lightbox-close").addEventListener("click", closeLightbox);
   lightbox.addEventListener("click", (event) => {
     if (event.target === lightbox) closeLightbox();
   });
-  lightbox.addEventListener("close", () => lightboxContent.replaceChildren());
+  lightbox.addEventListener("close", () => {
+    lightboxContent.replaceChildren();
+    lightboxTitle.textContent = "";
+  });
 
   function openMedia(url, type, title) {
     const media = document.createElement(type === "video" ? "video" : "img");
@@ -43,6 +49,7 @@
       media.autoplay = true;
     }
     lightboxContent.replaceChildren(media);
+    lightboxTitle.textContent = title || pageKey.toUpperCase();
     if (!lightbox.open) lightbox.showModal();
   }
 

@@ -316,3 +316,115 @@
   .info-lightbox-brand { font-size: 1rem; }
   .info-lightbox-close { top: 5px; right: 8px; }
 }
+
+
+/* WonderPeps full-view media presentation:
+   Keep the branded WonderPeps header, remove the surrounding card/padding,
+   show the media cleanly, and place its title below the image. */
+.info-lightbox {
+  box-sizing: border-box;
+  display: none;
+  width: min(100vw - 20px, 980px);
+  max-width: min(100vw - 20px, 980px);
+  max-height: 94dvh;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 16px;
+  color: #674653;
+  background: transparent;
+  box-shadow: 0 20px 70px rgba(43, 21, 32, .34);
+}
+.info-lightbox[open] {
+  display: flex;
+  flex-direction: column;
+}
+.info-lightbox::backdrop {
+  background: rgba(43, 21, 32, .82);
+}
+.info-lightbox-header {
+  box-sizing: border-box;
+  flex: 0 0 52px;
+  min-height: 52px;
+  margin: 0;
+  padding: 6px 52px;
+  border: 0;
+  border-radius: 0;
+  background: #fff0f6;
+}
+.info-lightbox-brand {
+  color: #8d2852;
+  font-size: 1.08rem;
+}
+.info-lightbox-close {
+  top: 8px;
+  right: 9px;
+  z-index: 2;
+}
+.info-lightbox-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+.info-lightbox-content img,
+.info-lightbox-content video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(94dvh - 104px);
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+}
+.info-lightbox-title {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 12px 16px 14px;
+  color: #fff;
+  background: rgba(43, 21, 32, .88);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+  .info-lightbox {
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    max-height: 94dvh;
+    border-radius: 13px;
+  }
+  .info-lightbox-header {
+    flex-basis: 48px;
+    min-height: 48px;
+  }
+  .info-lightbox-brand { font-size: 1rem; }
+  .info-lightbox-content img,
+  .info-lightbox-content video {
+    max-height: calc(94dvh - 100px);
+  }
+  .info-lightbox-title {
+    padding: 10px 12px 12px;
+    font-size: 1rem;
+  }
+}
+
+/* The COA and Protocol drawer labels use the same muted plum as Community. */
+.storefront-page .store-menu-page-link,
+.storefront-page .store-menu-page-link .store-menu-label,
+.storefront-page .store-menu-page-link:hover,
+.storefront-page .store-menu-page-link:focus-visible {
+  color: #5c3e4c !important;
+}
