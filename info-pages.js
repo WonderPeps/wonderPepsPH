@@ -1,48 +1,67 @@
 (() => {
-  const form = document.querySelector(".wonder-search-form");
-  const input = form?.querySelector('input[name="q"]');
-  const feedback = document.querySelector(".wonder-search-feedback");
-  const emptyState = document.querySelector(".wonder-info-empty");
-  const results = document.querySelector(".wonder-info-results");
-  if (!form || !input || !feedback || !results) return;
+  const pageKey = document.body.dataset.infoPage;
+  const grid = document.getElementById("infoMediaGrid");
+  const input = document.getElementById("infoSearchInput");
+  const form = document.getElementById("infoSearchForm");
+  const hint = document.getElementById("infoSearchHint");
+  if (!pageKey || !grid || typeof supabaseClient === "undefined") return;
 
-  const pageName = document.body.dataset.pageName || "documents";
-  const entries = Array.from(results.querySelectorAll("[data-search-item]"));
+  let mediaItems = [];
+  const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[char]));
 
+  function render(items) {
+    if (!items.length) {
+      const searching = Boolean(input.value.trim());
+      grid.innerHTML = `<div class="info-empty">
+        <span class="info-empty-heart" aria-hidden="true">♡</span>
+        <strong>${searching ? "No matching items found." : `No ${pageKey} content has been added yet.`}</strong>
+        <span>${searching ? "Try another keyword." : "When media is added, you can find it here."}</span>
+      </div>`;
+      return;
+    }
+    grid.innerHTML = items.map((item) => {
+      const title = escapeHtml(item.title || pageKey.toUpperCase());
+      const url = escapeHtml(item.media_url);
+      const media = item.media_type === "video"
+        ? `<video src="${url}" controls playsinline preload="metadata"></video>`
+        : `<img src="${url}" alt="${title}" loading="lazy">`;
+      return `<article class="info-media-card">${media}<h2 class="info-media-title">${title}</h2></article>`;
+    }).join("");
+  }
+
+  function applySearch() {
+    const query = input.value.trim().toLowerCase();
+    const filtered = mediaItems.filter((item) =>
+      String(item.title || "").toLowerCase().includes(query)
+    );
+    render(filtered);
+    hint.textContent = query ? `${filtered.length} result${filtered.length === 1 ? "" : "s"} found.` : `Browse the ${pageKey} collection.`;
+  }
+
+  input.addEventListener("input", applySearch);
   form.addEventListener("submit", (event) => {
     event.preventDefault();
-    const query = input.value.trim().toLocaleLowerCase();
-    if (!query) {
-      feedback.textContent = "Please type a keyword to search.";
-      input.focus();
-      return;
-    }
-    if (!entries.length) {
-      feedback.textContent = `No ${pageName.toUpperCase()} documents are available to search yet.`;
-      if (emptyState) {
-        const message = emptyState.querySelector("p");
-        if (message) message.textContent = `No ${pageName} results found for “${input.value.trim()}”.`;
-      }
-      return;
-    }
-    let matches = 0;
-    entries.forEach((entry) => {
-      const searchable = `${entry.textContent} ${entry.dataset.searchItem || ""}`.toLocaleLowerCase();
-      const isMatch = searchable.includes(query);
-      entry.hidden = !isMatch;
-      if (isMatch) matches += 1;
-    });
-    if (emptyState) emptyState.hidden = matches > 0;
-    feedback.textContent = matches
-      ? `${matches} ${matches === 1 ? "result" : "results"} found.`
-      : `No ${pageName.toUpperCase()} results found for “${input.value.trim()}”.`;
+    applySearch();
   });
 
-  input.addEventListener("input", () => {
-    if (!input.value.trim()) {
-      entries.forEach((entry) => { entry.hidden = false; });
-      if (emptyState) emptyState.hidden = false;
-      feedback.textContent = "Type a keyword to search.";
+  async function loadMedia() {
+    const { data, error } = await supabaseClient
+      .from("info_page_media")
+      .select("id,page_key,title,media_url,media_type,sort_order,created_at")
+      .eq("page_key", pageKey)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Could not load page media:", error.message);
+      grid.innerHTML = `<div class="info-empty"><strong>Media could not be loaded.</strong><span>Please try again later.</span></div>`;
+      return;
     }
-  });
+    mediaItems = data || [];
+    applySearch();
+  }
+
+  loadMedia();
 })();

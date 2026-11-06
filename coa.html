@@ -3,46 +3,39 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ffe8f0">
-  <title>COA | WonderPeps PH</title>
-  <link rel="stylesheet" href="storefront.css?v=info-pages-cute-v2">
+  <meta name="theme-color" content="#fff4f8">
+  <title>COA | WonderPeps</title>
+  <link rel="stylesheet" href="storefront.css">
+  <link rel="stylesheet" href="info-pages.css?v=1">
 </head>
-<body class="wonder-info-page" data-page-name="coa">
-  <header class="wonder-info-header">
-    <a class="wonder-info-back" href="index.html" aria-label="Back to menu">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m0 0 6-6m-6 6 6 6"/></svg>
+<body class="info-page-body" data-info-page="coa">
+  <header class="info-topbar">
+    <a class="info-back" href="index.html" aria-label="Back to WonderPeps menu">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
     </a>
-    <h1>COA</h1>
-    <span class="wonder-info-header-spacer" aria-hidden="true"></span>
+    <a class="info-brand" href="index.html">WonderPeps</a>
+    <span class="info-header-spacer" aria-hidden="true"></span>
   </header>
 
-  <main class="wonder-info-content">
-    <section class="wonder-search-card" aria-labelledby="searchCardTitle">
-      <div class="wonder-search-card-heading">
-        <span class="wonder-search-sparkle" aria-hidden="true">♡</span>
-        <div>
-          <h2 id="searchCardTitle">Find COA</h2>
-          <p>Search through our coa collection</p>
-        </div>
-      </div>
-      <form class="wonder-search-form" role="search">
-        <label class="wonder-search-field">
-          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.2 4.2"/></svg>
-          <input type="search" name="q" placeholder="Search COA..." autocomplete="off" aria-label="Search COA">
-        </label>
-        <button class="wonder-search-submit" type="submit">Search</button>
-      </form>
-      <p class="wonder-search-feedback" role="status" aria-live="polite">Type a keyword to search.</p>
-    </section>
-
-    <section class="wonder-info-results" aria-label="COA results">
-      <div class="wonder-info-empty">
-        <span aria-hidden="true">♡</span>
-        <p>No coa content has been added yet.</p>
-        <small>When documents are added, you can find them here.</small>
+  <main class="info-main">
+    <p class="info-eyebrow">WONDERPEPS PH</p>
+    <h1>COA</h1>
+    <form class="info-search" id="infoSearchForm" role="search">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+      <input id="infoSearchInput" type="search" placeholder="Search COA..." autocomplete="off" aria-label="Search COA media">
+      <button type="submit">Search</button>
+    </form>
+    <p class="info-search-hint" id="infoSearchHint">Browse the COA collection.</p>
+    <section class="info-media-grid" id="infoMediaGrid" aria-live="polite">
+      <div class="info-empty">
+        <span class="info-empty-heart" aria-hidden="true">♡</span>
+        <strong>No COA content has been added yet.</strong>
+        <span>When media is added, you can find it here.</span>
       </div>
     </section>
   </main>
-  <script src="info-pages.js?v=cute-search-v1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="info-pages.js?v=1"></script>
 </body>
 </html>
