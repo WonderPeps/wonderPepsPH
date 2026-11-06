@@ -1945,7 +1945,7 @@ function openPaymentStep() {
   paymentStepContent.innerHTML = `
     <div class="payment-step-qr ${qrUrl ? "has-qr" : "no-qr"}">
       ${qrUrl
-        ? `<button class="payment-step-qr-expand" type="button" data-expand-payment-qr aria-label="Expand ${escapeHtml(selectedPaymentMethod.payment_name || "payment")} QR code"><img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" /></button>`
+        ? `<div class="payment-step-qr-layout"><span class="payment-step-qr-hint" aria-hidden="true"><span class="payment-step-qr-hint-heart">♡</span><span>Click to<br />expand</span><span class="payment-step-qr-hint-sparkle">✦</span></span><button class="payment-step-qr-expand" type="button" data-expand-payment-qr aria-label="Click to expand ${escapeHtml(selectedPaymentMethod.payment_name || "payment")} QR code"><img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" /></button></div>`
         : payOnDeliveryOnly
         ? `<div class="payment-step-qr-placeholder payment-cod-status"><span class="payment-status-icon" aria-hidden="true">♡</span><span><strong>No payment needed now</strong><small>Pay when your courier delivers your order.</small></span></div>`
         : `<div class="payment-step-qr-placeholder"><span class="payment-status-icon" aria-hidden="true">✦</span><span><strong>No QR code available</strong><small>Follow the payment instructions below.</small></span></div>`}

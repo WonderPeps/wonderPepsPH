@@ -2999,3 +2999,46 @@ input[type="submit"] {
     max-height: calc(90vh - 82px);
   }
 }
+
+
+/* Small cute instruction beside every expandable checkout QR code. */
+.payment-step-qr-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 3vw, 22px);
+  width: 100%;
+}
+.payment-step-qr-hint {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #b65a82;
+  font-size: .76rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  letter-spacing: .01em;
+}
+.payment-step-qr-hint-heart {
+  color: #e65b98;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.payment-step-qr-hint-sparkle {
+  color: #e98ab2;
+  font-size: .85rem;
+  line-height: 1;
+}
+.payment-step-qr-expand {
+  flex: 0 1 260px;
+  width: min(100%, 260px);
+}
+@media (max-width: 380px) {
+  .payment-step-qr-layout { gap: 8px; }
+  .payment-step-qr-hint { font-size: .68rem; }
+  .payment-step-qr-expand { flex-basis: 220px; }
+}
