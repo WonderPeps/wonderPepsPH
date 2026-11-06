@@ -98,6 +98,53 @@ const proceedPaymentButton = document.querySelector("#proceedPaymentButton");
 const checkoutFormError = document.querySelector("#checkoutFormError");
 const paymentStepDialog = document.querySelector("#paymentStepDialog");
 const paymentStepContent = document.querySelector("#paymentStepContent");
+
+const checkoutQrLightbox = (() => {
+  const dialog = document.createElement("dialog");
+  dialog.className = "checkout-qr-lightbox";
+  dialog.setAttribute("aria-label", "Expanded payment QR code");
+  dialog.innerHTML = `
+    <div class="checkout-qr-lightbox-header">
+      <span class="checkout-qr-lightbox-brand">WonderPeps</span>
+      <button class="checkout-qr-lightbox-close" type="button" aria-label="Close expanded QR code">×</button>
+    </div>
+    <div class="checkout-qr-lightbox-content">
+      <img alt="Expanded payment QR code" />
+    </div>`;
+  document.body.appendChild(dialog);
+
+  const image = dialog.querySelector("img");
+  const closeButton = dialog.querySelector(".checkout-qr-lightbox-close");
+
+  function close() {
+    if (dialog.open) dialog.close();
+    image.removeAttribute("src");
+    image.alt = "Expanded payment QR code";
+  }
+
+  closeButton.addEventListener("click", close);
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) close();
+  });
+  dialog.addEventListener("close", () => image.removeAttribute("src"));
+
+  return {
+    open(src, alt) {
+      image.src = src;
+      image.alt = alt || "Expanded payment QR code";
+      if (!dialog.open) dialog.showModal();
+    }
+  };
+})();
+
+paymentStepContent?.addEventListener("click", (event) => {
+  const trigger = event.target.closest("[data-expand-payment-qr]");
+  if (!trigger) return;
+  const image = trigger.querySelector("img");
+  if (!image?.currentSrc && !image?.src) return;
+  checkoutQrLightbox.open(image.currentSrc || image.src, image.alt);
+});
+
 const paymentStepBackButton = document.querySelector("#paymentStepBackButton");
 const paymentStepContinueButton = document.querySelector("#paymentStepContinueButton");
 const paymentStepCloseButton = document.querySelector("#paymentStepCloseButton");
@@ -1898,7 +1945,7 @@ function openPaymentStep() {
   paymentStepContent.innerHTML = `
     <div class="payment-step-qr ${qrUrl ? "has-qr" : "no-qr"}">
       ${qrUrl
-        ? `<img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" />`
+        ? `<button class="payment-step-qr-expand" type="button" data-expand-payment-qr aria-label="Expand ${escapeHtml(selectedPaymentMethod.payment_name || "payment")} QR code"><img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" /></button>`
         : payOnDeliveryOnly
         ? `<div class="payment-step-qr-placeholder payment-cod-status"><span class="payment-status-icon" aria-hidden="true">♡</span><span><strong>No payment needed now</strong><small>Pay when your courier delivers your order.</small></span></div>`
         : `<div class="payment-step-qr-placeholder"><span class="payment-status-icon" aria-hidden="true">✦</span><span><strong>No QR code available</strong><small>Follow the payment instructions below.</small></span></div>`}
