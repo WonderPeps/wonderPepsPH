@@ -2253,8 +2253,7 @@ paymentStepCloseButton?.addEventListener("click", () => {
 ------------------------ */
 
 async function loadStoreMenuItems() {
-  // These two informational pages are built-in storefront links. Keep them
-  // visible even if the admin-managed menu is empty or temporarily unavailable.
+  // Built-in informational pages stay visible independently of admin menu settings.
   const featuredPages = `
     <section class="store-menu-section store-menu-featured" aria-label="Shop information">
       <div class="store-menu-links">
@@ -2288,41 +2287,28 @@ async function loadStoreMenuItems() {
   items.forEach((item) => {
     const sectionName = String(item.section || "Menu").trim() || "Menu";
     let group = menuGroups.find((entry) => entry.name === sectionName);
-
     if (!group) {
       group = { name: sectionName, items: [] };
       menuGroups.push(group);
     }
-
     group.items.push(item);
   });
 
-  const managedMenu = menuGroups
-    .map((group, groupIndex) => `
-      <section class="store-menu-section" aria-labelledby="menuGroup${groupIndex}">
-        <h3 id="menuGroup${groupIndex}" class="store-menu-heading">
-          ${escapeHtml(group.name)}
-        </h3>
-        <div class="store-menu-links">
-          ${group.items.map((item) => {
-            const target = item.open_new_tab
-              ? `target="_blank" rel="noopener"`
-              : "";
-
-            return `
-              <a class="store-menu-link" href="${escapeHtml(item.url)}" ${target}>
-                <span class="store-menu-icon" aria-hidden="true">
-                  ${getStoreMenuIcon(item)}
-                </span>
-                <span class="store-menu-label">${escapeHtml(item.label)}</span>
-                <span class="store-menu-arrow" aria-hidden="true">›</span>
-              </a>
-            `;
-          }).join("")}
-        </div>
-      </section>
-    `)
-    .join("");
+  const managedMenu = menuGroups.map((group, groupIndex) => `
+    <section class="store-menu-section" aria-labelledby="menuGroup${groupIndex}">
+      <h3 id="menuGroup${groupIndex}" class="store-menu-heading">${escapeHtml(group.name)}</h3>
+      <div class="store-menu-links">
+        ${group.items.map((item) => {
+          const target = item.open_new_tab ? `target="_blank" rel="noopener"` : "";
+          return `
+            <a class="store-menu-link" href="${escapeHtml(item.url)}" ${target}>
+              <span class="store-menu-icon" aria-hidden="true">${getStoreMenuIcon(item)}</span>
+              <span class="store-menu-label">${escapeHtml(item.label)}</span>
+              <span class="store-menu-arrow" aria-hidden="true">›</span>
+            </a>`;
+        }).join("")}
+      </div>
+    </section>`).join("");
 
   storeMenuItems.innerHTML = featuredPages +
     (managedMenu || `<p class="empty">No other menu items available.</p>`);
