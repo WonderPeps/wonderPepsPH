@@ -46,6 +46,8 @@
 .storefront-page .shipping-method-copy {
   display: grid;
   gap: 4px;
+  /* Slightly lower the text group without moving the icon, arrow, or card. */
+  transform: translateY(4px);
 }
 
 .storefront-page .shipping-method-copy strong { font-size: 1rem; }
@@ -2488,5 +2490,97 @@ body.storefront-page.page-scroll-locked {
   .storefront-page .add-button {
     min-height: 37px;
     margin-top: 7px;
+  }
+}
+
+
+/* WonderPepsPH menu refresh: compact rounded navigation cards inspired by the supplied reference. */
+.storefront-page .menu-drawer .drawer-panel {
+  display: flex;
+  flex-direction: column;
+}
+.storefront-page .menu-drawer-brand {
+  padding: 22px 22px;
+}
+.storefront-page .store-menu-items {
+  gap: 24px;
+  padding: 24px 22px 38px;
+}
+.storefront-page .store-menu-section {
+  gap: 12px;
+}
+.storefront-page .store-menu-heading {
+  padding: 0 2px;
+  font-size: .76rem;
+  letter-spacing: .14em;
+}
+.storefront-page .store-menu-links {
+  gap: 10px;
+}
+.storefront-page .store-menu-link {
+  grid-template-columns: minmax(0, 1fr) 18px;
+  min-height: 53px;
+  padding: 12px 15px;
+  border: 1px solid #f3cddd;
+  border-radius: 15px;
+  background: rgba(255,255,255,.92);
+  font-size: .96rem;
+  font-weight: 550;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+.storefront-page .store-menu-link .store-menu-icon {
+  display: none;
+}
+.storefront-page .store-menu-link:hover,
+.storefront-page .store-menu-link:focus-visible {
+  border-color: #e9a9c3;
+  background: #fff3f8;
+  transform: translateY(-1px);
+}
+.storefront-page .store-menu-page-link {
+  color: #8e204a;
+  font-weight: 650;
+}
+@media (max-width: 520px) {
+  .storefront-page .menu-drawer .drawer-panel { width: min(440px, 92vw); }
+  .storefront-page .menu-drawer-brand { padding: 20px 18px; }
+  .storefront-page .store-menu-items { padding: 22px 18px 34px; gap: 22px; }
+  .storefront-page .store-menu-link { min-height: 52px; padding: 11px 14px; }
+}
+
+
+/* Final mobile shipping layout: keep the original card dimensions and place
+   the copy beside (not over) the heart with a modest 10px gap. */
+@media (max-width: 760px) {
+  .storefront-page .shipping-method-option {
+    grid-template-columns: 34px minmax(0, 1fr) 12px;
+    column-gap: 10px;
+  }
+
+  .storefront-page .shipping-method-option > .shipping-fee-check {
+    grid-column: 1;
+    grid-row: 1;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    justify-self: start;
+    align-self: center;
+  }
+
+  .storefront-page .shipping-method-option > .shipping-method-copy {
+    grid-column: 2;
+    grid-row: 1;
+    width: auto;
+    min-width: 0;
+    margin: 0;
+    align-self: center;
+    transform: translateY(2px);
+  }
+
+  .storefront-page .shipping-method-option > .shipping-method-arrow {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: center;
   }
 }

@@ -98,6 +98,53 @@ const proceedPaymentButton = document.querySelector("#proceedPaymentButton");
 const checkoutFormError = document.querySelector("#checkoutFormError");
 const paymentStepDialog = document.querySelector("#paymentStepDialog");
 const paymentStepContent = document.querySelector("#paymentStepContent");
+
+const checkoutQrLightbox = (() => {
+  const dialog = document.createElement("dialog");
+  dialog.className = "checkout-qr-lightbox";
+  dialog.setAttribute("aria-label", "Expanded payment QR code");
+  dialog.innerHTML = `
+    <div class="checkout-qr-lightbox-header">
+      <span class="checkout-qr-lightbox-brand">WonderPeps</span>
+      <button class="checkout-qr-lightbox-close" type="button" aria-label="Close expanded QR code">×</button>
+    </div>
+    <div class="checkout-qr-lightbox-content">
+      <img alt="Expanded payment QR code" />
+    </div>`;
+  document.body.appendChild(dialog);
+
+  const image = dialog.querySelector("img");
+  const closeButton = dialog.querySelector(".checkout-qr-lightbox-close");
+
+  function close() {
+    if (dialog.open) dialog.close();
+    image.removeAttribute("src");
+    image.alt = "Expanded payment QR code";
+  }
+
+  closeButton.addEventListener("click", close);
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) close();
+  });
+  dialog.addEventListener("close", () => image.removeAttribute("src"));
+
+  return {
+    open(src, alt) {
+      image.src = src;
+      image.alt = alt || "Expanded payment QR code";
+      if (!dialog.open) dialog.showModal();
+    }
+  };
+})();
+
+paymentStepContent?.addEventListener("click", (event) => {
+  const trigger = event.target.closest("[data-expand-payment-qr]");
+  if (!trigger) return;
+  const image = trigger.querySelector("img");
+  if (!image?.currentSrc && !image?.src) return;
+  checkoutQrLightbox.open(image.currentSrc || image.src, image.alt);
+});
+
 const paymentStepBackButton = document.querySelector("#paymentStepBackButton");
 const paymentStepContinueButton = document.querySelector("#paymentStepContinueButton");
 const paymentStepCloseButton = document.querySelector("#paymentStepCloseButton");
@@ -1898,7 +1945,7 @@ function openPaymentStep() {
   paymentStepContent.innerHTML = `
     <div class="payment-step-qr ${qrUrl ? "has-qr" : "no-qr"}">
       ${qrUrl
-        ? `<img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" />`
+        ? `<div class="payment-step-qr-layout"><span class="payment-step-qr-hint" aria-hidden="true"><span class="payment-step-qr-hint-heart">♡</span><span>Click to<br />expand</span><span class="payment-step-qr-hint-sparkle">✦</span></span><button class="payment-step-qr-expand" type="button" data-expand-payment-qr aria-label="Click to expand ${escapeHtml(selectedPaymentMethod.payment_name || "payment")} QR code"><img src="${escapeHtml(qrUrl)}" alt="${escapeHtml(selectedPaymentMethod.payment_name || "Payment QR")}" loading="lazy" /></button></div>`
         : payOnDeliveryOnly
         ? `<div class="payment-step-qr-placeholder payment-cod-status"><span class="payment-status-icon" aria-hidden="true">♡</span><span><strong>No payment needed now</strong><small>Pay when your courier delivers your order.</small></span></div>`
         : `<div class="payment-step-qr-placeholder"><span class="payment-status-icon" aria-hidden="true">✦</span><span><strong>No QR code available</strong><small>Follow the payment instructions below.</small></span></div>`}
@@ -2253,6 +2300,21 @@ paymentStepCloseButton?.addEventListener("click", () => {
 ------------------------ */
 
 async function loadStoreMenuItems() {
+  // Built-in informational pages stay visible independently of admin menu settings.
+  const featuredPages = `
+    <section class="store-menu-section store-menu-featured" aria-label="Shop information">
+      <div class="store-menu-links">
+        <a class="store-menu-link store-menu-page-link" href="coa.html">
+          <span class="store-menu-label">COA</span>
+          <span class="store-menu-arrow" aria-hidden="true">›</span>
+        </a>
+        <a class="store-menu-link store-menu-page-link" href="protocol.html">
+          <span class="store-menu-label">Protocol</span>
+          <span class="store-menu-arrow" aria-hidden="true">›</span>
+        </a>
+      </div>
+    </section>`;
+
   const { data, error } = await supabaseClient
     .from("menu_items")
     .select("*")
@@ -2261,59 +2323,42 @@ async function loadStoreMenuItems() {
 
   if (error) {
     console.error("Could not load menu items:", error.message);
-    storeMenuItems.innerHTML =
-      `<p class="empty">Menu could not be loaded.</p>`;
+    storeMenuItems.innerHTML = featuredPages +
+      `<p class="empty">Other menu items could not be loaded.</p>`;
     return;
   }
 
   const items = data || [];
-
-  if (!items.length) {
-    storeMenuItems.innerHTML =
-      `<p class="empty">No menu items available.</p>`;
-    return;
-  }
-
   const menuGroups = [];
 
   items.forEach((item) => {
     const sectionName = String(item.section || "Menu").trim() || "Menu";
     let group = menuGroups.find((entry) => entry.name === sectionName);
-
     if (!group) {
       group = { name: sectionName, items: [] };
       menuGroups.push(group);
     }
-
     group.items.push(item);
   });
 
-  storeMenuItems.innerHTML = menuGroups
-    .map((group, groupIndex) => `
-      <section class="store-menu-section" aria-labelledby="menuGroup${groupIndex}">
-        <h3 id="menuGroup${groupIndex}" class="store-menu-heading">
-          ${escapeHtml(group.name)}
-        </h3>
-        <div class="store-menu-links">
-          ${group.items.map((item) => {
-            const target = item.open_new_tab
-              ? `target="_blank" rel="noopener"`
-              : "";
+  const managedMenu = menuGroups.map((group, groupIndex) => `
+    <section class="store-menu-section" aria-labelledby="menuGroup${groupIndex}">
+      <h3 id="menuGroup${groupIndex}" class="store-menu-heading">${escapeHtml(group.name)}</h3>
+      <div class="store-menu-links">
+        ${group.items.map((item) => {
+          const target = item.open_new_tab ? `target="_blank" rel="noopener"` : "";
+          return `
+            <a class="store-menu-link" href="${escapeHtml(item.url)}" ${target}>
+              <span class="store-menu-icon" aria-hidden="true">${getStoreMenuIcon(item)}</span>
+              <span class="store-menu-label">${escapeHtml(item.label)}</span>
+              <span class="store-menu-arrow" aria-hidden="true">›</span>
+            </a>`;
+        }).join("")}
+      </div>
+    </section>`).join("");
 
-            return `
-              <a class="store-menu-link" href="${escapeHtml(item.url)}" ${target}>
-                <span class="store-menu-icon" aria-hidden="true">
-                  ${getStoreMenuIcon(item)}
-                </span>
-                <span class="store-menu-label">${escapeHtml(item.label)}</span>
-                <span class="store-menu-arrow" aria-hidden="true">›</span>
-              </a>
-            `;
-          }).join("")}
-        </div>
-      </section>
-    `)
-    .join("");
+  storeMenuItems.innerHTML = featuredPages +
+    (managedMenu || `<p class="empty">No other menu items available.</p>`);
 }
 
 function getStoreMenuIcon(item) {

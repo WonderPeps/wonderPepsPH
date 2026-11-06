@@ -1,0 +1,760 @@
+/* WonderPeps COA / Protocol pages */
+.info-page-body {
+  margin: 0;
+  min-height: 100vh;
+  color: #674653;
+  background: #fff7fa;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.info-topbar {
+  position: relative;
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  align-items: center;
+  min-height: 66px;
+  padding: 0 16px;
+  border-bottom: 1px solid #f5cddd;
+  background: linear-gradient(105deg,#fff0f6,#ffe7f0);
+}
+.info-back {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #f3c3d5;
+  border-radius: 50%;
+  color: #b52c68;
+  text-decoration: none;
+}
+.info-back svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.info-brand {
+  justify-self: center;
+  color: #8d2852;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: .015em;
+  text-decoration: none;
+}
+.info-header-spacer { width: 38px; }
+.info-main {
+  width: min(100% - 36px, 900px);
+  margin: 0 auto;
+  padding: clamp(30px,6vw,58px) 0 64px;
+}
+.info-eyebrow {
+  margin: 0 0 8px;
+  color: #b27c91;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .2em;
+  text-align: center;
+}
+.info-main h1 {
+  margin: 0 0 30px;
+  color: #76213f;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.5rem,8vw,3.8rem);
+  font-weight: 500;
+  line-height: 1.08;
+  text-align: center;
+}
+.info-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 58px;
+  padding: 7px 8px 7px 19px;
+  border: 1px solid #e9d2dc;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgba(117,53,80,.045);
+}
+.info-search svg { width: 20px; height: 20px; flex: 0 0 auto; stroke: #b47a92; stroke-width: 1.7; stroke-linecap: round; }
+.info-search input {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  border: 0;
+  outline: 0;
+  color: #674653;
+  background: transparent;
+  font: inherit;
+  font-size: 1rem;
+}
+.info-search input::placeholder { color: #a98997; }
+.info-search button {
+  min-height: 42px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  background: #d94b88;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.info-search button:hover { background: #c93c79; }
+.info-search-hint { margin: 10px 4px 26px; color: #aa8293; font-size: .82rem; }
+.info-media-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 20px;
+}
+.info-media-card {
+  min-width: 0;
+  overflow: hidden;
+  padding: 10px;
+  border: 1px solid #ead8e0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 7px 22px rgba(104,55,76,.055);
+}
+.info-media-card img,.info-media-card video {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  aspect-ratio: 4 / 5;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #fff8fb;
+}
+.info-media-title {
+  margin: 12px 5px 5px;
+  color: #633b4b;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.info-empty {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 44px 20px;
+  border: 1px dashed #efc7d8;
+  border-radius: 22px;
+  color: #a17e8d;
+  background: rgba(255,255,255,.7);
+  text-align: center;
+}
+.info-empty-heart { color: #e45a96; font-size: 2rem; line-height: 1; }
+.info-empty strong { color: #674653; font-size: .98rem; }
+.info-empty span:last-child { font-size: .86rem; }
+@media (max-width: 520px) {
+  .info-topbar { min-height: 58px; padding-inline: 13px; }
+  .info-brand { font-size: 1.13rem; }
+  .info-main { width: calc(100% - 32px); padding-top: 32px; }
+  .info-main h1 { margin-bottom: 24px; }
+  .info-search { min-height: 54px; gap: 8px; padding-left: 15px; }
+  .info-search input { font-size: .91rem; }
+  .info-search button { min-height: 39px; padding-inline: 15px; font-size: .82rem; }
+  .info-media-grid { gap: 12px; }
+  .info-media-card { padding: 7px; border-radius: 17px; }
+  .info-media-card img,.info-media-card video { border-radius: 11px; }
+  .info-media-title { font-size: 1rem; }
+}
+@media (max-width: 360px) {
+  .info-media-grid { grid-template-columns: 1fr; }
+}
+
+
+/* Search field sizing: keep the icon, input and Search action inside the card. */
+.info-search {
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
+}
+.info-search svg { flex: 0 0 20px; }
+.info-search input {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 0;
+  min-width: 0;
+}
+.info-search button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .info-search {
+    width: 100%;
+    gap: 7px;
+    padding: 6px 6px 6px 13px;
+  }
+  .info-search svg { width: 18px; height: 18px; flex-basis: 18px; }
+  .info-search input { font-size: .88rem; }
+  .info-search button { min-height: 38px; padding-inline: 12px; font-size: .78rem; }
+}
+
+/* Tap-to-expand media viewer. */
+.info-media-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: zoom-in;
+}
+.info-media-open img {
+  cursor: zoom-in;
+}
+.info-media-expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  margin-top: 8px;
+  padding: 0 13px;
+  border: 1px solid #f0c4d6;
+  border-radius: 999px;
+  color: #b52c68;
+  background: #fff5f9;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.info-lightbox {
+  width: min(96vw, 1100px);
+  max-width: 96vw;
+  max-height: 94vh;
+  padding: 48px 12px 12px;
+  border: 1px solid #f0c4d6;
+  border-radius: 20px;
+  color: #674653;
+  background: #fffafd;
+  box-shadow: 0 20px 70px rgba(66, 26, 45, .3);
+}
+.info-lightbox::backdrop { background: rgba(43, 21, 32, .78); }
+.info-lightbox-close {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #f0c4d6;
+  border-radius: 50%;
+  color: #b52c68;
+  background: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.info-lightbox-content {
+  display: grid;
+  place-items: center;
+  min-height: 100px;
+}
+.info-lightbox-content img,
+.info-lightbox-content video {
+  display: block;
+  max-width: 100%;
+  max-height: calc(94vh - 76px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+@media (max-width: 520px) {
+  .info-lightbox {
+    width: calc(100vw - 18px);
+    max-width: calc(100vw - 18px);
+    padding: 45px 8px 8px;
+    border-radius: 16px;
+  }
+  .info-lightbox-content img,
+  .info-lightbox-content video {
+    max-height: calc(92vh - 68px);
+  }
+}
+
+
+/* Branded header inside the expanded COA / Protocol media viewer. */
+.info-lightbox {
+  padding: 0 12px 12px;
+}
+.info-lightbox-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin: 0 -12px 10px;
+  padding: 6px 54px;
+  border-bottom: 1px solid #f2cbd9;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(105deg, #fff0f6, #ffe7f0);
+}
+.info-lightbox-brand {
+  color: #8d2852;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: .015em;
+  text-align: center;
+}
+.info-lightbox-close {
+  top: 6px;
+  right: 10px;
+}
+@media (max-width: 520px) {
+  .info-lightbox { padding: 0 8px 8px; }
+  .info-lightbox-header {
+    min-height: 44px;
+    margin-inline: -8px;
+    padding-inline: 48px;
+    border-radius: 16px 16px 0 0;
+  }
+  .info-lightbox-brand { font-size: 1rem; }
+  .info-lightbox-close { top: 5px; right: 8px; }
+}
+
+
+/* WonderPeps full-view media presentation:
+   Keep the branded WonderPeps header, remove the surrounding card/padding,
+   show the media cleanly, and place its title below the image. */
+.info-lightbox {
+  box-sizing: border-box;
+  display: none;
+  width: min(100vw - 20px, 980px);
+  max-width: min(100vw - 20px, 980px);
+  max-height: 94dvh;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 16px;
+  color: #674653;
+  background: transparent;
+  box-shadow: 0 20px 70px rgba(43, 21, 32, .34);
+}
+.info-lightbox[open] {
+  display: flex;
+  flex-direction: column;
+}
+.info-lightbox::backdrop {
+  background: rgba(43, 21, 32, .82);
+}
+.info-lightbox-header {
+  box-sizing: border-box;
+  flex: 0 0 52px;
+  min-height: 52px;
+  margin: 0;
+  padding: 6px 52px;
+  border: 0;
+  border-radius: 0;
+  background: #fff0f6;
+}
+.info-lightbox-brand {
+  color: #8d2852;
+  font-size: 1.08rem;
+}
+.info-lightbox-close {
+  top: 8px;
+  right: 9px;
+  z-index: 2;
+}
+.info-lightbox-content {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+.info-lightbox-content img,
+.info-lightbox-content video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(94dvh - 104px);
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+}
+.info-lightbox-title {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 12px 16px 14px;
+  color: #fff;
+  background: rgba(43, 21, 32, .88);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+  .info-lightbox {
+    width: calc(100vw - 12px);
+    max-width: calc(100vw - 12px);
+    max-height: 94dvh;
+    border-radius: 13px;
+  }
+  .info-lightbox-header {
+    flex-basis: 48px;
+    min-height: 48px;
+  }
+  .info-lightbox-brand { font-size: 1rem; }
+  .info-lightbox-content img,
+  .info-lightbox-content video {
+    max-height: calc(94dvh - 100px);
+  }
+  .info-lightbox-title {
+    padding: 10px 12px 12px;
+    font-size: 1rem;
+  }
+}
+
+/* The COA and Protocol drawer labels use the same muted plum as Community. */
+.storefront-page .store-menu-page-link,
+.storefront-page .store-menu-page-link .store-menu-label,
+.storefront-page .store-menu-page-link:hover,
+.storefront-page .store-menu-page-link:focus-visible {
+  color: #5c3e4c !important;
+}
+
+
+/* Final lightbox polish: remove the separate header/footer panels.
+   Brand and media title float over the image instead of sitting in cards. */
+.info-lightbox {
+  position: relative;
+  display: none;
+  width: min(calc(100vw - 12px), 980px);
+  max-width: min(calc(100vw - 12px), 980px);
+  max-height: 94dvh;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
+}
+.info-lightbox[open] {
+  display: block;
+}
+.info-lightbox-header {
+  position: absolute;
+  z-index: 3;
+  inset: 0 0 auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  height: 52px;
+  padding: 0 56px;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
+  pointer-events: none;
+}
+.info-lightbox-brand {
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.12rem;
+  font-weight: 700;
+  text-shadow: 0 1px 5px rgba(55, 0, 25, .85), 0 0 12px rgba(55, 0, 25, .55);
+}
+.info-lightbox-close {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  z-index: 4;
+  pointer-events: auto;
+}
+.info-lightbox-content {
+  display: flex;
+  width: 100%;
+  height: auto;
+  max-height: 94dvh;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: transparent !important;
+}
+.info-lightbox-content img,
+.info-lightbox-content video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 94dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent !important;
+  object-fit: contain;
+}
+.info-lightbox-title {
+  position: absolute;
+  z-index: 3;
+  inset: auto 0 0;
+  margin: 0;
+  padding: 14px 16px 16px;
+  border: 0;
+  border-radius: 0;
+  color: #fff;
+  background: transparent !important;
+  box-shadow: none;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  text-shadow: 0 1px 5px rgba(55, 0, 25, .9), 0 0 12px rgba(55, 0, 25, .6);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+  .info-lightbox {
+    width: calc(100vw - 8px);
+    max-width: calc(100vw - 8px);
+    max-height: 94dvh;
+    border-radius: 0;
+  }
+  .info-lightbox-header { height: 48px; }
+  .info-lightbox-brand { font-size: 1.02rem; }
+  .info-lightbox-content,
+  .info-lightbox-content img,
+  .info-lightbox-content video {
+    max-height: 94dvh;
+  }
+  .info-lightbox-title {
+    padding: 12px 12px 14px;
+    font-size: 1rem;
+  }
+}
+
+
+/* Rounded floating COA / Protocol viewer finish */
+.info-lightbox {
+  position: relative;
+  border-radius: 22px !important;
+  overflow: hidden;
+  clip-path: inset(0 round 22px);
+}
+.info-lightbox-header {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  min-height: 0;
+  border-radius: 22px 22px 0 0 !important;
+  background: transparent !important;
+  pointer-events: none;
+}
+.info-lightbox-brand {
+  position: relative;
+  z-index: 3;
+  display: inline-block;
+  padding: 3px 12px 5px;
+  color: #fff !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  text-shadow: 0 2px 5px rgba(45, 0, 20, .95), 0 0 14px rgba(45, 0, 20, .75);
+}
+.info-lightbox-close {
+  border-radius: 50% !important;
+  pointer-events: auto;
+}
+.info-lightbox-content {
+  border-radius: 22px;
+  overflow: hidden;
+}
+.info-lightbox-content img,
+.info-lightbox-content video {
+  border-radius: 22px !important;
+}
+.info-lightbox-title {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 15px 18px 18px;
+  color: #fff !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 0 22px 22px !important;
+  text-shadow: 0 2px 5px rgba(45, 0, 20, .98), 0 0 14px rgba(45, 0, 20, .75);
+  pointer-events: none;
+}
+@media (max-width: 520px) {
+  .info-lightbox {
+    border-radius: 20px !important;
+    clip-path: inset(0 round 20px);
+  }
+  .info-lightbox-header {
+    height: 52px;
+    border-radius: 20px 20px 0 0 !important;
+  }
+  .info-lightbox-content,
+  .info-lightbox-content img,
+  .info-lightbox-content video {
+    border-radius: 20px !important;
+  }
+  .info-lightbox-title {
+    padding: 13px 14px 16px;
+    border-radius: 0 0 20px 20px !important;
+  }
+}
+
+
+/* FINAL FIX: place the brand and media title OUTSIDE the image.
+   They remain visually floating on the dimmed viewer backdrop, with no
+   header/footer panels and no text drawn over the media itself. */
+.info-lightbox {
+  box-sizing: border-box;
+  display: none;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 9px;
+  width: min(calc(100vw - 28px), 980px);
+  max-width: min(calc(100vw - 28px), 980px);
+  max-height: 96dvh;
+  margin: auto;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.info-lightbox[open] {
+  display: flex;
+}
+.info-lightbox::backdrop {
+  background: rgba(43, 21, 32, .86);
+}
+.info-lightbox-header {
+  position: relative !important;
+  inset: auto !important;
+  order: 0;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0;
+  padding: 0 52px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none;
+}
+.info-lightbox-brand {
+  display: block;
+  position: static !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #fff !important;
+  background: transparent !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 0 2px 7px rgba(30, 0, 15, .95), 0 0 16px rgba(30, 0, 15, .8);
+}
+.info-lightbox-close {
+  position: absolute !important;
+  top: 50% !important;
+  right: 0 !important;
+  z-index: 5;
+  transform: translateY(-50%);
+  border-radius: 50% !important;
+  pointer-events: auto;
+}
+.info-lightbox-content {
+  order: 1;
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: calc(96dvh - 104px);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px !important;
+  background: transparent !important;
+}
+.info-lightbox-content img,
+.info-lightbox-content video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(96dvh - 104px);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 20px !important;
+  background: transparent !important;
+  object-fit: contain;
+}
+.info-lightbox-title {
+  position: static !important;
+  inset: auto !important;
+  order: 2;
+  flex: 0 0 auto;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: #fff !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 0 2px 7px rgba(30, 0, 15, .95), 0 0 16px rgba(30, 0, 15, .8);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+@media (max-width: 520px) {
+  .info-lightbox {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    max-height: 96dvh;
+    gap: 8px;
+  }
+  .info-lightbox-brand { font-size: 1.05rem; }
+  .info-lightbox-content,
+  .info-lightbox-content img,
+  .info-lightbox-content video {
+    max-height: calc(96dvh - 100px);
+    border-radius: 18px !important;
+  }
+  .info-lightbox-title { font-size: 1rem; }
+}

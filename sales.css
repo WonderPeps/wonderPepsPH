@@ -33,3 +33,196 @@ body.sales-page{min-height:100vh;margin:0;color:var(--sales-ink);background:line
 @media(max-width:820px){.expense-rule{grid-template-columns:1fr 1fr 1fr}.expense-rule>div:first-child{grid-column:1/-1}}
 @media(max-width:820px){.manual-product-row{grid-template-columns:1fr 1fr}.manual-product-row>*:first-child{grid-column:1/-1}}
 @media(max-width:520px){.expense-rule{grid-template-columns:1fr 1fr}.expense-list-tools{grid-template-columns:1fr}.expense-profile-card{align-items:flex-start;flex-direction:column}.profile-item-row{grid-template-columns:1fr 90px}.profile-item-row select{grid-column:1/-1}.sale-profile-shortcut{grid-template-columns:1fr 1fr}.sale-profile-shortcut select{grid-column:1/-1}.manual-product-row{grid-template-columns:1fr}.manual-product-row>*:first-child{grid-column:auto}}
+
+
+/* WonderPeps mobile Sales Tracker refinement — desktop layout remains unchanged. */
+@media (max-width: 760px) {
+  body.sales-page { min-height: 100dvh; overflow-x: hidden; }
+  .sales-shell {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 14px 12px calc(28px + env(safe-area-inset-bottom));
+  }
+  .sales-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin: 0 0 14px;
+  }
+  .sales-header h1 { font-size: clamp(1.85rem, 8vw, 2.35rem); line-height: 1.12; }
+  .sales-header p { font-size: .9rem; line-height: 1.45; }
+  .sales-header > a { width: 100%; box-sizing: border-box; text-align: center; }
+  .sales-status { overflow-wrap: anywhere; }
+  .sales-summary {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 9px;
+    margin: 14px 0;
+  }
+  .sales-stat {
+    min-width: 0;
+    padding: 13px 12px;
+    border-radius: 17px;
+    box-shadow: 0 5px 16px rgba(104,56,76,.045);
+  }
+  .sales-stat span { font-size: .72rem; line-height: 1.3; }
+  .sales-stat strong {
+    margin-top: 6px;
+    font-size: clamp(1.05rem, 5vw, 1.35rem);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+  }
+  .sales-stat.net { grid-column: 1 / -1; }
+  .sales-card {
+    min-width: 0;
+    margin: 12px 0;
+    padding: 14px 12px;
+    border-radius: 19px;
+    box-shadow: 0 6px 18px rgba(104,56,76,.05);
+  }
+  .sales-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .sales-section-heading h2 { margin: 0; font-size: 1.12rem; }
+  .sales-section-heading p { font-size: .8rem; line-height: 1.45; }
+  .sales-section-heading > strong { align-self: flex-start; }
+  .sales-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; width: 100%; }
+  .sales-actions button { min-width: 0; padding: 10px 8px; font-size: .78rem; }
+  .sales-filters { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 13px 0; }
+  .sales-filters input:first-child { grid-column: 1 / -1; }
+  .sales-filters input, .sales-filters select,
+  .expense-list-tools input, .expense-list-tools select,
+  .expense-purchase-form input, .expense-purchase-form select {
+    width: 100%; min-width: 0; min-height: 43px; box-sizing: border-box;
+    font-size: .86rem;
+  }
+  .sales-mobile-cards { display: grid; gap: 9px; }
+  .sales-mobile-card {
+    min-width: 0; padding: 13px; border-radius: 16px;
+    overflow-wrap: anywhere;
+  }
+  .sales-mobile-card header { align-items: flex-start; }
+  .sales-mobile-card header > div { min-width: 0; overflow-wrap: anywhere; }
+  .sales-mobile-card header strong { font-size: .88rem; }
+  .sales-mobile-card header small { display: block; margin-top: 3px; color: var(--sales-muted); }
+  .sales-mobile-card .amount-row {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 7px;
+  }
+  .sales-mobile-card .amount-row > span { min-width: 0; font-size: .7rem; color: var(--sales-muted); }
+  .sales-mobile-card .amount-row strong { display: inline-block; margin-top: 4px; font-size: .8rem; color: var(--sales-ink); overflow-wrap: anywhere; }
+  .sales-mobile-card > p { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0; }
+  .sales-mobile-card > p button { min-width: 0; padding: 9px 7px; font-size: .78rem; }
+  .expense-purchase-form { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 13px 0 5px; }
+  .expense-purchase-form button { grid-column: 1 / -1; width: 100%; }
+  .expense-list-tools { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; }
+  .expense-rule {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 9px;
+    padding: 12px;
+    border-radius: 15px;
+  }
+  .expense-rule > div:first-child { grid-column: 1 / -1; min-width: 0; }
+  .expense-rule > div:first-child strong { overflow-wrap: anywhere; }
+  .expense-metric { min-width: 0; text-align: left; padding: 8px; border-radius: 11px; background: #fff4f8; }
+  .expense-metric small { font-size: .7rem; }
+  .expense-metric strong { display: block; margin-top: 3px; font-size: .84rem; overflow-wrap: anywhere; }
+  .expense-rule > button { width: 100%; min-width: 0; min-height: 39px; padding: 7px 5px; font-size: .76rem; }
+  .expense-rule > button[data-delete-item] { grid-column: 1 / -1; }
+  .expense-pagination { flex-wrap: wrap; font-size: .78rem; }
+  .expense-profile-card { align-items: stretch; flex-direction: column; gap: 10px; padding: 12px; }
+  .expense-profile-card > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .expense-profile-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .expense-profile-actions button { min-width: 0; }
+  .manual-sale-products, .sale-expense-usage { padding: 12px; border-radius: 15px; }
+  .manual-product-row { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .manual-product-row > * { min-width: 0; }
+  .manual-product-row > label:first-child { grid-column: 1 / -1; }
+  .manual-product-row > button { grid-column: 1 / -1; width: 100%; }
+  .sale-profile-shortcut { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .sale-profile-shortcut select { grid-column: 1 / -1; min-width: 0; }
+  .sale-profile-shortcut button { min-width: 0; padding: 8px 5px; font-size: .76rem; }
+  .sale-expense-row { grid-template-columns: minmax(0,1fr) 76px; gap: 7px; }
+  .sale-expense-row > div:first-child { grid-column: 1 / -1; min-width: 0; }
+  .sale-expense-row > span { align-self: center; font-size: .78rem; }
+  .sale-expense-row input { width: 100%; min-width: 0; box-sizing: border-box; }
+  .profile-item-row { grid-template-columns: minmax(0,1fr) 85px; gap: 8px; }
+  .profile-item-row select { grid-column: 1 / -1; min-width: 0; width: 100%; }
+  #saleDialog, #expenseItemDialog, #expenseProfileDialog {
+    width: calc(100% - 16px);
+    max-width: none;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-bottom));
+    margin: auto;
+    border-radius: 18px;
+  }
+  .sales-form { padding: 14px; }
+  .sales-form-grid { grid-template-columns: minmax(0,1fr); gap: 6px; }
+  .sales-form label { min-width: 0; font-size: .86rem; }
+  .sales-form input, .sales-form textarea, .manual-product-row select,
+  .manual-product-row input { width: 100%; min-width: 0; box-sizing: border-box; }
+  .sales-form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sales-form-actions button { min-width: 0; }
+}
+@media(max-width: 380px) {
+  .sales-shell { padding-left: 9px; padding-right: 9px; }
+  .sales-summary { gap: 7px; }
+  .sales-stat { padding: 11px 9px; }
+  .sales-card { padding: 12px 10px; }
+  .sales-mobile-card .amount-row { gap: 4px; }
+  .sales-mobile-card .amount-row strong { font-size: .73rem; }
+  .expense-purchase-form, .sales-filters { grid-template-columns: minmax(0,1fr); }
+  .sales-filters input:first-child { grid-column: auto; }
+}
+
+/* Mobile: hide scrollbar chrome while preserving native scrolling. */
+@media (max-width: 820px) {
+  html, body, .sales-shell, .sales-content, .sales-card,
+  .expense-rules-list, .expense-profiles-list, .sales-table-wrap {
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar,
+  .sales-shell::-webkit-scrollbar, .sales-content::-webkit-scrollbar,
+  .sales-card::-webkit-scrollbar, .expense-rules-list::-webkit-scrollbar,
+  .expense-profiles-list::-webkit-scrollbar, .sales-table-wrap::-webkit-scrollbar {
+    display: none; width: 0; height: 0;
+  }
+  .expense-profile-card p { margin-top: 5px; font-size: .78rem; line-height: 1.3; }
+}
+
+
+/* Final mobile refinements: align inventory actions and remove scrollbar chrome. */
+@media (max-width: 760px) {
+  .expense-rule {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-flow: row;
+  }
+  .expense-rule > div:first-child { grid-column: 1 / -1; }
+  .expense-rule > div:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .expense-rule > div:nth-child(3) { grid-column: 2; grid-row: 2; }
+  .expense-rule > div:nth-child(4) { grid-column: 1; grid-row: 3; }
+  .expense-rule > button[data-toggle-item] { grid-column: 1; grid-row: 4; }
+  .expense-rule > button[data-edit-item] { grid-column: 2; grid-row: 4; }
+  .expense-rule > button[data-delete-item] { grid-column: 1 / -1; grid-row: 5; }
+}
+
+/* Hide scrollbar visuals in every mobile scroll container without disabling scrolling. */
+@media (max-width: 820px) {
+  .sales-page,
+  .sales-page * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .sales-page::-webkit-scrollbar,
+  .sales-page *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+}

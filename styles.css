@@ -2889,3 +2889,174 @@ input[type="submit"] {
     font-size: .68rem;
   }
 }
+
+
+/* Checkout QR images: all payment methods share one tap-to-expand viewer. */
+.payment-step-qr.has-qr {
+  padding: 12px;
+}
+.payment-step-qr-expand {
+  display: grid;
+  place-items: center;
+  width: min(100%, 260px);
+  min-height: 150px;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
+}
+.payment-step-qr-expand img {
+  display: block;
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border-radius: 14px;
+  cursor: zoom-in;
+}
+.checkout-qr-lightbox {
+  width: min(94vw, 620px);
+  max-width: 94vw;
+  max-height: 92vh;
+  padding: 0 12px 12px;
+  overflow: auto;
+  border: 1px solid #f2cbd9;
+  border-radius: 20px;
+  color: #674653;
+  background: #fffafd;
+  box-shadow: 0 20px 70px rgba(66, 26, 45, .3);
+}
+.checkout-qr-lightbox::backdrop {
+  background: rgba(43, 21, 32, .76);
+}
+.checkout-qr-lightbox-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin: 0 -12px 12px;
+  padding: 6px 54px;
+  border-bottom: 1px solid #f2cbd9;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(105deg, #fff0f6, #ffe7f0);
+}
+.checkout-qr-lightbox-brand {
+  color: #8d2852;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  text-align: center;
+}
+.checkout-qr-lightbox-close {
+  position: absolute;
+  top: 7px;
+  right: 10px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #f0c4d6;
+  border-radius: 50%;
+  color: #b52c68;
+  background: #fff;
+  font: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.checkout-qr-lightbox-content {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 4px;
+}
+.checkout-qr-lightbox-content img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: calc(92vh - 90px);
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fff;
+}
+@media (max-width: 520px) {
+  .checkout-qr-lightbox {
+    width: calc(100vw - 20px);
+    max-width: calc(100vw - 20px);
+    padding: 0 8px 8px;
+    border-radius: 16px;
+  }
+  .checkout-qr-lightbox-header {
+    min-height: 44px;
+    margin-inline: -8px;
+    border-radius: 16px 16px 0 0;
+  }
+  .checkout-qr-lightbox-brand { font-size: 1rem; }
+  .checkout-qr-lightbox-content img {
+    max-height: calc(90vh - 82px);
+  }
+}
+
+
+/* Small cute instruction beside every expandable checkout QR code. */
+.payment-step-qr-layout {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 150px;
+}
+.payment-step-qr-hint {
+  position: absolute;
+  z-index: 1;
+  left: clamp(8px, 5%, 24px);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #b65a82;
+  font-size: .76rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  letter-spacing: .01em;
+  pointer-events: none;
+}
+.payment-step-qr-hint-heart {
+  color: #e65b98;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.payment-step-qr-hint-sparkle {
+  color: #e98ab2;
+  font-size: .85rem;
+  line-height: 1;
+}
+.payment-step-qr-expand {
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  width: min(100%, 260px);
+  margin-inline: auto;
+}
+@media (max-width: 380px) {
+  .payment-step-qr-layout { gap: 8px; }
+  .payment-step-qr-hint { font-size: .68rem; }
+  .payment-step-qr-expand { flex-basis: 220px; }
+}
+
+@media (max-width: 380px) {
+  .payment-step-qr-hint {
+    left: 6px;
+    font-size: .64rem;
+  }
+  .payment-step-qr-expand {
+    width: min(100%, 230px);
+  }
+}

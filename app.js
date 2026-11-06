@@ -2094,7 +2094,21 @@ async function loadStoreMenuItems() {
     group.items.push(item);
   });
 
-  storeMenuItems.innerHTML = menuGroups
+  const featuredPages = `
+    <section class="store-menu-section store-menu-featured" aria-label="Shop information">
+      <div class="store-menu-links">
+        <a class="store-menu-link store-menu-page-link" href="coa.html">
+          <span class="store-menu-label">COA</span>
+          <span class="store-menu-arrow" aria-hidden="true">›</span>
+        </a>
+        <a class="store-menu-link store-menu-page-link" href="protocol.html">
+          <span class="store-menu-label">Protocol</span>
+          <span class="store-menu-arrow" aria-hidden="true">›</span>
+        </a>
+      </div>
+    </section>`;
+
+  storeMenuItems.innerHTML = featuredPages + menuGroups
     .map((group, groupIndex) => `
       <section class="store-menu-section" aria-labelledby="menuGroup${groupIndex}">
         <h3 id="menuGroup${groupIndex}" class="store-menu-heading">
