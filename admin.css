@@ -2180,3 +2180,22 @@ html { font-size: 112.5%; }
     font-size: .7rem;
   }
 }
+
+
+@media (max-width: 760px) {
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending):not(.mobile-order-expanded) .order-card-footer {
+    display: none !important;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-footer {
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr);
+    gap: 10px;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending).mobile-order-expanded .order-card-actions .tiny-note {
+    display: block;
+    text-align: center;
+    width: 100%;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+}
