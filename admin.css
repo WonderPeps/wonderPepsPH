@@ -2242,3 +2242,20 @@ html { font-size: 112.5%; }
     display: none; width: 0; height: 0;
   }
 }
+
+
+/* Final mobile scrollbar treatment: hide chrome on all nested scroll areas only. */
+@media (max-width: 820px) {
+  .admin-page,
+  .admin-page * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  .admin-page::-webkit-scrollbar,
+  .admin-page *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+}

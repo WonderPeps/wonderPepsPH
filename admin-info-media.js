@@ -93,6 +93,10 @@
         throw insertError;
       }
       form.reset();
+      // Clear the mobile local-file preview after a successful upload.
+      // The uploaded item remains available in the saved-media gallery below.
+      const mediaInput = form.querySelector('input[type="file"][name="media_file"]');
+      if (mediaInput) mediaInput.dispatchEvent(new Event("change", { bubbles: true }));
       status.textContent = "Media uploaded successfully.";
       await loadItems();
     } catch (error) {
