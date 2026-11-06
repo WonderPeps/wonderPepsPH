@@ -361,3 +361,55 @@
   if (mobile.addEventListener) mobile.addEventListener("change", refreshMobileViews);
   else mobile.addListener(refreshMobileViews);
 })();
+
+
+
+/* Mobile media picker preview for COA & Protocol uploads.
+   This is a local preview only; the existing upload form still owns saving. */
+(() => {
+  "use strict";
+  const mediaForm = document.getElementById("infoMediaUploadForm");
+  const fileInput = mediaForm?.querySelector('input[type="file"][name="media_file"]');
+  if (!mediaForm || !fileInput || mediaForm.querySelector(".mobile-media-file-preview")) return;
+
+  const preview = document.createElement("div");
+  preview.className = "mobile-media-file-preview";
+  preview.setAttribute("aria-live", "polite");
+  preview.hidden = true;
+  fileInput.insertAdjacentElement("afterend", preview);
+
+  let activeUrl = "";
+  fileInput.addEventListener("change", () => {
+    if (activeUrl) URL.revokeObjectURL(activeUrl);
+    activeUrl = "";
+    preview.replaceChildren();
+    const file = fileInput.files?.[0];
+    if (!file) {
+      preview.hidden = true;
+      return;
+    }
+    const name = document.createElement("strong");
+    name.textContent = file.name;
+    const size = document.createElement("span");
+    size.textContent = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+    preview.append(name, size);
+    if (file.type.startsWith("image/")) {
+      activeUrl = URL.createObjectURL(file);
+      const image = document.createElement("img");
+      image.src = activeUrl;
+      image.alt = "Selected media preview";
+      preview.prepend(image);
+    } else if (file.type.startsWith("video/")) {
+      activeUrl = URL.createObjectURL(file);
+      const video = document.createElement("video");
+      video.src = activeUrl;
+      video.controls = true;
+      video.muted = true;
+      preview.prepend(video);
+    }
+    preview.hidden = false;
+  });
+  window.addEventListener("pagehide", () => {
+    if (activeUrl) URL.revokeObjectURL(activeUrl);
+  }, { once: true });
+})();

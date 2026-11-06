@@ -1924,3 +1924,259 @@ html { font-size: 112.5%; }
     max-width: 100%;
   }
 }
+
+
+/* Latest mobile polish: shop settings, product editor, media manager,
+   and pending-only order action alignment. Desktop remains unchanged. */
+@media (max-width: 760px) {
+  /* Shop settings: clearer compact tabs and lighter upload previews. */
+  .admin-page #shopSettingsSection > .admin-toolbar {
+    display: grid;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    gap: 7px;
+    margin: 0 0 14px;
+    padding: 0;
+  }
+  .admin-page #shopSettingsSection > .admin-toolbar button {
+    min-width: 0;
+    min-height: 39px;
+    padding: 7px 5px;
+    border-radius: 12px;
+    font-size: .76rem;
+    line-height: 1.15;
+    white-space: normal;
+  }
+  .admin-page #settingsForm {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 11px;
+  }
+  .admin-page #settingsForm > label {
+    min-width: 0;
+    margin: 0;
+  }
+  .admin-page #settingsForm .settings-upload-field {
+    min-width: 0;
+    padding: 12px;
+    border-radius: 16px;
+  }
+  .admin-page #settingsForm .settings-image-preview {
+    max-height: 175px;
+    min-height: 88px;
+    margin: 8px 0;
+    overflow: hidden;
+    border-radius: 13px;
+  }
+  .admin-page #settingsForm .settings-image-preview img {
+    display: block;
+    width: 100%;
+    max-height: 165px;
+    object-fit: contain;
+  }
+  .admin-page #settingsForm .settings-upload-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .admin-page #settingsForm .settings-upload-actions button {
+    flex: 1 1 110px;
+    min-height: 38px;
+    padding: 8px 10px;
+    font-size: .78rem;
+  }
+  .admin-page #shopSettingsSection .admin-section-header { margin-bottom: 12px; }
+
+  /* Product editor: compact field rhythm, paired numeric fields, no lost fields. */
+  .admin-page #addProductSection { padding-top: 12px !important; }
+  .admin-page #productForm {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px;
+    align-items: start;
+  }
+  .admin-page #productForm > label,
+  .admin-page #productForm > .product-variants-section,
+  .admin-page #productForm > .product-image-upload-field,
+  .admin-page #productForm > .standard-pricing-fields,
+  .admin-page #productForm > button,
+  .admin-page #productForm > .form-actions,
+  .admin-page #productForm > p,
+  .admin-page #productForm > .tiny-note {
+    min-width: 0;
+    grid-column: 1 / -1;
+  }
+  .admin-page #productForm > label:has(input[name="price"]),
+  .admin-page #productForm > label:has(input[name="stock"]),
+  .admin-page #productForm > label:has(input[name="codFee"]),
+  .admin-page #productForm > label:has(input[name="costPrice"]) {
+    grid-column: span 1;
+  }
+  .admin-page #productForm label {
+    gap: 5px;
+    margin: 0;
+    font-size: .82rem;
+  }
+  .admin-page #productForm input:not([type="checkbox"]):not([type="file"]),
+  .admin-page #productForm select {
+    min-height: 43px;
+    padding: 9px 11px;
+    font-size: .88rem;
+  }
+  .admin-page #productForm .tiny-note,
+  .admin-page #productForm small {
+    font-size: .7rem;
+    line-height: 1.35;
+  }
+  .admin-page #productForm .product-variants-section,
+  .admin-page #productForm .product-image-upload-field {
+    padding: 12px;
+    border-radius: 15px;
+  }
+  .admin-page #productForm .variant-card { padding: 11px; }
+  .admin-page #productForm textarea { min-height: 78px; }
+  .admin-page #productForm .product-image-preview {
+    max-height: 150px;
+    overflow: hidden;
+  }
+  .admin-page #productForm .product-image-preview img {
+    max-height: 140px;
+    object-fit: contain;
+  }
+  .admin-page #productForm button[type="submit"] {
+    width: 100%;
+    min-height: 43px;
+    margin-top: 2px;
+  }
+
+  /* COA & Protocol: compact upload panel, responsive media gallery rows. */
+  .admin-page #infoMediaSection { padding-top: 12px !important; }
+  .admin-page #infoMediaUploadForm {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 10px;
+    padding: 13px;
+    border: 1px solid #f0cbd9;
+    border-radius: 17px;
+    background: rgba(255,255,255,.7);
+  }
+  .admin-page #infoMediaUploadForm label { gap: 5px; margin: 0; font-size: .82rem; }
+  .admin-page #infoMediaUploadForm input,
+  .admin-page #infoMediaUploadForm select {
+    min-height: 43px;
+    font-size: .87rem;
+  }
+  .admin-page #infoMediaUploadForm input[type="file"] {
+    width: 100%;
+    min-width: 0;
+    padding: 8px;
+    font-size: .78rem;
+  }
+  .admin-page #infoMediaUploadForm > .tiny-note { margin: 0; font-size: .72rem; }
+  .admin-page #infoMediaUploadForm button { width: 100%; min-height: 43px; }
+  .admin-page #infoMediaSection > .admin-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 5px;
+    margin: 14px 0 8px;
+  }
+  .admin-page #infoMediaSection > .admin-toolbar label { display: grid; gap: 5px; }
+  .admin-page #infoMediaAdminList { display: grid; gap: 9px; }
+  .admin-page .info-media-admin-row {
+    display: grid;
+    grid-template-columns: 58px minmax(0,1fr);
+    gap: 9px;
+    align-items: center;
+    padding: 10px;
+    margin: 0;
+    border-radius: 15px;
+  }
+  .admin-page .info-media-admin-preview {
+    width: 58px;
+    height: 58px;
+    flex-basis: 58px;
+  }
+  .admin-page .info-media-admin-meta { min-width: 0; overflow-wrap: anywhere; }
+  .admin-page .info-media-admin-row .secondary-button,
+  .admin-page .info-media-admin-row button { grid-column: 1 / -1; width: 100%; min-height: 38px; }
+
+  /* Pending orders only: keep the status, invoice, notice and decision buttons
+     in predictable rows. Approved/rejected order layouts remain as they are. */
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-footer {
+    display: grid;
+    grid-template-columns: minmax(0,1fr);
+    gap: 10px;
+    align-items: stretch;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-status-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-actions {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 8px;
+    width: 100%;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-actions [data-order-invoice],
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-actions .tiny-note {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-actions [data-order-invoice] {
+    min-height: 39px;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-actions .tiny-note {
+    margin: -3px 0 0;
+    text-align: center;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-actions [data-order-approve],
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-actions [data-order-reject] {
+    min-height: 41px;
+    width: 100%;
+  }
+  .admin-page #ordersList .order-card:has(.order-status-badge.status-pending) .order-card-actions [data-order-archive] {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-page #productForm .standard-pricing-fields {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 10px;
+  }
+  .admin-page #productForm .standard-pricing-fields > * { min-width: 0; }
+  .admin-page .mobile-media-file-preview {
+    display: grid;
+    grid-template-columns: 76px minmax(0,1fr);
+    align-items: center;
+    gap: 5px 10px;
+    padding: 9px;
+    border: 1px solid #f0cbd9;
+    border-radius: 13px;
+    background: #fff8fb;
+    overflow: hidden;
+  }
+  .admin-page .mobile-media-file-preview[hidden] { display: none !important; }
+  .admin-page .mobile-media-file-preview img,
+  .admin-page .mobile-media-file-preview video {
+    grid-row: span 2;
+    width: 76px;
+    height: 66px;
+    object-fit: cover;
+    border-radius: 9px;
+    background: #fff;
+  }
+  .admin-page .mobile-media-file-preview strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: .77rem;
+  }
+  .admin-page .mobile-media-file-preview span {
+    color: #9a7a89;
+    font-size: .7rem;
+  }
+}
