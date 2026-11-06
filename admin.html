@@ -6,7 +6,7 @@
   <title>Wonder Peps PH Admin</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23df4f86'/%3E%3Cpath d='M32 48S13 37 13 23c0-7 5-11 11-11 4 0 7 2 8 5 2-3 5-5 9-5 6 0 11 4 11 11 0 14-20 25-20 25Z' fill='white'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="styles.css?v=cute-payment-v2" />
-  <link rel="stylesheet" href="admin.css?v=info-page-media-v1" />
+  <link rel="stylesheet" href="admin.css?v=mobile-admin-v1" />
 </head>
 <body class="admin-page">
   <a class="skip-link" href="#dashboardSection">Skip to dashboard</a>
@@ -16,6 +16,10 @@
       <span class="brand-mark" aria-hidden="true">♡</span>
       <span class="admin-brand-copy">Wonder Peps <small>ADMIN STUDIO</small></span>
     </a>
+    <button id="mobileAdminMenuToggle" class="mobile-admin-menu-toggle" type="button"
+      aria-label="Open admin navigation" aria-expanded="false" aria-controls="adminMobileDrawer">
+      <span aria-hidden="true">☰</span>
+    </button>
     <a class="secondary-button view-shop-button" href="index.html">
       <span>View storefront</span><span aria-hidden="true">↗</span>
     </a>
@@ -48,8 +52,9 @@
 </section>
 
 <div id="adminContent" hidden>
+  <button id="mobileAdminNavBackdrop" class="mobile-admin-nav-backdrop" type="button" aria-label="Close admin navigation" tabindex="-1"></button>
   <div class="admin-layout">
-  <aside class="admin-sidebar">
+  <aside id="adminMobileDrawer" class="admin-sidebar">
     <div class="admin-sidebar-title">
       <span class="sidebar-brand-badge" aria-hidden="true">WP</span>
       <span>Wonder Peps PH</span>
@@ -823,6 +828,24 @@ Hero eyebrow
 
   </div>   <!-- closes admin-main-content -->
 </div>   <!-- closes admin-layout -->
+
+  <nav class="admin-mobile-bottom-nav" aria-label="Main admin navigation">
+    <a href="#dashboardSection" data-mobile-section="dashboardSection" class="is-active">
+      <span class="mobile-nav-icon" aria-hidden="true">⌂</span><span>Dashboard</span>
+    </a>
+    <a href="#ordersSection" data-mobile-section="ordersSection">
+      <span class="mobile-nav-icon" aria-hidden="true">▣</span><span>Orders</span>
+    </a>
+    <a href="#productsSection" data-mobile-section="productsSection">
+      <span class="mobile-nav-icon" aria-hidden="true">◇</span><span>Products</span>
+    </a>
+    <a href="#categoriesSection" data-mobile-section="categoriesSection">
+      <span class="mobile-nav-icon" aria-hidden="true">♧</span><span>Categories</span>
+    </a>
+    <a href="#menuSection" data-mobile-section="menuSection">
+      <span class="mobile-nav-icon" aria-hidden="true">☰</span><span>Menu</span>
+    </a>
+  </nav>
 </div>   <!-- closes adminContent -->
 
   </main>
@@ -834,5 +857,6 @@ Hero eyebrow
 <script src="admin.js?v=automatic-product-cost-v12"></script>
 <script src="admin-ui.js?v=stable-section-nav-v2"></script>
 <script src="admin-info-media.js?v=1"></script>
+<script src="admin-mobile-nav.js?v=1"></script>
 </body>
 </html>
