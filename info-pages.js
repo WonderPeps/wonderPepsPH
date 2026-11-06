@@ -15,7 +15,10 @@
   lightbox.className = "info-lightbox";
   lightbox.setAttribute("aria-label", "Expanded media viewer");
   lightbox.innerHTML = `
-    <button class="info-lightbox-close" type="button" aria-label="Close expanded media">×</button>
+    <div class="info-lightbox-header">
+      <span class="info-lightbox-brand">WonderPeps</span>
+      <button class="info-lightbox-close" type="button" aria-label="Close expanded media">×</button>
+    </div>
     <div class="info-lightbox-content"></div>`;
   document.body.appendChild(lightbox);
   const lightboxContent = lightbox.querySelector(".info-lightbox-content");

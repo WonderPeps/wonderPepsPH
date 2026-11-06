@@ -275,3 +275,44 @@
     max-height: calc(92vh - 68px);
   }
 }
+
+
+/* Branded header inside the expanded COA / Protocol media viewer. */
+.info-lightbox {
+  padding: 0 12px 12px;
+}
+.info-lightbox-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  margin: 0 -12px 10px;
+  padding: 6px 54px;
+  border-bottom: 1px solid #f2cbd9;
+  border-radius: 20px 20px 0 0;
+  background: linear-gradient(105deg, #fff0f6, #ffe7f0);
+}
+.info-lightbox-brand {
+  color: #8d2852;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: .015em;
+  text-align: center;
+}
+.info-lightbox-close {
+  top: 6px;
+  right: 10px;
+}
+@media (max-width: 520px) {
+  .info-lightbox { padding: 0 8px 8px; }
+  .info-lightbox-header {
+    min-height: 44px;
+    margin-inline: -8px;
+    padding-inline: 48px;
+    border-radius: 16px 16px 0 0;
+  }
+  .info-lightbox-brand { font-size: 1rem; }
+  .info-lightbox-close { top: 5px; right: 8px; }
+}
