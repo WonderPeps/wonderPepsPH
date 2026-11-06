@@ -3003,15 +3003,19 @@ input[type="submit"] {
 
 /* Small cute instruction beside every expandable checkout QR code. */
 .payment-step-qr-layout {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(10px, 3vw, 22px);
+  position: relative;
+  display: grid;
+  place-items: center;
   width: 100%;
+  min-height: 150px;
 }
 .payment-step-qr-hint {
+  position: absolute;
+  z-index: 1;
+  left: clamp(8px, 5%, 24px);
+  top: 50%;
+  transform: translateY(-50%);
   display: inline-flex;
-  flex: 0 0 auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -3022,6 +3026,7 @@ input[type="submit"] {
   line-height: 1.25;
   text-align: center;
   letter-spacing: .01em;
+  pointer-events: none;
 }
 .payment-step-qr-hint-heart {
   color: #e65b98;
@@ -3034,11 +3039,24 @@ input[type="submit"] {
   line-height: 1;
 }
 .payment-step-qr-expand {
-  flex: 0 1 260px;
+  display: grid;
+  place-items: center;
+  justify-self: center;
   width: min(100%, 260px);
+  margin-inline: auto;
 }
 @media (max-width: 380px) {
   .payment-step-qr-layout { gap: 8px; }
   .payment-step-qr-hint { font-size: .68rem; }
   .payment-step-qr-expand { flex-basis: 220px; }
+}
+
+@media (max-width: 380px) {
+  .payment-step-qr-hint {
+    left: 6px;
+    font-size: .64rem;
+  }
+  .payment-step-qr-expand {
+    width: min(100%, 230px);
+  }
 }
