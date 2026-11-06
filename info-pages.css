@@ -161,3 +161,117 @@
 @media (max-width: 360px) {
   .info-media-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Search field sizing: keep the icon, input and Search action inside the card. */
+.info-search {
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
+}
+.info-search svg { flex: 0 0 20px; }
+.info-search input {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  width: 0;
+  min-width: 0;
+}
+.info-search button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+@media (max-width: 520px) {
+  .info-search {
+    width: 100%;
+    gap: 7px;
+    padding: 6px 6px 6px 13px;
+  }
+  .info-search svg { width: 18px; height: 18px; flex-basis: 18px; }
+  .info-search input { font-size: .88rem; }
+  .info-search button { min-height: 38px; padding-inline: 12px; font-size: .78rem; }
+}
+
+/* Tap-to-expand media viewer. */
+.info-media-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: zoom-in;
+}
+.info-media-open img {
+  cursor: zoom-in;
+}
+.info-media-expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  margin-top: 8px;
+  padding: 0 13px;
+  border: 1px solid #f0c4d6;
+  border-radius: 999px;
+  color: #b52c68;
+  background: #fff5f9;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.info-lightbox {
+  width: min(96vw, 1100px);
+  max-width: 96vw;
+  max-height: 94vh;
+  padding: 48px 12px 12px;
+  border: 1px solid #f0c4d6;
+  border-radius: 20px;
+  color: #674653;
+  background: #fffafd;
+  box-shadow: 0 20px 70px rgba(66, 26, 45, .3);
+}
+.info-lightbox::backdrop { background: rgba(43, 21, 32, .78); }
+.info-lightbox-close {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #f0c4d6;
+  border-radius: 50%;
+  color: #b52c68;
+  background: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.info-lightbox-content {
+  display: grid;
+  place-items: center;
+  min-height: 100px;
+}
+.info-lightbox-content img,
+.info-lightbox-content video {
+  display: block;
+  max-width: 100%;
+  max-height: calc(94vh - 76px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 12px;
+}
+@media (max-width: 520px) {
+  .info-lightbox {
+    width: calc(100vw - 18px);
+    max-width: calc(100vw - 18px);
+    padding: 45px 8px 8px;
+    border-radius: 16px;
+  }
+  .info-lightbox-content img,
+  .info-lightbox-content video {
+    max-height: calc(92vh - 68px);
+  }
+}

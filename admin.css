@@ -2259,3 +2259,16 @@ html { font-size: 112.5%; }
     background: transparent !important;
   }
 }
+
+
+/* COA & Protocol media edit/delete actions. */
+.admin-page .info-media-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+.admin-page .info-media-admin-actions > button {
+  flex: 1 1 110px;
+  min-height: 38px;
+}

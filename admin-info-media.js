@@ -36,7 +36,10 @@
           <strong>${escapeHtml(item.title)}</strong>
           <span>${item.page_key.toUpperCase()} · ${item.media_type}</span>
         </div>
-        <button class="secondary-button danger" type="button" data-delete-info-media="${escapeHtml(item.id)}">Delete</button>
+        <div class="info-media-admin-actions">
+          <button class="secondary-button" type="button" data-edit-info-media="${escapeHtml(item.id)}">Edit</button>
+          <button class="secondary-button danger" type="button" data-delete-info-media="${escapeHtml(item.id)}">Delete</button>
+        </div>
       </article>`).join("");
   }
 
@@ -109,6 +112,41 @@
 
   filter.addEventListener("change", renderList);
   list.addEventListener("click", async (event) => {
+    const editButton = event.target.closest("[data-edit-info-media]");
+    if (editButton) {
+      const item = allItems.find(entry => entry.id === editButton.dataset.editInfoMedia);
+      if (!item) return;
+      const nextTitle = prompt("Edit media title:", item.title || "");
+      if (nextTitle === null) return;
+      const cleanTitle = nextTitle.trim();
+      if (!cleanTitle) {
+        status.textContent = "Please enter a title.";
+        return;
+      }
+      const nextPage = prompt('Show this media on which page? Enter "coa" or "protocol":', item.page_key);
+      if (nextPage === null) return;
+      const cleanPage = nextPage.trim().toLowerCase();
+      if (!["coa", "protocol"].includes(cleanPage)) {
+        status.textContent = 'Page must be either "coa" or "protocol".';
+        return;
+      }
+      editButton.disabled = true;
+      try {
+        await requireAdmin();
+        const { error: updateError } = await supabaseClient
+          .from("info_page_media")
+          .update({ title: cleanTitle, page_key: cleanPage })
+          .eq("id", item.id);
+        if (updateError) throw updateError;
+        await loadItems();
+        status.textContent = "Media details updated.";
+      } catch (error) {
+        editButton.disabled = false;
+        status.textContent = error.message || "Could not update this media.";
+      }
+      return;
+    }
+
     const button = event.target.closest("[data-delete-info-media]");
     if (!button) return;
     const item = allItems.find(entry => entry.id === button.dataset.deleteInfoMedia);

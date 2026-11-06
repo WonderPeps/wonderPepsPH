@@ -11,6 +11,38 @@
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[char]));
 
+  const lightbox = document.createElement("dialog");
+  lightbox.className = "info-lightbox";
+  lightbox.setAttribute("aria-label", "Expanded media viewer");
+  lightbox.innerHTML = `
+    <button class="info-lightbox-close" type="button" aria-label="Close expanded media">×</button>
+    <div class="info-lightbox-content"></div>`;
+  document.body.appendChild(lightbox);
+  const lightboxContent = lightbox.querySelector(".info-lightbox-content");
+
+  function closeLightbox() {
+    if (lightbox.open) lightbox.close();
+    lightboxContent.replaceChildren();
+  }
+  lightbox.querySelector(".info-lightbox-close").addEventListener("click", closeLightbox);
+  lightbox.addEventListener("click", (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+  lightbox.addEventListener("close", () => lightboxContent.replaceChildren());
+
+  function openMedia(url, type, title) {
+    const media = document.createElement(type === "video" ? "video" : "img");
+    media.src = url;
+    media.alt = title || pageKey.toUpperCase();
+    if (type === "video") {
+      media.controls = true;
+      media.playsInline = true;
+      media.autoplay = true;
+    }
+    lightboxContent.replaceChildren(media);
+    if (!lightbox.open) lightbox.showModal();
+  }
+
   function render(items) {
     if (!items.length) {
       const searching = Boolean(input.value.trim());
@@ -25,8 +57,11 @@
       const title = escapeHtml(item.title || pageKey.toUpperCase());
       const url = escapeHtml(item.media_url);
       const media = item.media_type === "video"
-        ? `<video src="${url}" controls playsinline preload="metadata"></video>`
-        : `<img src="${url}" alt="${title}" loading="lazy">`;
+        ? `<video src="${url}" controls playsinline preload="metadata"></video>
+           <button class="info-media-expand" type="button" data-expand-media="${url}" data-media-type="video" data-media-title="${title}">Expand video</button>`
+        : `<button class="info-media-open" type="button" data-expand-media="${url}" data-media-type="image" data-media-title="${title}" aria-label="Expand ${title}">
+             <img src="${url}" alt="${title}" loading="lazy">
+           </button>`;
       return `<article class="info-media-card">${media}<h2 class="info-media-title">${title}</h2></article>`;
     }).join("");
   }
@@ -37,13 +72,24 @@
       String(item.title || "").toLowerCase().includes(query)
     );
     render(filtered);
-    hint.textContent = query ? `${filtered.length} result${filtered.length === 1 ? "" : "s"} found.` : `Browse the ${pageKey} collection.`;
+    hint.textContent = query
+      ? `${filtered.length} result${filtered.length === 1 ? "" : "s"} found.`
+      : `Browse the ${pageKey} collection.`;
   }
 
   input.addEventListener("input", applySearch);
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     applySearch();
+  });
+  grid.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-expand-media]");
+    if (!trigger) return;
+    openMedia(
+      trigger.dataset.expandMedia,
+      trigger.dataset.mediaType,
+      trigger.dataset.mediaTitle
+    );
   });
 
   async function loadMedia() {
