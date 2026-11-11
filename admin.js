@@ -3757,6 +3757,7 @@ function renderOrders(ordersToRender) {
   </div>
 </div>
 <div class="order-product-prices">
+  ${Number(item.discount_amount || 0) > 0 ? `<small><del>${formatCurrency(Number(item.original_unit_price || 0) * Number(item.quantity || 0))}</del></small><small class="order-discount-note">${escapeHtml(item.discount_name || "Discount")} · −${formatCurrency(Number(item.discount_amount || 0) * Number(item.quantity || 0))}</small>` : ""}
   <span>${formatCurrency(item.line_total || 0)}</span>
 </div>
                 </div>
@@ -3855,7 +3856,7 @@ function renderOrders(ordersToRender) {
   <div class="order-total-summary">
     <div class="order-total-line">
       <span>Subtotal</span>
-      <span>${formatCurrency(orderTotals)}</span>
+      <span>${Number(order.discount_total || 0) > 0 ? `<small><del>${formatCurrency(order.original_subtotal || orderTotals)}</del></small><small class="order-discount-note">Discount −${formatCurrency(order.discount_total)}</small>` : ""}${formatCurrency(orderTotals)}</span>
     </div>
 
     <div class="order-total-line">
@@ -4138,6 +4139,7 @@ const shippingAddress = shippingLines.length
                   <div class="tiny-note">Qty ${Number(item.quantity || 0)}</div>
                 </div>
                 <div class="order-product-prices">
+                ${Number(item.discount_amount || 0) > 0 ? `<small><del>${currency(Number(item.original_unit_price || 0) * Number(item.quantity || 0))}</del></small><small class="order-discount-note">${escapeHtml(item.discount_name || "Discount")} · −${currency(Number(item.discount_amount || 0) * Number(item.quantity || 0))}</small>` : ""}
                 <span>${currency(item.line_total || 0)}</span>
                 </div>
               </div>
@@ -4147,6 +4149,7 @@ const shippingAddress = shippingLines.length
             <h4>Summary</h4>
             <p>Items: ${totalItems}</p>
             <p>Product total: ${currency(orderTotals)}</p>
+            ${Number(order.discount_total || 0) > 0 ? `<p>Original subtotal: ${currency(order.original_subtotal || (orderTotals + Number(order.discount_total)))}</p><p class="order-discount-note">Discount: −${currency(order.discount_total)}</p>` : ""}
             <p>Shipping fee: ${currency(order.shipping_fee || 0)}</p>
 
             <div class="order-total-summary">

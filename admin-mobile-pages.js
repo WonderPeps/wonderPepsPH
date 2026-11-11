@@ -11,7 +11,7 @@
 
   const sectionIds = [
     "dashboardSection", "ordersSection", "productsSection", "categoriesSection",
-    "menuSection", "infoMediaSection", "shopSettingsSection", "securitySection",
+    "menuSection", "infoMediaSection", "shopSettingsSection", "securitySection", "discountManagementSection",
     "shippingFeesSection", "paymentMethodsSection", "addProductSection", "addMenuSection"
   ];
   const sections = sectionIds
@@ -24,6 +24,7 @@
     { title: "Payment Methods", description: "Manage payment names and QR images", icon: "₱", target: "paymentMethodsSection" },
     { title: "Courier Settings", description: "Couriers and shipping fees", icon: "♢", target: "shippingFeesSection" },
     { title: "Shop Settings", description: "Store information and appearance", icon: "⚙", target: "shopSettingsSection" },
+    { title: "Discount Management", description: "Create and manage product discounts", icon: "%", target: "discountManagementSection" },
     { title: "COA & Protocol media", description: "Upload and manage page images or videos", icon: "▧", target: "infoMediaSection" },
     { title: "Change Password", description: "Admin account security", icon: "♡", target: "securitySection" },
     { title: "Add menu item", description: "Create a new storefront link", icon: "＋", target: "addMenuSection" },
@@ -143,7 +144,7 @@
   }
 
   ["menuSection", "paymentMethodsSection", "shippingFeesSection", "shopSettingsSection",
-    "infoMediaSection", "securitySection", "addMenuSection"].forEach((id) => {
+    "infoMediaSection", "securitySection", "addMenuSection", "discountManagementSection"].forEach((id) => {
     const section = document.getElementById(id);
     if (section) addBackButton(section, "menu");
   });
