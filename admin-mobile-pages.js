@@ -342,6 +342,15 @@
   }
 
   if (productsContainer) {
+    // The existing admin.js Edit handler fills the product form, but the
+    // mobile page navigator must also reveal the Add/Edit Product section.
+    // Keep the original button and its existing handler; only switch pages.
+    productsContainer.addEventListener("click", (event) => {
+      const editButton = event.target.closest("[data-edit]");
+      if (!mobile.matches || !editButton || !productsContainer.contains(editButton)) return;
+      showSection("addProductSection", "products");
+    });
+
     new MutationObserver(buildMobileProductCards).observe(productsContainer, { childList: true, subtree: true });
     buildMobileProductCards();
   }
