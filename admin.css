@@ -2272,3 +2272,74 @@ html { font-size: 112.5%; }
   flex: 1 1 110px;
   min-height: 38px;
 }
+
+
+/* Discount management — isolated styles; existing admin sections remain unchanged. */
+#discountManagementSection .discount-form { max-width: 760px; padding: 18px; border: 1px solid var(--line, #f3c6d7); border-radius: 18px; background: var(--surface, #fff); }
+#discountManagementSection .discount-form-row { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+#discountManagementSection .discount-active-toggle { display:flex; align-items:center; gap:10px; }
+#discountManagementSection .discount-list-heading { margin-top: 28px; }
+#discountManagementSection .discount-campaign-list { display:grid; gap:12px; }
+#discountManagementSection .discount-campaign-card { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:16px; border:1px solid var(--line, #f3c6d7); border-radius:16px; background:var(--surface, #fff); }
+#discountManagementSection .discount-campaign-copy { display:grid; gap:5px; min-width:0; }
+#discountManagementSection .discount-campaign-copy span,#discountManagementSection .discount-campaign-copy small { color:var(--muted,#8b7580); }
+#discountManagementSection .discount-campaign-copy b { color:var(--accent,#d83f80); }
+#discountManagementSection .discount-status.is-active { color:#21845b; }
+#discountManagementSection .discount-status.is-paused { color:#a06a32; }
+#discountManagementSection .discount-actions { display:flex; flex-wrap:wrap; gap:8px; }
+@media(max-width:760px) { #discountManagementSection .discount-form-row { grid-template-columns:1fr; } #discountManagementSection .discount-campaign-card { align-items:stretch; flex-direction:column; } #discountManagementSection .discount-actions > button { flex:1; } }
+
+/* Order discount breakdown: keep each amount on its own clear line. */
+.order-product-prices {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 112px;
+  max-width: 46%;
+  white-space: normal;
+}
+.order-price-was {
+  color: #9b8290;
+  font-size: .72rem;
+  font-weight: 600;
+}
+.order-price-saving {
+  color: #c43d75;
+  font-size: .7rem;
+  font-weight: 750;
+  line-height: 1.3;
+  text-align: right;
+}
+.order-price-now {
+  color: var(--admin-plum);
+  font-size: .94rem;
+  line-height: 1.25;
+}
+.order-total-summary .order-total-line > span:last-child,
+.order-total-summary .order-total-line > strong {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.order-total-summary .order-original-line {
+  color: #8e7784;
+  font-size: .82rem;
+}
+.order-total-summary .order-discount-line {
+  color: #c43d75;
+  font-size: .86rem;
+}
+.order-total-summary .order-discount-line strong {
+  color: #c43d75;
+}
+.order-total-summary .order-subtotal-line {
+  padding-top: 7px;
+  border-top: 1px dashed #efd4df;
+  font-weight: 750;
+}
+@media (max-width: 600px) {
+  .order-product-row { gap: 10px; }
+  .order-product-prices { min-width: 100px; max-width: 44%; }
+  .order-price-saving { max-width: 100%; }
+}

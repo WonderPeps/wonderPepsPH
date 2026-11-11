@@ -190,6 +190,7 @@ function clearSavedCart() {
 let selectedCategory = "All";
 let products = [];
 let productVariants = [];
+let storefrontDiscounts = [];
 let productSoldCounts = new Map();
 let activeVariantProduct = null;
 let selectedVariant = null;
@@ -484,7 +485,8 @@ async function loadProducts() {
   const [
     { data: productData, error: productError },
     { data: variantData, error: variantError },
-    { data: soldData, error: soldError }
+    { data: soldData, error: soldError },
+    { data: discountData, error: discountError }
   ] = await Promise.all([
     supabaseClient
       .from("products")
@@ -500,7 +502,8 @@ async function loadProducts() {
 
     // This RPC returns aggregate totals only, so no customer/order details are
     // exposed to storefront visitors. See supabase-sold-counts.sql.
-    supabaseClient.rpc("get_product_sold_counts")
+    supabaseClient.rpc("get_product_sold_counts"),
+    supabaseClient.from("discount_campaigns").select("id,name,product_id,variant_id,discount_type,discount_value,starts_at,ends_at,is_active").eq("is_active", true)
   ]);
   if (productError) {
      grid.innerHTML = `
@@ -519,6 +522,7 @@ async function loadProducts() {
   }
 
   productVariants = variantData || [];
+  storefrontDiscounts = discountError ? [] : (discountData || []);
   productSoldCounts = new Map(
     (soldError ? [] : soldData || []).map((row) => [
       String(row.product_id),
@@ -646,6 +650,33 @@ function renderCategoryFilters() {
         });
 
 }
+function getActiveDiscount(productId, variantId = null) {
+  const now = Date.now();
+  const eligible = storefrontDiscounts.filter((discount) =>
+    String(discount.product_id) === String(productId) &&
+    (discount.starts_at == null || new Date(discount.starts_at).getTime() <= now) &&
+    (discount.ends_at == null || new Date(discount.ends_at).getTime() >= now) &&
+    (String(discount.variant_id || "") === String(variantId || "") || discount.variant_id == null)
+  );
+  eligible.sort((a, b) => Number(Boolean(b.variant_id)) - Number(Boolean(a.variant_id)));
+  return eligible[0] || null;
+}
+function getDiscountedPrice(originalPrice, discount) {
+  const price = Math.max(0, Number(originalPrice || 0));
+  if (!discount) return price;
+  const amount = discount.discount_type === "percent"
+    ? price * Number(discount.discount_value || 0) / 100
+    : Number(discount.discount_value || 0);
+  return Math.max(0, Math.round((price - Math.min(price, amount)) * 100) / 100);
+}
+function getCartPricing(item) {
+  const product = getProductById(item.productId);
+  const variant = item.variantId ? product?.variants?.find(v => String(v.id) === String(item.variantId)) : null;
+  const original = variant ? Number(variant.price || 0) : Number(product?.price || 0);
+  const discount = getActiveDiscount(item.productId, item.variantId || null);
+  return { original, discount, price: getDiscountedPrice(original, discount) };
+}
+
 function renderProducts(list, grid = productGrid) {
   if (!list.length) {
      grid.innerHTML =
@@ -713,7 +744,14 @@ ${productBadge ? `<span class="product-badge">${productBadge}</span>` : ""}
             </p>
 
             <div class="price-row">
-              <strong>${formatCurrency(product.price)}</strong>
+              ${(() => {
+                const priceOptions = hasVariants ? variants.map(v => ({ original: Number(v.price || 0), discount: getActiveDiscount(product.id, v.id) })) : [{ original: Number(product.price || 0), discount: getActiveDiscount(product.id, null) }];
+                const prices = priceOptions.map(x => getDiscountedPrice(x.original, x.discount));
+                const regular = Math.min(...priceOptions.map(x => x.original));
+                const sale = Math.min(...prices);
+                const onSale = priceOptions.some(x => x.discount);
+                return onSale ? `<span class="discount-sale-price">${hasVariants ? "From " : ""}${formatCurrency(sale)}</span><del class="discount-original-price">${formatCurrency(regular)}</del><span class="discount-sale-badge">SALE</span>` : `<strong>${hasVariants ? "From " : ""}${formatCurrency(regular)}</strong>`;
+              })()}
             </div>
 
             <div class="product-stats" aria-label="Product availability and sales">
@@ -876,8 +914,7 @@ function selectVariant(variantId) {
         String(input.value) === String(selectedVariant.id);
     });
 
-  variantSelectedPrice.textContent =
-    formatCurrency(selectedVariant.price);
+  { const d = getActiveDiscount(activeVariantProduct.id, selectedVariant.id); const sale = getDiscountedPrice(selectedVariant.price, d); variantSelectedPrice.innerHTML = d ? `<b class="discount-sale-price">${formatCurrency(sale)}</b> <del class="discount-original-price">${formatCurrency(selectedVariant.price)}</del>` : formatCurrency(selectedVariant.price); }
 
   variantSelectedStock.textContent =
     String(Number(selectedVariant.stock || 0));
@@ -929,7 +966,7 @@ function openVariantSelector(product, sourceButton = null) {
           <div class="variant-option-main">
             <strong>${escapeHtml(variant.name)}</strong>
             <div class="variant-option-meta">
-              <span>${formatCurrency(variant.price)}</span>
+              <span>${(() => { const d = getActiveDiscount(product.id, variant.id); const sale = getDiscountedPrice(variant.price, d); return d ? `<b class="discount-sale-price">${formatCurrency(sale)}</b> <del class="discount-original-price">${formatCurrency(variant.price)}</del>` : formatCurrency(variant.price); })()}</span>
               <small>
                 ${
                   outOfStock
@@ -1209,12 +1246,8 @@ function calculateSubtotal() {
 
     if (!product) return total;
 
-    const itemPrice =
-  item.variantId && Number.isFinite(Number(item.unitPrice))
-    ? Number(item.unitPrice)
-    : Number(product.price || 0);
-
-return total + itemPrice * Number(item.quantity || 0);
+    const pricing = getCartPricing(item);
+return total + pricing.price * Number(item.quantity || 0);
   }, 0);
 }
 
@@ -1446,10 +1479,8 @@ saveCart();
   product.image_url ||
   "";
 
-const itemPrice =
-  item.variantId
-    ? Number(item.unitPrice || 0)
-    : Number(product.price || 0);
+const itemPricing = getCartPricing(item);
+const itemPrice = itemPricing.price;
       return `
         <article class="cart-item">
           <div class="cart-thumb">
@@ -1478,7 +1509,7 @@ ${
     : ""
 }
 
-            <p>${formatCurrency(itemPrice)}</p>
+            <p>${itemPricing.discount ? `<span class="discount-sale-price">${formatCurrency(itemPrice)}</span> <del class="discount-original-price">${formatCurrency(itemPricing.original)}</del>` : formatCurrency(itemPrice)}</p>
 
             <div class="qty">
               <button
@@ -2176,9 +2207,9 @@ zipcode: zipcode || null,
    variant_name: variantId ? item.variantName || null : null,
    variant_sku: variantId ? item.variantSku || null : null,
 
-    unit_price: unitPrice,
+    unit_price: getCartPricing(item).price,
     quantity: Number(item.quantity || 0),
-    line_total: unitPrice * Number(item.quantity || 0)
+    line_total: getCartPricing(item).price * Number(item.quantity || 0)
   };
 });
 

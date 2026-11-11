@@ -11,7 +11,7 @@
 
   const sectionIds = [
     "dashboardSection", "ordersSection", "productsSection", "categoriesSection",
-    "menuSection", "infoMediaSection", "shopSettingsSection", "securitySection",
+    "menuSection", "infoMediaSection", "shopSettingsSection", "securitySection", "discountManagementSection",
     "shippingFeesSection", "paymentMethodsSection", "addProductSection", "addMenuSection"
   ];
   const sections = sectionIds
@@ -24,6 +24,7 @@
     { title: "Payment Methods", description: "Manage payment names and QR images", icon: "₱", target: "paymentMethodsSection" },
     { title: "Courier Settings", description: "Couriers and shipping fees", icon: "♢", target: "shippingFeesSection" },
     { title: "Shop Settings", description: "Store information and appearance", icon: "⚙", target: "shopSettingsSection" },
+    { title: "Discount Management", description: "Create and manage product discounts", icon: "%", target: "discountManagementSection" },
     { title: "COA & Protocol media", description: "Upload and manage page images or videos", icon: "▧", target: "infoMediaSection" },
     { title: "Change Password", description: "Admin account security", icon: "♡", target: "securitySection" },
     { title: "Add menu item", description: "Create a new storefront link", icon: "＋", target: "addMenuSection" },
@@ -115,6 +116,15 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Product Edit buttons are rendered by admin.js and keep their original
+  // click handlers. After that handler fills the editor, reveal its mobile page.
+  const mobileProductsContainer = document.getElementById("productsTableContainer");
+  mobileProductsContainer?.addEventListener("click", (event) => {
+    const editButton = event.target.closest("[data-edit]");
+    if (!mobileQuery.matches || !editButton || !mobileProductsContainer.contains(editButton)) return;
+    showSection("addProductSection", "products");
+  });
+
   function showTab(tab) {
     if (!mobileQuery.matches) return;
     if (tab === "menu") return showMenu();
@@ -143,7 +153,7 @@
   }
 
   ["menuSection", "paymentMethodsSection", "shippingFeesSection", "shopSettingsSection",
-    "infoMediaSection", "securitySection", "addMenuSection"].forEach((id) => {
+    "infoMediaSection", "securitySection", "addMenuSection", "discountManagementSection"].forEach((id) => {
     const section = document.getElementById(id);
     if (section) addBackButton(section, "menu");
   });

@@ -6,7 +6,7 @@
   <title>Wonder Peps PH Admin</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23df4f86'/%3E%3Cpath d='M32 48S13 37 13 23c0-7 5-11 11-11 4 0 7 2 8 5 2-3 5-5 9-5 6 0 11 4 11 11 0 14-20 25-20 25Z' fill='white'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="styles.css?v=cute-payment-v2" />
-  <link rel="stylesheet" href="admin.css?v=info-page-media-v1" />
+  <link rel="stylesheet" href="admin.css?v=discount-system-v1" />
 </head>
 <body class="admin-page">
   <a class="skip-link" href="#dashboardSection">Skip to dashboard</a>
@@ -66,6 +66,7 @@
 
       <div class="nav-group-label">Catalog</div>
       <a href="#productsSection"><span class="nav-icon" aria-hidden="true">◇</span><span>Products</span></a>
+      <a href="#discountManagementSection"><span class="nav-icon" aria-hidden="true">％</span><span>Discount Management</span></a>
       <a href="#categoriesSection"><span class="nav-icon" aria-hidden="true">✿</span><span>Categories</span></a>
       <a href="#menuSection"><span class="nav-icon" aria-hidden="true">☰</span><span>Menu</span></a>
 
@@ -162,6 +163,10 @@
       </div>
       <div id="productsTableContainer" class="table-shell"></div>
       <div id="productsPagination" class="pagination"></div>
+    </section>
+
+    <section id="discountManagementSection" class="admin-card admin-panel-section">
+      <div class="admin-section-header"><div><h2>Discount Management</h2><p class="tiny-note">Manage On Hand product and variant discounts.</p></div></div>
     </section>
 
     <section id="categoriesSection" class="admin-card admin-panel-section">
@@ -831,9 +836,10 @@ Hero eyebrow
 <script src="supabase.js"></script>
 <script src="variants.js?v=clean-console-v1"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="admin.js?v=automatic-product-cost-v12"></script>
+<script src="admin.js?v=discount-system-v1"></script>
 <script src="admin-ui.js?v=stable-section-nav-v2"></script>
 <script src="admin-info-media.js?v=20261106-edit1"></script>
-<script src="admin-mobile-pages.js?v=4"></script>
+<script src="discount-management.js?v=1"></script>
+<script src="admin-mobile-pages.js?v=discount-system-v1"></script>
 </body>
 </html>
