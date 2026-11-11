@@ -2593,3 +2593,18 @@ body.storefront-page.page-scroll-locked {
 .storefront-page .price-row { flex-wrap:wrap; justify-content:flex-start; }
 .discount-cart-note { color:#d83f80; }
 .order-discount-note { display:block; color:#d83f80; font-size:.78rem; }
+
+
+/* Discount display: keep sale and original prices side by side on storefront cards only. */
+.storefront-page .product-card .price-row {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  column-gap: 6px;
+  row-gap: 2px;
+}
+.storefront-page .product-card .price-row .discount-original-price {
+  margin-left: 0;
+}
