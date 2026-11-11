@@ -116,6 +116,15 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  // Product Edit buttons are rendered by admin.js and keep their original
+  // click handlers. After that handler fills the editor, reveal its mobile page.
+  const mobileProductsContainer = document.getElementById("productsTableContainer");
+  mobileProductsContainer?.addEventListener("click", (event) => {
+    const editButton = event.target.closest("[data-edit]");
+    if (!mobileQuery.matches || !editButton || !mobileProductsContainer.contains(editButton)) return;
+    showSection("addProductSection", "products");
+  });
+
   function showTab(tab) {
     if (!mobileQuery.matches) return;
     if (tab === "menu") return showMenu();
@@ -342,15 +351,6 @@
   }
 
   if (productsContainer) {
-    // The existing admin.js Edit handler fills the product form, but the
-    // mobile page navigator must also reveal the Add/Edit Product section.
-    // Keep the original button and its existing handler; only switch pages.
-    productsContainer.addEventListener("click", (event) => {
-      const editButton = event.target.closest("[data-edit]");
-      if (!mobile.matches || !editButton || !productsContainer.contains(editButton)) return;
-      showSection("addProductSection", "products");
-    });
-
     new MutationObserver(buildMobileProductCards).observe(productsContainer, { childList: true, subtree: true });
     buildMobileProductCards();
   }
