@@ -3757,8 +3757,11 @@ function renderOrders(ordersToRender) {
   </div>
 </div>
 <div class="order-product-prices">
-  ${Number(item.discount_amount || 0) > 0 ? `<small><del>${formatCurrency(Number(item.original_unit_price || 0) * Number(item.quantity || 0))}</del></small><small class="order-discount-note">${escapeHtml(item.discount_name || "Discount")} · −${formatCurrency(Number(item.discount_amount || 0) * Number(item.quantity || 0))}</small>` : ""}
-  <span>${formatCurrency(item.line_total || 0)}</span>
+  ${Number(item.discount_amount || 0) > 0 ? `
+    <small class="order-price-was">Was ${formatCurrency(Number(item.original_unit_price || 0) * Number(item.quantity || 0))}</small>
+    <small class="order-price-saving">${escapeHtml(item.discount_name || "Discount")} · Save ${formatCurrency(Number(item.discount_amount || 0) * Number(item.quantity || 0))}</small>
+    <strong class="order-price-now">${formatCurrency(item.line_total || 0)}</strong>
+  ` : `<strong class="order-price-now">${formatCurrency(item.line_total || 0)}</strong>`}
 </div>
                 </div>
               `)
@@ -3854,9 +3857,19 @@ function renderOrders(ordersToRender) {
   ${productRows}
 
   <div class="order-total-summary">
-    <div class="order-total-line">
-      <span>Subtotal</span>
-      <span>${Number(order.discount_total || 0) > 0 ? `<small><del>${formatCurrency(order.original_subtotal || orderTotals)}</del></small><small class="order-discount-note">Discount −${formatCurrency(order.discount_total)}</small>` : ""}${formatCurrency(orderTotals)}</span>
+    ${Number(order.discount_total || 0) > 0 ? `
+      <div class="order-total-line order-original-line">
+        <span>Original subtotal</span>
+        <span>${formatCurrency(order.original_subtotal || (orderTotals + Number(order.discount_total || 0)))}</span>
+      </div>
+      <div class="order-total-line order-discount-line">
+        <span>Discount${order.discount_name ? ` · ${escapeHtml(order.discount_name)}` : ""}</span>
+        <strong>−${formatCurrency(order.discount_total)}</strong>
+      </div>
+    ` : ""}
+    <div class="order-total-line order-subtotal-line">
+      <span>Subtotal${Number(order.discount_total || 0) > 0 ? " after discount" : ""}</span>
+      <strong>${formatCurrency(orderTotals)}</strong>
     </div>
 
     <div class="order-total-line">
